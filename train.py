@@ -35,6 +35,8 @@ import torchvision.datasets as datasets
 
 import math
 
+from IPython.display import Image, display
+
 # Device configuration
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -466,6 +468,7 @@ def plot_batch(imgs):
   plt.axis('off')
   plt.show()
   plt.savefig('filename.png')
+  display(Image(filename='filename.png'))
 
 """Download FashionMNIST dataset:"""
 
