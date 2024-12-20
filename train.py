@@ -210,10 +210,10 @@ dgms_batches = []
 for batch_idx, (data, _) in enumerate(train_loader):
   data = data.view(data.size(0), -1)
   points_np = data.view(-1, img_size).numpy()
-  # if batch_idx==200: plot_batch(data)
+  
   dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
   dgms_batches.append(dgm2)
-  #plotdgm(dgm2)
+
   if batch_idx==0 or batch_idx==50: plotdgm(dgm2)
   n_batches += 1
 
