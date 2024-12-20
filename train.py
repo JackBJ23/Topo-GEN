@@ -25,9 +25,6 @@ from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
-# Machine learning and visualization
-from plotly import graph_objects as go
-
 from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
 from models import VAE
 
