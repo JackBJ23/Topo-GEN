@@ -29,129 +29,10 @@ from gtda.plotting import plot_diagram, plot_point_cloud
 from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
 from models import VAE
 
-# Device configuration
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-######
-
 def plotdgm(dgm):
   dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
   fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
   fig.show()
-
-#######
-
-seed = 1
-batch_size = 128
-epochs = 30
-log_interval = 50
-torch.manual_seed(seed)
-img_size = 28*28
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Initialize the VAE with a desired latent dimension
-latent_dim = 32  # You can adjust this as needed
-vae = VAE(latent_dim)
-
-"""Standard loss fctn and regularizers:"""
-
-def loss_vae0(recon_x, x, mu, logvar, t):
-    global losses, losses2, lossestopo, lossestopo2
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: fake batch of imgs, x: real batch of imgs
-
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-
-    if t==0:
-      losses.append(BCE.item())
-      losses2.append(KLD.item())
-    else:
-      lossestopo.append(BCE.item())
-      lossestopo2.append(KLD.item())
-
-    return BCE + KLD
-
-fids = []
-
-def loss_fctn1(recon_x, x, mu, logvar, dgm, dgm2, w_topo0): #bottleneck0
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0, got_loss0 = d_bottleneck0(recon_x, dgm, dgm2)
-
-    if got_loss0==1: loss += l_topo0 * w_topo0
-
-    return loss
-
-def loss_fctn2(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1): #bottleneck0+1
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0, got_loss0 = d_bottleneck0(recon_x, dgm, dgm2) #loss of degree 0
-    l_topo1, got_loss1 = d_bottleneck1(recon_x, dgm, dgm2) #loss of degree 1
-
-    if got_loss0==1: loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-
-    return loss
-
-def loss_fctn3(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1, delta): #pers entropy0+1. weights: 0.5, 0.5: does not learn. 0.3, 0.1: good
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0, got_loss0 = loss_persentropy0(recon_x, dgm, dgm2, delta) #loss of degree 0
-    l_topo1, got_loss1 = loss_persentropy1(recon_x, dgm, dgm2, delta) #loss of degree 1
-
-    if got_loss0==1: loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-
-    return loss
-
-def loss_fctn4(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1, delta): #pers entropy0+dsigma1. 0.5, 0.5: does not learn. 0.1, 0.3: relatively good.
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0, got_loss0 = loss_persentropy0(recon_x, dgm, dgm2, delta) #loss of degree 0
-    l_topo1, got_loss1 = dsigma1(recon_x, x.view(-1, img_size), dgm, dgm2) #loss of degree 1
-
-    if got_loss0==1: loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-
-    return loss
-
-def loss_fctn5(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1): # density0+dsigma1
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0 = loss_density(recon_x, x.view(-1, img_size), dgm, dgm2, 0.1, 0.0005, 15., 30, False) #loss of degree 0. loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma, scale, maxrange, npoints, plot)
-    l_topo1, got_loss1 = dsigma1(recon_x, x.view(-1, img_size), dgm, dgm2) #loss of degree 1
-
-    loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-
-    return loss
-
-def loss_fctn6(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1): # dsigma0+dsigma1
-    w_vae = 1.
-    ## normal loss:
-    loss = w_vae * loss_vae0(recon_x, x, mu, logvar, 1)
-    ## compute topological loss:
-    l_topo0 = dsigma0(recon_x, x.view(-1, img_size), dgm, dgm2) #loss of degree 0
-    l_topo1, got_loss1 = dsigma1(recon_x, x.view(-1, img_size), dgm, dgm2) #loss of degree 1
-
-    loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-
-    return loss
 
 def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, type):
     # Reshape tensors for visualization
@@ -194,9 +75,28 @@ def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, type):
     plt.savefig(f'figures_epoch_{epoch}_step_{type}.png')
     plt.show()
 
-# Download dataset
+def loss_vae(recon_x, x, mu, logvar):
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
+    return BCE, KLD
 
-def evaluate(model0, model1, val_loader, dgms_batches):
+# loss of TopoVAEs (Standard + Topoloss of degree 0 + Topoloss of degree 1)
+def loss_topovae(recon_x, x, mu, logvar, dgms, dgms_true, w_topo0, w_topo1):
+    # Standard loss:
+    BCE, KLD = loss_vae(recon_x, x, mu, logvar)
+    loss = BCE + KLD
+    # Topological loss:
+    l_topo0, got_loss0 = d_bottleneck0(recon_x, dgms, dgms_true) #loss of degree 0
+    l_topo1, got_loss1 = d_bottleneck1(recon_x, dgms, dgms_true) #loss of degree 1
+
+    if got_loss0==1: loss += l_topo0 * w_topo0
+    if got_loss1==1: loss += l_topo1 * w_topo1
+    return BCE, KLD, l_topo0, l_topo1, loss
+
+# Train and compare model0 (normal VAE) and model2 (some TopoVAE):
+
+def evaluate(model0, model1, val_loader, dgms_batches, epoch, type_eval, w_topo0, w_topo1):
   model0.eval()
   model1.eval()
   running_loss0 = 0.
@@ -206,18 +106,18 @@ def evaluate(model0, model1, val_loader, dgms_batches):
         dgms_true = dgms_batches[batch_idx]
         #model0
         recon_batch0, mean, log_var = model0(data)
-        loss0 = loss_vae0(recon_batch0, data, mean, log_var, 0)
-        running_loss0 += loss0.item()
+        BCE, _ = loss_vae(recon_batch0, data, mean, log_var, 0)
+        running_loss0 += BCE.item()
         #model1
         recon_batch1, mean, log_var = model1(data)
         dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-        loss1 = loss_fctn1(recon_batch1, data, mean, log_var, dgm, dgms_true, 15., 15.)
-        running_loss1 += loss1.item()
-        if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'val') # batch_idx set as -1: means it is validation
+        BCE, _, _, _, _ = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
+        running_loss1 += BCE.item()
+        if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, type_eval) # batch_idx set as -1: means it is validation
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
-def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches):
+def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1):
   # Losses saved once per epoch:
   train_losses0 = []
   train_losses1 = []
@@ -238,18 +138,19 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
-          #model0
+          # model0: VAE
           recon_batch0, mean, log_var = model0(data)
-          loss0 = loss_vae0(recon_batch0, data, mean, log_var, 0)
+          BCE, KLD = loss_vae(recon_batch0, data, mean, log_var, 0)
+          loss0 = BCE + KLD
           loss0.backward()
           optimizer0.step()
           running_loss0 += loss0.item()
           train_losses0_all.append(loss0.item())
 
-          #model1
+          # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
           dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-          loss1 = loss_fctn1(recon_batch1, data, mean, log_var, dgm, dgms_true, 15., 15.)
+          loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
           loss1.backward()
           optimizer1.step()
           running_loss1 += loss1.item()
@@ -257,22 +158,17 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
 
           if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'train')
 
+      print("End of epoch", epoch)
       # Average of losses over one epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches)
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches, epoch, 'eval')
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
-      with torch.no_grad():
-          print("Real batch, VAE0, TopoVAE:")
-          recon_batch_0, _, _ = model0(data)
-          recon_batch_1, _, _ = model1(data)
-          plot_imgs(data, recon_batch_0, recon_batch_1, epoch, batch_idx)
-      print("End of epoch", epoch)
-  
-  # Save losses over all iterations: (for simplicity, we only focus on the BCE loss, although the KLD loss can also be added)
+  # Training ended
+  # Save losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
   plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
   plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
   plt.xlabel("Iteration")
@@ -295,12 +191,16 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
   return model0, model1
 
 if __name__ == "__main__":
+  device = "cuda" if torch.cuda.is_available() else "cpu"
   ## hyperparameters:
+  w_topo0 = 15.
+  w_topo1 = 15.
   n_epochs = 1
   n_showplots = 25
   n_latent = 10
   seed = 123
   batch_size = 64
+  img_size = 28 * 28
   torch.manual_seed(seed)
 
   model0 = VAE(n_latent)
@@ -336,7 +236,7 @@ if __name__ == "__main__":
     dgms_batches.append(dgm2)
 
   print("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1)
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, 'test')
   print("Test losses:", test_loss0, test_loss1)
