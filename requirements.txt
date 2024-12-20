@@ -1,0 +1,20 @@
+numpy
+scipy
+matplotlib
+ipython
+plotly
+torch
+torchvision
+Pillow
+tqdm
+
+# Topological Data Analysis libraries
+giotto-tda
+giotto-ph
+ripser
+tadasets
+persim
+
+# Other imports
+six
+argparse
