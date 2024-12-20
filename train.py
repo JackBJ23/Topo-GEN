@@ -146,18 +146,46 @@ def loss_fctn6(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1): # dsigma0+d
 
     return loss
 
-def plot_batch(imgs):
-  imgs2 = imgs.reshape(-1, 1, 28, 28)
-  grid_img = torchvision.utils.make_grid(imgs2[:32], nrow=8, normalize=True)  # Create a grid of images
-  # Convert the grid tensor to numpy array and transpose the dimensions
-  grid_img = grid_img.cpu().numpy().transpose((1, 2, 0))
-  # Display the grid of images
-  plt.figure(figsize=(10, 10))
-  plt.imshow(grid_img)
-  plt.axis('off')
-  plt.savefig('filename.png')
-  plt.show()
-  display(Image(filename='filename.png'))
+def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, step):
+    # Reshape tensors for visualization
+    data = data.reshape(-1, 1, 28, 28)
+    recon_batch_0 = recon_batch_0.reshape(-1, 1, 28, 28)
+    recon_batch_t = recon_batch_t.reshape(-1, 1, 28, 28)
+
+    # Create grids for each dataset
+    grid_data = torchvision.utils.make_grid(data[:32], nrow=8, normalize=True)
+    grid_recon_0 = torchvision.utils.make_grid(recon_batch_0[:32], nrow=8, normalize=True)
+    grid_recon_t = torchvision.utils.make_grid(recon_batch_t[:32], nrow=8, normalize=True)
+
+    # Convert tensors to numpy arrays for plotting
+    grid_data = grid_data.cpu().numpy().transpose((1, 2, 0))
+    grid_recon_0 = grid_recon_0.cpu().numpy().transpose((1, 2, 0))
+    grid_recon_t = grid_recon_t.cpu().numpy().transpose((1, 2, 0))
+
+    # Plot the three grids next to each other
+    plt.figure(figsize=(15, 5))
+
+    # Left: Data
+    plt.subplot(1, 3, 1)
+    plt.imshow(grid_data)
+    plt.axis('off')
+    plt.title("Original Data")
+
+    # Middle: Reconstructed Batch 0 (standard VAE)
+    plt.subplot(1, 3, 2)
+    plt.imshow(grid_recon_0)
+    plt.axis('off')
+    plt.title("Recon Batch 0")
+
+    # Right: Reconstructed Batch from TopoVAE
+    plt.subplot(1, 3, 3)
+    plt.imshow(grid_recon_t)
+    plt.axis('off')
+    plt.title("Recon Batch t")
+
+    plt.tight_layout()
+    plt.savefig(f'figures_epoch_{epoch}_step_{step}.png')
+    plt.show()
 
 """Download FashionMNIST dataset:"""
 
@@ -261,31 +289,20 @@ for epoch in range(1):
             print(f"Epoch {epoch+1}/{epochs} - Batch {batch_idx}/{len(train_loader)}")
             print("Input: real data (trained on)")
             with torch.no_grad():
-                print("Real batch:")
-                plot_batch(data)
-
-                print("VAE0:")
-                recon_batch, _, _ = model0(data)
-                plot_batch(recon_batch)
-                print("TopoVAE:")
-                recon_batch, _, _ = model2(data)
-                plot_batch(recon_batch)
+                print("Real batch, VAE0, TopoVAE:")
+                recon_batch_0, _, _ = model0(data)
+                recon_batch_t, _, _ = model2(data)
+                plot_imgs(data, recon_batch_0, recon_batch_t, epoch, batch_idx)
 
         else: #ie batch_idx % n_showplots == 0 and >0:
             print(f"Epoch {epoch+1}/{epochs} - Batch {batch_idx}/{len(train_loader)}")
             print("Input: new data (not trained on) and input random latent vectors:")
 
             with torch.no_grad():
-                print("Real batch:")
-                plot_batch(data)
-
-                print("VAE0:")
-                recon_batch, _, _ = model0(data)
-                plot_batch(recon_batch)
-
-                print("TopoVAE:")
-                recon_batch, _, _ = model2(data)
-                plot_batch(recon_batch)
+                print("Real batch, VAE0, TopoVAE:")
+                recon_batch_0, _, _ = model0(data)
+                recon_batch_t, _, _ = model2(data)
+                plot_imgs(data, recon_batch_0, recon_batch_t, epoch, batch_idx)
 
     print("end of epoch", epoch)
     plt.plot(np.arange(len(losses)), losses, label='VAE0')
