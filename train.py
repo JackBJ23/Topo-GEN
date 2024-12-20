@@ -30,7 +30,6 @@ from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
 # Machine learning and visualization
-from sklearn import datasets
 from plotly import graph_objects as go
 
 from IPython.display import Image, display
