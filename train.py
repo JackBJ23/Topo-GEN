@@ -237,6 +237,6 @@ if __name__ == "__main__":
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1)
   print("Testing...")
-  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, 'test', w_topo0, w_topo1)
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, n_epochs, 'test', w_topo0, w_topo1)
   print("Test losses:", test_loss0, test_loss1)
   print("Done.")
