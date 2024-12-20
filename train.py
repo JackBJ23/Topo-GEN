@@ -144,17 +144,17 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
           loss0 = BCE + KLD
           loss0.backward()
           optimizer0.step()
-          running_loss0 += loss0.item()
-          train_losses0_all.append(loss0.item())
+          running_loss0 += BCE.item()
+          train_losses0_all.append(BCE.item())
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
           dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-          loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
+          BCE, _, _, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
           loss1.backward()
           optimizer1.step()
-          running_loss1 += loss1.item()
-          train_losses1_all.append(loss1.item())
+          running_loss1 += BCE.item()
+          train_losses1_all.append(BCE.item())
 
           if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'train')
 
