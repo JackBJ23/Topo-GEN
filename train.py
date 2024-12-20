@@ -530,7 +530,7 @@ losses2 = []
 lossestopo = []
 lossestopo2 = []
 
-for epoch in range(n_epochs):
+for epoch in range(1):
     for batch_idx, (data, _) in enumerate(train_loader):
 
         if batch_idx%n_showplots==0 and batch_idx>0:
@@ -548,6 +548,7 @@ for epoch in range(n_epochs):
           plt.show()
 
         if batch_idx % n_showplots != 0 or batch_idx==0:
+          if batch_idx%50==0: print(batch_idx)
           #get dgm2:
           dgm2 = dgms_batches[batch_idx]
 
