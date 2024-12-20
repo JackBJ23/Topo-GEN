@@ -169,19 +169,19 @@ def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, step):
     plt.subplot(1, 3, 1)
     plt.imshow(grid_data)
     plt.axis('off')
-    plt.title("Original Data")
+    plt.title("True")
 
     # Middle: Reconstructed Batch 0 (standard VAE)
     plt.subplot(1, 3, 2)
     plt.imshow(grid_recon_0)
     plt.axis('off')
-    plt.title("Recon Batch 0")
+    plt.title("VAE")
 
     # Right: Reconstructed Batch from TopoVAE
     plt.subplot(1, 3, 3)
     plt.imshow(grid_recon_t)
     plt.axis('off')
-    plt.title("Recon Batch t")
+    plt.title("TopoVAE")
 
     plt.tight_layout()
     plt.savefig(f'figures_epoch_{epoch}_step_{step}.png')
