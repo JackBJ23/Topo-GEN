@@ -163,7 +163,7 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches, epoch, 'eval')
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches, epoch, 'eval', w_topo0, w_topo1)
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
@@ -237,6 +237,6 @@ if __name__ == "__main__":
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1)
   print("Testing...")
-  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, 'test')
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, 'test', w_topo0, w_topo1)
   print("Test losses:", test_loss0, test_loss1)
   print("Done.")
