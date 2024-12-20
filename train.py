@@ -36,6 +36,11 @@ import torchvision.datasets as datasets
 import math
 
 from IPython.display import Image, display
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.title("Test Plot")
+plt.show()
+plt.savefig('plot.png')
+display(Image(filename='plot.png'))
 
 # Device configuration
 device = "cuda" if torch.cuda.is_available() else "cpu"
