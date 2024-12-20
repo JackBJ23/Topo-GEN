@@ -38,8 +38,8 @@ import math
 from IPython.display import Image, display
 plt.plot([1, 2, 3], [1, 4, 9])
 plt.title("Test Plot")
-plt.show()
 plt.savefig('plot.png')
+plt.show()
 display(Image(filename='plot.png'))
 
 # Device configuration
@@ -471,8 +471,8 @@ def plot_batch(imgs):
   plt.figure(figsize=(10, 10))
   plt.imshow(grid_img)
   plt.axis('off')
-  plt.show()
   plt.savefig('filename.png')
+  plt.show()
   display(Image(filename='filename.png'))
 
 """Download FashionMNIST dataset:"""
