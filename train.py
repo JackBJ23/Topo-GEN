@@ -465,6 +465,7 @@ def plot_batch(imgs):
   plt.imshow(grid_img)
   plt.axis('off')
   plt.show()
+  plt.savefig('filename.png')
 
 """Download FashionMNIST dataset:"""
 
