@@ -153,7 +153,7 @@ def loss_fctn6(recon_x, x, mu, logvar, dgm, dgm2, w_topo0, w_topo1): # dsigma0+d
 
     return loss
 
-def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, step):
+def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, type):
     # Reshape tensors for visualization
     data = data.reshape(-1, 1, 28, 28)
     recon_batch_0 = recon_batch_0.reshape(-1, 1, 28, 28)
@@ -191,7 +191,7 @@ def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, step):
     plt.title("TopoVAE")
 
     plt.tight_layout()
-    plt.savefig(f'figures_epoch_{epoch}_step_{step}.png')
+    plt.savefig(f'figures_epoch_{epoch}_step_{type}.png')
     plt.show()
 
 # Download dataset
