@@ -26,13 +26,20 @@ from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
-from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1, plot_dgm
+from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
 from models import VAE
 
 # Device configuration
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 ######
+
+def plotdgm(dgm):
+  dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
+  fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
+  fig.show()
+
+#######
 
 seed = 1
 batch_size = 128
@@ -187,39 +194,36 @@ def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, step):
     plt.savefig(f'figures_epoch_{epoch}_step_{step}.png')
     plt.show()
 
-"""Download FashionMNIST dataset:"""
+# Download dataset
 
-batch_size = 128 # 128
+batch_size = 64
 
-transform = transforms.ToTensor()
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+full_train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
+train_size = int(0.8 * len(full_train_dataset))
+val_size = len(full_train_dataset) - train_size
+train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
+test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
 
-# Download the FashionMNIST dataset
-train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-"""Pre-compute persistence diagrams of data:"""
+print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
-def plotdgm(dgm):
-  dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-  fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
-  fig.show()
-
-n_batches = 0
+# Pre-compute persistence diagrams:
 dgms_batches = []
-
-for batch_idx, (data, _) in enumerate(train_loader):
+for step, (data, _) in enumerate(train_loader):
   data = data.view(data.size(0), -1)
   points_np = data.view(-1, img_size).numpy()
-  
+  if step==0: print("shape:", data.shape, "pts", points_np)
   dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
   dgms_batches.append(dgm2)
 
-  if batch_idx==0 or batch_idx==50: plotdgm(dgm2)
-  n_batches += 1
-
-print(n_batches)
-
-"""Train and compare model0 (normal VAE) and model2 (model2 is some TopoVAE model) (same structure but with topo-loss):"""
+# Train and compare model0 (normal VAE) and model2 (some TopoVAE):
 
 ## hyperparameters:
 n_epochs = 10
@@ -303,17 +307,3 @@ for epoch in range(1):
                 recon_batch_0, _, _ = model0(data)
                 recon_batch_t, _, _ = model2(data)
                 plot_imgs(data, recon_batch_0, recon_batch_t, epoch, batch_idx)
-
-    print("end of epoch", epoch)
-    plt.plot(np.arange(len(losses)), losses, label='VAE0')
-    plt.plot(np.arange(len(lossestopo)), lossestopo, label='TopoVAE')
-    plt.xlabel("Iteration")
-    plt.ylabel("BCE loss")
-    plt.legend(loc='upper right')
-    plt.show()
-    plt.plot(np.arange(len(losses2)), losses2, label='VAE0')
-    plt.plot(np.arange(len(lossestopo2)), lossestopo2, label='TopoVAE')
-    plt.xlabel("Iteration")
-    plt.ylabel("KLD loss")
-    plt.legend(loc='upper right')
-    plt.show()
