@@ -15,11 +15,7 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms, datasets
 from torchvision.utils import make_grid, save_image
-
-# Image handling
-from torchvision.transforms.functional import to_pil_image
-from PIL import Image
-from IPython.display import Image as IPyImage
+from IPython.display import Image, display
 
 # TDA libraries
 import ripser
@@ -31,8 +27,6 @@ from gtda.plotting import plot_diagram, plot_point_cloud
 
 # Machine learning and visualization
 from plotly import graph_objects as go
-
-from IPython.display import Image, display as IPyImage?
 
 from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
 from models import VAE
