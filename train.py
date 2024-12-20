@@ -11,7 +11,7 @@ import matplotlib.animation as animation
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import torchvision
 from torchvision import transforms, datasets
 from torchvision.utils import make_grid, save_image
@@ -26,7 +26,7 @@ from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
-from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
+from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1, plot_dgm
 from models import VAE
 
 # Device configuration
