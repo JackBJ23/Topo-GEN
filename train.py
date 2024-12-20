@@ -1,46 +1,39 @@
-# Import standard libraries
 import sys
+import os
+import math
+import random
+import argparse
 import numpy as np
+import scipy
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import random
-import scipy
-import os
-import argparse
 
-# Import PyTorch related libraries
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
-import torch.utils.data
 from torch.utils.data import DataLoader
 import torchvision
-from torchvision import transforms
-import torchvision.utils
-from torchvision.transforms.functional import to_pil_image
+from torchvision import transforms, datasets
 from torchvision.utils import make_grid, save_image
-# Import image handling libraries
-import PIL.Image as Image
+
+# Image handling
+from torchvision.transforms.functional import to_pil_image
+from PIL import Image
 from IPython.display import Image as IPyImage
-# Import TDA libraries
+
+# TDA libraries
 import ripser
 import persim
 import tadasets
 from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
+
+# Machine learning and visualization
 from sklearn import datasets
 from plotly import graph_objects as go
-import torchvision.datasets as datasets
-
-import math
 
 from IPython.display import Image, display
-plt.plot([1, 2, 3], [1, 4, 9])
-plt.title("Test Plot")
-plt.savefig('plot.png')
-plt.show()
-display(Image(filename='plot.png'))
 
 # Device configuration
 device = "cuda" if torch.cuda.is_available() else "cpu"
