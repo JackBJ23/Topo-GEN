@@ -196,114 +196,151 @@ def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, type):
 
 # Download dataset
 
-batch_size = 64
+def evaluate(model0, model1, val_loader, dgms_batches):
+  model0.eval()
+  model1.eval()
+  running_loss0 = 0.
+  running_loss1 = 0.
+  with torch.no_grad():
+      for batch_idx, (data, _) in enumerate(val_loader):
+        dgms_true = dgms_batches[batch_idx]
+        #model0
+        recon_batch0, mean, log_var = model0(data)
+        loss0 = loss_vae0(recon_batch0, data, mean, log_var, 0)
+        running_loss0 += loss0.item()
+        #model1
+        recon_batch1, mean, log_var = model1(data)
+        dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
+        loss1 = loss_fctn1(recon_batch1, data, mean, log_var, dgm, dgms_true, 15., 15.)
+        running_loss1 += loss1.item()
+        if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'val') # batch_idx set as -1: means it is validation
 
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
-full_train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
-train_size = int(0.8 * len(full_train_dataset))
-val_size = len(full_train_dataset) - train_size
-train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
-test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
+  return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches):
+  # Losses saved once per epoch:
+  train_losses0 = []
+  train_losses1 = []
+  val_losses0 = []
+  val_losses1 = []
 
-print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
+  # Losses saved in all training steps to view a more detailed evolution:
+  train_losses0_all = []
+  train_losses1_all = []
 
-# Pre-compute persistence diagrams:
-dgms_batches = []
-for step, (data, _) in enumerate(train_loader):
-  data = data.view(data.size(0), -1)
-  points_np = data.view(-1, img_size).numpy()
-  if step==0: print("shape:", data.shape, "pts", points_np)
-  dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
-  dgms_batches.append(dgm2)
-
-# Train and compare model0 (normal VAE) and model2 (some TopoVAE):
-
-## hyperparameters:
-n_epochs = 10
-n_showplots = 25
-n_latent = 10
-
-## create 2 models with same parameters:
-seed = 515
-torch.manual_seed(seed)
-model0 = VAE(n_latent)
-torch.manual_seed(seed)
-model2 = VAE(n_latent)
-
-optimizer0 = optim.Adam(model0.parameters(), lr=1e-3)
-optimizer2 = optim.Adam(model2.parameters(), lr=1e-3)
-model0.train()
-model2.train()
-losses = []
-losses2 = []
-lossestopo = []
-lossestopo2 = []
-
-for epoch in range(1):
-    for batch_idx, (data, _) in enumerate(train_loader):
-
-        if batch_idx%n_showplots==0 and batch_idx>0:
-          plt.plot(np.arange(len(losses)), losses, label='Conv-VAE')
-          plt.plot(np.arange(len(lossestopo)), lossestopo, label='Conv-TopoVAE')
-          plt.xlabel("Iteration")
-          plt.ylabel("BCE loss")
-          plt.legend(loc='upper right')
-          plt.show()
-          plt.plot(np.arange(len(losses2)), losses2, label='Conv-VAE')
-          plt.plot(np.arange(len(lossestopo2)), lossestopo2, label='Conv-TopoVAE')
-          plt.xlabel("Iteration")
-          plt.ylabel("KLD loss")
-          plt.legend(loc='upper right')
-          plt.show()
-
-        if batch_idx % n_showplots != 0 or batch_idx==0:
-          if batch_idx%50==0: print(batch_idx)
-          #get dgm2:
-          dgm2 = dgms_batches[batch_idx]
-
-          #update the 2 models:
+  for epoch in range(n_epochs):
+      model0.train()
+      model1.train()
+      running_loss0 = 0.
+      running_loss1 = 0.
+      for batch_idx, (data, _) in enumerate(train_loader):
+          dgms_true = dgms_batches[batch_idx]
           optimizer0.zero_grad()
-          optimizer2.zero_grad()
+          optimizer1.zero_grad()
 
           #model0
-          recon_batch, mean, log_var = model0(data)
-          loss = loss_vae0(recon_batch, data, mean, log_var, 0)
-          loss.backward()
+          recon_batch0, mean, log_var = model0(data)
+          loss0 = loss_vae0(recon_batch0, data, mean, log_var, 0)
+          loss0.backward()
           optimizer0.step()
-          #model2
-          recon_batch, mean, log_var = model2(data)
-          dgm = get_dgm(recon_batch.view(data.size(0), -1), 1)
-          ## replace the next line by the topo-loss of choice (or combination of topo-losses):
-          loss = loss_fctn2(recon_batch, data, mean, log_var, dgm, dgm2, 15., 15.)
-          # loss_fctn2(recon_batch, data, mean, log_var, dgm, dgm2, 5., 5.)
-          # loss_fctn3(recon_batch, data, mean, log_var, dgm, dgm2, 5., 5., 0.1)
-          # loss_fctn4(recon_batch, data, mean, log_var, dgm, dgm2, 10., 10., 0.1)
-          # loss_fctn5(recon_batch, data, mean, log_var, dgm, dgm2, 5., 5.)
-          loss.backward()
-          optimizer2.step()
+          running_loss0 += loss0.item()
+          train_losses0_all.append(loss0.item())
 
-          if batch_idx % n_showplots == 1 and batch_idx > 100:
-            print(f"Epoch {epoch+1}/{epochs} - Batch {batch_idx}/{len(train_loader)}")
-            print("Input: real data (trained on)")
-            with torch.no_grad():
-                print("Real batch, VAE0, TopoVAE:")
-                recon_batch_0, _, _ = model0(data)
-                recon_batch_t, _, _ = model2(data)
-                plot_imgs(data, recon_batch_0, recon_batch_t, epoch, batch_idx)
+          #model1
+          recon_batch1, mean, log_var = model1(data)
+          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
+          loss1 = loss_fctn1(recon_batch1, data, mean, log_var, dgm, dgms_true, 15., 15.)
+          loss1.backward()
+          optimizer1.step()
+          running_loss1 += loss1.item()
+          train_losses1_all.append(loss1.item())
 
-        else: #ie batch_idx % n_showplots == 0 and >0:
-            print(f"Epoch {epoch+1}/{epochs} - Batch {batch_idx}/{len(train_loader)}")
-            print("Input: new data (not trained on) and input random latent vectors:")
+          if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'train')
 
-            with torch.no_grad():
-                print("Real batch, VAE0, TopoVAE:")
-                recon_batch_0, _, _ = model0(data)
-                recon_batch_t, _, _ = model2(data)
-                plot_imgs(data, recon_batch_0, recon_batch_t, epoch, batch_idx)
+      # Average of losses over one epoch:
+      train_losses0.append(running_loss0 / len(train_loader))
+      train_losses1.append(running_loss1 / len(train_loader))
+      # Evaluate on the evaluation set:
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches)
+      val_losses0.append(val_loss0)
+      val_losses1.append(val_loss1)
+
+      with torch.no_grad():
+          print("Real batch, VAE0, TopoVAE:")
+          recon_batch_0, _, _ = model0(data)
+          recon_batch_1, _, _ = model1(data)
+          plot_imgs(data, recon_batch_0, recon_batch_1, epoch, batch_idx)
+      print("End of epoch", epoch)
+  
+  # Save losses over all iterations: (for simplicity, we only focus on the BCE loss, although the KLD loss can also be added)
+  plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
+  plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
+  plt.xlabel("Iteration")
+  plt.ylabel("BCE loss")
+  plt.legend(loc='upper right')
+  plt.tight_layout()
+  plt.savefig('BCElosses_train_all.png')
+
+  # Save losses and validation losses over epochs:
+  plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
+  plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
+  plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
+  plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
+  plt.xlabel("Epoch")
+  plt.ylabel("BCE loss")
+  plt.legend(loc='upper right')
+  plt.tight_layout()
+  plt.savefig('BCElosses_train_val.png')
+
+  return model0, model1
+
+if __name__ == "__main__":
+  ## hyperparameters:
+  n_epochs = 1
+  n_showplots = 25
+  n_latent = 10
+  seed = 123
+  batch_size = 64
+  torch.manual_seed(seed)
+
+  model0 = VAE(n_latent)
+  model1 = VAE(n_latent)
+  model1.load_state_dict(model0.state_dict())
+
+  optimizer0 = optim.Adam(model0.parameters(), lr=5e-4)
+  optimizer1 = optim.Adam(model1.parameters(), lr=5e-4)
+  model0.train()
+  model1.train()
+
+  # Download datasets:
+  transform = transforms.Compose([
+      transforms.ToTensor(),
+      transforms.Normalize((0.5,), (0.5,))
+  ])
+  full_train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
+  train_size = int(0.8 * len(full_train_dataset))
+  val_size = len(full_train_dataset) - train_size
+  train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
+  test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
+
+  train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+  val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+  test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+  print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
+
+  # Pre-compute persistence diagrams:
+  dgms_batches = []
+  for step, (data, _) in enumerate(train_loader):
+    data = data.view(data.size(0), -1)
+    points_np = data.view(-1, img_size).numpy()
+    if step==0: print("shape:", data.shape, "pts", points_np)
+    dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
+    dgms_batches.append(dgm2)
+
+  print("Training...")
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches)
+  print("Testing...")
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, 'test')
+  print("Test losses:", test_loss0, test_loss1)
+  print("Done.")
