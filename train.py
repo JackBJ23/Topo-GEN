@@ -313,10 +313,7 @@ if __name__ == "__main__":
   model1.train()
 
   # Download datasets:
-  transform = transforms.Compose([
-      transforms.ToTensor(),
-      transforms.Normalize((0.5,), (0.5,))
-  ])
+  transform = transforms.ToTensor()
   full_train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
   train_size = int(0.8 * len(full_train_dataset))
   val_size = len(full_train_dataset) - train_size
