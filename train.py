@@ -199,6 +199,7 @@ if __name__ == "__main__":
   n_latent = 10
   seed = 123
   batch_size = 64
+  img_size = 28 * 28
   torch.manual_seed(seed)
 
   model0 = VAE(n_latent)
