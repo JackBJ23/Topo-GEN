@@ -334,7 +334,7 @@ if __name__ == "__main__":
   for step, (data, _) in enumerate(train_loader):
     data = data.view(data.size(0), -1)
     points_np = data.view(-1, img_size).numpy()
-    if step==0: print("shape:", data.shape, "pts", points_np)
+    if step==0: print("shape:", data.shape, "pts", points_np.shape)
     dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
     dgms_batches.append(dgm2)
 
