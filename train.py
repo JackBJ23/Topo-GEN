@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms, datasets
 from torchvision.utils import make_grid, save_image
+from plotly import graph_objects as go
 from IPython.display import Image, display
 
 # TDA libraries
