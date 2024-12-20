@@ -106,7 +106,7 @@ def evaluate(model0, model1, val_loader, dgms_batches, epoch, type_eval, w_topo0
         dgms_true = dgms_batches[batch_idx]
         #model0
         recon_batch0, mean, log_var = model0(data)
-        BCE, _ = loss_vae(recon_batch0, data, mean, log_var, 0)
+        BCE, _ = loss_vae(recon_batch0, data, mean, log_var)
         running_loss0 += BCE.item()
         #model1
         recon_batch1, mean, log_var = model1(data)
@@ -140,7 +140,7 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
 
           # model0: VAE
           recon_batch0, mean, log_var = model0(data)
-          BCE, KLD = loss_vae(recon_batch0, data, mean, log_var, 0)
+          BCE, KLD = loss_vae(recon_batch0, data, mean, log_var)
           loss0 = BCE + KLD
           loss0.backward()
           optimizer0.step()
@@ -191,7 +191,6 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
   return model0, model1
 
 if __name__ == "__main__":
-  device = "cuda" if torch.cuda.is_available() else "cpu"
   ## hyperparameters:
   w_topo0 = 15.
   w_topo1 = 15.
@@ -200,7 +199,6 @@ if __name__ == "__main__":
   n_latent = 10
   seed = 123
   batch_size = 64
-  img_size = 28 * 28
   torch.manual_seed(seed)
 
   model0 = VAE(n_latent)
