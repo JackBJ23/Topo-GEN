@@ -238,7 +238,7 @@ def loss_push0(point_cloud, dgm):
 # args has to contain:
 # - topo_weights: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. weight set as 0: topofunction not used
 # - hyperparameters for topological functions: pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
-def topo_losses(points, true_points, dgm, dgm_true, args)
+def topo_losses(points, true_points, dgm, dgm_true, args):
     dgm0_notempty = len(dgm['dgms'][0]) > 0
     dgm1_notempty = len(dgm['dgms'][1]) > 0
     loss = torch.tensor(0.0, requires_grad=True)
