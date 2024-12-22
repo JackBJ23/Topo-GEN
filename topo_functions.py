@@ -272,3 +272,38 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
         if lifespan>delta: pers2 += torch.tensor(lifespan) * torch.log(torch.tensor(lifespan/L2))
 
   return (pers/L - pers2/L2)**2, 1
+
+# recon_x: output (reconstructed), x: input
+def get_topo_loss1(recon_x, x, w_topo0, w_topo1): #bottleneck0+1
+    dgm = get_dgm(recon_x.view(recon_x.size(0), -1), 1)
+    dgm2 = get_dgm(x.view(x.size(0), -1), 1)
+
+    ## compute topological loss:
+    l_topo0, got_loss0 = d_bottleneck0(recon_x, dgm, dgm2) #loss of degree 0
+    l_topo1, got_loss1 = d_bottleneck1(recon_x, dgm, dgm2) #loss of degree 1
+
+    if got_loss0==1 and got_loss1==1:
+        return l_topo0 * w_topo0 + l_topo1 * w_topo1, 1
+    elif got_loss0==1:
+        return l_topo0 * w_topo0, 1
+    elif got_loss1==1:
+        return l_topo1 * w_topo1, 1
+    else:
+        return 0, 0
+        
+def get_topo_loss2(recon_x, x, w_topo0, w_topo1, delta): #pers entropy0+1. weights: 0.5, 0.5: does not learn. 0.3, 0.1: good
+    dgm = get_dgm(recon_x.view(recon_x.size(0), -1), 1)
+    dgm2 = get_dgm(x.view(x.size(0), -1), 1)
+
+    ## compute topological loss:
+    l_topo0, got_loss0 = loss_persentropy0(recon_x, dgm, dgm2, delta) #loss of degree 0
+    l_topo1, got_loss1 = loss_persentropy1(recon_x, dgm, dgm2, delta) #loss of degree 1
+
+    if got_loss0==1 and got_loss1==1:
+        return l_topo0 * w_topo0 + l_topo1 * w_topo1, 1
+    elif got_loss0==1:
+        return l_topo0 * w_topo0, 1
+    elif got_loss1==1:
+        return l_topo1 * w_topo1, 1
+    else:
+        return 0, 0
