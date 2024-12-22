@@ -154,7 +154,7 @@ def load_config():
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--n_plot', type=int, default=50)
-    parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 1., 1., 1.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
+    parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
     # Hyperparameters for some topological functions (default values already given):
     parser.add_argument('--pers0_delta', type=float, default=0.001)
     parser.add_argument('--pers1_delta', type=float, default=0.001)
@@ -174,6 +174,7 @@ if __name__ == "__main__":
   torch.manual_seed(args.seed)
   model0 = VAE(args.n_latent)
   model1 = VAE(args.n_latent)
+  print("Weights", args.topo_weights)
   model1.load_state_dict(model0.state_dict())
 
   optimizer0 = optim.Adam(model0.parameters(), lr=args.learning_rate)
