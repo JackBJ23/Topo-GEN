@@ -103,7 +103,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           running_loss1 += BCE.item()
           train_losses1_all.append(BCE.item())
 
-          if batch_idx % args.n_plot == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, batch_idx, 'train', batch_idx)
+          if batch_idx % args.n_plot == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, 'train', batch_idx)
 
       print("End of epoch", epoch)
       # Average of losses over one epoch:
