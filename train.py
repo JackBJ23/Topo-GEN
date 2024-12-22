@@ -26,54 +26,9 @@ from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
-from topo_functions import get_dgm, d_bottleneck0, d_bottleneck1, dsigma0, dsigma1, loss_density, loss_persentropy0, loss_persentropy1
+from topo_functions import get_dgm, topo_losses
 from models import VAE
-
-def plotdgm(dgm):
-  dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-  fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
-  fig.show()
-
-def plot_imgs(data, recon_batch_0, recon_batch_t, epoch, type):
-    # Reshape tensors for visualization
-    data = data.reshape(-1, 1, 28, 28)
-    recon_batch_0 = recon_batch_0.reshape(-1, 1, 28, 28)
-    recon_batch_t = recon_batch_t.reshape(-1, 1, 28, 28)
-
-    # Create grids for each dataset
-    grid_data = torchvision.utils.make_grid(data[:32], nrow=8, normalize=True)
-    grid_recon_0 = torchvision.utils.make_grid(recon_batch_0[:32], nrow=8, normalize=True)
-    grid_recon_t = torchvision.utils.make_grid(recon_batch_t[:32], nrow=8, normalize=True)
-
-    # Convert tensors to numpy arrays for plotting
-    grid_data = grid_data.cpu().numpy().transpose((1, 2, 0))
-    grid_recon_0 = grid_recon_0.cpu().numpy().transpose((1, 2, 0))
-    grid_recon_t = grid_recon_t.cpu().numpy().transpose((1, 2, 0))
-
-    # Plot the three grids next to each other
-    plt.figure(figsize=(15, 5))
-
-    # Left: Data
-    plt.subplot(1, 3, 1)
-    plt.imshow(grid_data)
-    plt.axis('off')
-    plt.title("True")
-
-    # Middle: Reconstructed Batch 0 (standard VAE)
-    plt.subplot(1, 3, 2)
-    plt.imshow(grid_recon_0)
-    plt.axis('off')
-    plt.title("VAE")
-
-    # Right: Reconstructed Batch from TopoVAE
-    plt.subplot(1, 3, 3)
-    plt.imshow(grid_recon_t)
-    plt.axis('off')
-    plt.title("TopoVAE")
-
-    plt.tight_layout()
-    plt.savefig(f'figures_epoch_{epoch}_step_{type}.png')
-    plt.show()
+from utils import plot_dgm, plot_gen_imgs
 
 def loss_vae(recon_x, x, mu, logvar):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
@@ -82,42 +37,34 @@ def loss_vae(recon_x, x, mu, logvar):
     return BCE, KLD
 
 # loss of TopoVAEs (Standard + Topoloss of degree 0 + Topoloss of degree 1)
-def loss_topovae(recon_x, x, mu, logvar, dgms, dgms_true, w_topo0, w_topo1):
+def loss_topovae(recon_x, x, mu, logvar, dgm, dgm_true, args):
     # Standard loss:
     BCE, KLD = loss_vae(recon_x, x, mu, logvar)
-    loss = BCE + KLD
     # Topological loss:
-    l_topo0, got_loss0 = d_bottleneck0(recon_x, dgms, dgms_true) #loss of degree 0
-    l_topo1, got_loss1 = d_bottleneck1(recon_x, dgms, dgms_true) #loss of degree 1
-
-    if got_loss0==1: loss += l_topo0 * w_topo0
-    if got_loss1==1: loss += l_topo1 * w_topo1
-    return BCE, KLD, l_topo0, l_topo1, loss
+    topo_loss = topo_losses(recon_x, x, dgm, dgm_true, args)
+    return BCE, KLD, BCE + KLD + topo_loss
 
 # Train and compare model0 (normal VAE) and model2 (some TopoVAE):
-
-def evaluate(model0, model1, val_loader, dgms_batches, epoch, type_eval, w_topo0, w_topo1):
+def evaluate(model0, model1, val_loader, epoch, type_eval):
   model0.eval()
   model1.eval()
   running_loss0 = 0.
   running_loss1 = 0.
   with torch.no_grad():
       for batch_idx, (data, _) in enumerate(val_loader):
-        dgms_true = dgms_batches[batch_idx]
         #model0
         recon_batch0, mean, log_var = model0(data)
         BCE, _ = loss_vae(recon_batch0, data, mean, log_var)
         running_loss0 += BCE.item()
         #model1
         recon_batch1, mean, log_var = model1(data)
-        dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-        BCE, _, _, _, _ = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
+        BCE, _ = loss_vae(recon_batch1, data, mean, log_var)
         running_loss1 += BCE.item()
-        if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, type_eval) # batch_idx set as -1: means it is validation
+        if batch_idx == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, type_eval) # batch_idx set as -1: means it is validation
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
-def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1):
+def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args):
   # Losses saved once per epoch:
   train_losses0 = []
   train_losses1 = []
@@ -128,13 +75,13 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
   train_losses0_all = []
   train_losses1_all = []
 
-  for epoch in range(n_epochs):
+  for epoch in range(args.n_epochs):
       model0.train()
       model1.train()
       running_loss0 = 0.
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
-          dgms_true = dgms_batches[batch_idx]
+          dgm_true = dgms_batches[batch_idx]
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
@@ -150,20 +97,20 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
           dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-          BCE, _, _, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgms_true, w_topo0, w_topo1)
+          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, args)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
           train_losses1_all.append(BCE.item())
 
-          if batch_idx == 0: plot_imgs(data, recon_batch0, recon_batch1, epoch, 'train')
+          if batch_idx % args.n_plot == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, batch_idx, 'train', batch_idx)
 
       print("End of epoch", epoch)
       # Average of losses over one epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, dgms_batches, epoch, 'eval', w_topo0, w_topo1)
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch, 'eval')
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
@@ -190,24 +137,47 @@ def train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_lo
 
   return model0, model1
 
-if __name__ == "__main__":
-  ## hyperparameters:
-  w_topo0 = 15.
-  w_topo1 = 15.
-  n_epochs = 1
-  n_showplots = 25
-  n_latent = 10
-  seed = 123
-  batch_size = 64
-  img_size = 28 * 28
-  torch.manual_seed(seed)
+def parse_topo_weights(value):
+    try:
+        weights = [float(x) for x in value.split(",")]
+        if len(weights) != 7:
+            raise argparse.ArgumentTypeError("topo_weights must be a 7-element vector of floats.")
+        return weights
+    except ValueError:
+        raise argparse.ArgumentTypeError("topo_weights must contain valid floats.")
 
-  model0 = VAE(n_latent)
-  model1 = VAE(n_latent)
+def load_config():
+    parser = argparse.ArgumentParser(description='Train and evaluate a generative model with topological regularizers.')
+    parser.add_argument('--n_latent', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--n_epochs', type=int, default=3)
+    parser.add_argument('--learning_rate', type=float, default=5e-4)
+    parser.add_argument('--seed', type=int, default=1234)
+    parser.add_argument('--n_plot', type=int, default=50)
+    parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 1., 1., 1.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
+    # Hyperparameters for some topological functions (default values already given):
+    parser.add_argument('--pers0_delta', type=float, default=0.001)
+    parser.add_argument('--pers1_delta', type=float, default=0.001)
+    parser.add_argument('--dsigma0_scale', type=float, default=0.05)
+    parser.add_argument('--dsigma1_scale', type=float, default=0.05)
+    parser.add_argument('--density_sigma', type=float, default=0.2)
+    parser.add_argument('--density_scale', type=float, default=0.002)
+    parser.add_argument('--density_maxrange', type=float, default=35.)
+    parser.add_argument('--density_npoints', type=int, default=30)
+    parser.add_argument('--checkpoint_path', type=str, default=None, help='Path to the checkpoint file to load model weights')
+    args = parser.parse_args()
+    return args
+
+if __name__ == "__main__":
+  # Hyperparameters:
+  args = load_config()
+  torch.manual_seed(args.seed)
+  model0 = VAE(args.n_latent)
+  model1 = VAE(args.n_latent)
   model1.load_state_dict(model0.state_dict())
 
-  optimizer0 = optim.Adam(model0.parameters(), lr=5e-4)
-  optimizer1 = optim.Adam(model1.parameters(), lr=5e-4)
+  optimizer0 = optim.Adam(model0.parameters(), lr=args.learning_rate)
+  optimizer1 = optim.Adam(model1.parameters(), lr=args.learning_rate)
   model0.train()
   model1.train()
 
@@ -219,24 +189,21 @@ if __name__ == "__main__":
   train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
   test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
 
-  train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-  val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-  test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+  train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+  val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+  test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
   print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
   # Pre-compute persistence diagrams:
+  print("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
-    data = data.view(data.size(0), -1)
-    points_np = data.view(-1, img_size).numpy()
-    if step==0: print("shape:", data.shape, "pts", points_np.shape)
-    dgm2 = ripser_parallel(points_np, maxdim=1, return_generators=True)
-    dgms_batches.append(dgm2)
+    dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   print("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, n_epochs, train_loader, val_loader, dgms_batches, w_topo0, w_topo1)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, args.n_epochs, train_loader, val_loader, dgms_batches, args)
   print("Testing...")
-  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, dgms_batches, n_epochs, 'test', w_topo0, w_topo1)
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test')
   print("Test losses:", test_loss0, test_loss1)
   print("Done.")
