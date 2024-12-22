@@ -131,6 +131,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
   plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
   plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
+  plt.xticks(ticks=np.arange(0, len(train_losses0)), labels=np.arange(0, len(train_losses0)))
   plt.xlabel("Epoch")
   plt.ylabel("BCE loss")
   plt.legend(loc='upper right')
