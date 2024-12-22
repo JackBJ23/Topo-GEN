@@ -202,7 +202,7 @@ if __name__ == "__main__":
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   print("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, args.n_epochs, train_loader, val_loader, dgms_batches, args)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args)
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test')
   print("Test losses:", test_loss0, test_loss1)
