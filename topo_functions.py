@@ -22,8 +22,6 @@ import persim
 import tadasets
 from gph import ripser_parallel
 
-## push0 and push1 are not used here
-
 def get_dgm(point_cloud, deg):
   # Compute the persistence diagram without backprop
   with torch.no_grad():
@@ -33,23 +31,19 @@ def get_dgm(point_cloud, deg):
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
   return dgm
 
-#euclidean dist for torch tensors:
+# Euclidean dist for torch tensors:
 def dist(point1, point2):
     return torch.sqrt(torch.sum((point2 - point1)**2))
 
 def dist_2(a, b, c, d):
     return (a - c)**2 + (b - d)**2
 
-#euclidean dist for numpy points:
-def dist_np(point1, point2):
-    return np.sqrt(np.sum((point2 - point1)**2))
-
-#supremum dist for torch tensors:
+# Supremum dist for torch tensors:
 def dist_sup_tc(b1, d1, b2, d2):
     # Calculate the sup norm between points (b1, d1) and (b2, d2)
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
-def d_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
+def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
     got_loss = 1
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
@@ -78,7 +72,7 @@ def d_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss 
 
     return loss, got_loss
 
-def d_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
+def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
     got_loss = 1
     if len(dgm2['dgms'][1])==0: dgm2['dgms'][1] = [[0.,0.]]
     with torch.no_grad():
@@ -132,7 +126,7 @@ def ksigma0(point_cloud, point_cloud2, dgm, dgm2): #maxdim of both dgms: 0
            ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
-def dsigma0(point_cloud, point_cloud2, dgm, dgm2):
+def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2):
     k11 = ksigma0(point_cloud, point_cloud, dgm, dgm)
     k12 = ksigma0(point_cloud, point_cloud2, dgm, dgm2)
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
@@ -157,7 +151,7 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2):
           ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
-def dsigma1(point_cloud, point_cloud2, dgm, dgm2):
+def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2):
     if len(dgm2['gens'][1])>0:
       return ksigma1(point_cloud, point_cloud, dgm, dgm) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2)
     else:
@@ -235,7 +229,7 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
   return (pers/L - pers2/L2)**2, 1
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
-def push0(point_cloud, dgm):
+def loss_push0(point_cloud, dgm):
     loss = -torch.abs(dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
     for i in range(1, len(dgm['gens'][0])):
       # Point in the diagram: (0,dist(p1,p2))
@@ -248,10 +242,10 @@ def topo_losses(points, true_points, dgm, dgm_true, topo_weights):
     dgm1_notempty = len(dgm['dgms'][1]) > 0
     loss = torch.tensor(0.0, requires_grad=True)
     if topo_weights[0] != 0. and dgm0_notempty:
-      topoloss, gotloss = d_bottleneck0(points, dgm, dgm_true)
+      topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
       if gotloss==1: loss = loss + topoloss * topo_weights[0]
     if topo_weights[1] != 0. and dgm1_notempty:
-      topoloss, gotloss = d_bottleneck1(points, dgm, dgm_true)
+      topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true)
       if gotloss==1: loss = loss + topoloss * topo_weights[1]
     if topo_weights[2] != 0. and dgm0_notempty:
       topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, 0.001)
@@ -260,9 +254,9 @@ def topo_losses(points, true_points, dgm, dgm_true, topo_weights):
       topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, 0.001)
       if gotloss==1: loss = loss + topoloss * topo_weights[3]
     if topo_weights[4] != 0. and dgm0_notempty:
-      loss = loss + dsigma0(points, true_points, dgm, dgm_true) * topo_weights[4]
+      loss = loss + loss_dsigma0(points, true_points, dgm, dgm_true) * topo_weights[4]
     if topo_weights[5] != 0. and dgm1_notempty:
-      loss = loss + dsigma1(points, true_points, dgm, dgm_true) * topo_weights[5]
+      loss = loss + loss_dsigma1(points, true_points, dgm, dgm_true) * topo_weights[5]
     if topo_weights[6] != 0. and dgm0_notempty:
       loss = loss + loss_density(points, true_points, dgm, dgm_true, 0.2, 0.002, 35., 30) * topo_weights[6]
     return loss
