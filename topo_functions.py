@@ -110,68 +110,6 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
 
     return loss, got_loss
 
-#return Reininghaus kernel ksigma: (could make it slightly faster with different functions for each dgm (dgm2 does not need backpropagation)), but let it same for all dgms
-def ksigma0(point_cloud, point_cloud2, dgm, dgm2): #maxdim of both dgms: 0
-    sigma = 0.05
-    ksigma = torch.tensor(0.0, requires_grad=True)
-    ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
-    for i in range(len(dgm['gens'][0])):
-        # pt in dgm: (0,d), d=dist(p1,p2)
-        p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
-        d1 = dist(p1, p2)
-        for j in range(len(dgm2['gens'][0])):
-           # pt in dgm2: (0,d), d=dist(q1,q2)
-           q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
-           d2 = dist(q1, q2)
-           ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
-    return ksigma * 1/(8 * math.pi * sigma)
-
-def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2):
-    k11 = ksigma0(point_cloud, point_cloud, dgm, dgm)
-    k12 = ksigma0(point_cloud, point_cloud2, dgm, dgm2)
-    # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
-    # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation)
-    return k11 - 2.0 * k12
-
-# Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
-def ksigma1(point_cloud, point_cloud2, dgm, dgm2):
-    sigma = 0.05
-    ksigma = torch.tensor(0.0, requires_grad=True)
-    ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
-    for i in range(len(dgm['gens'][1])):
-        # pt in dgm: (b1,d1), with b1, d1 = dist(p2, p1), dist(dist(p3, p4)
-        p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
-        b1 = dist(p1,p2)
-        d1 = dist(p3,p4)
-        for j in range(len(dgm2['gens'][1])):
-          #pt in dgm2: (b2,d2)
-          q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
-          b2 = dist(q1,q2)
-          d2 = dist(q3,q4)
-          ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
-    return ksigma * 1/(8 * math.pi * sigma)
-
-def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2):
-    if len(dgm2['gens'][1])>0:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2)
-    else:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm)
-
-def density(point_cloud, dgm, sigma, scale, x):
-  density_x = torch.tensor(0.0, requires_grad=True) # Density at coordinate x
-  for i in range(len(dgm['dgms'][0])-1):
-    p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
-    d = dist(p1, p2) #pt of pt cloud is (0,d)
-    density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
-  return density_x * scale
-
-def loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
-  xs = torch.linspace(0.0, maxrange, npoints)
-  loss = torch.tensor(0.0, requires_grad=True)
-  # Compute difference between both functions in npoints points:
-  for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x) - density(point_cloud2, dgm2, sigma, scale, x)) ** 2
-  return loss / npoints
-
 def loss_persentropy0(point_cloud, dgm, dgm2, delta): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
   # Get persistent entropy of dgm:
   L = torch.tensor(0.0, requires_grad=True)
@@ -228,6 +166,66 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
 
   return (pers/L - pers2/L2)**2, 1
 
+#return Reininghaus kernel ksigma: (could make it slightly faster with different functions for each dgm (dgm2 does not need backpropagation)), but let it same for all dgms
+def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma): #maxdim of both dgms: 0
+    ksigma = torch.tensor(0.0, requires_grad=True)
+    ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
+    for i in range(len(dgm['gens'][0])):
+        # pt in dgm: (0,d), d=dist(p1,p2)
+        p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
+        d1 = dist(p1, p2)
+        for j in range(len(dgm2['gens'][0])):
+           # pt in dgm2: (0,d), d=dist(q1,q2)
+           q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
+           d2 = dist(q1, q2)
+           ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
+    return ksigma * 1/(8 * math.pi * sigma)
+
+def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
+    k11 = ksigma0(point_cloud, point_cloud, dgm, dgm, sigma)
+    k12 = ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma)
+    # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
+    # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation)
+    return k11 - 2.0 * k12
+
+# Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
+def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma):
+    ksigma = torch.tensor(0.0, requires_grad=True)
+    ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
+    for i in range(len(dgm['gens'][1])):
+        # pt in dgm: (b1,d1), with b1, d1 = dist(p2, p1), dist(dist(p3, p4)
+        p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
+        b1 = dist(p1,p2)
+        d1 = dist(p3,p4)
+        for j in range(len(dgm2['gens'][1])):
+          #pt in dgm2: (b2,d2)
+          q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
+          b2 = dist(q1,q2)
+          d2 = dist(q3,q4)
+          ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
+    return ksigma * 1/(8 * math.pi * sigma)
+
+def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
+    if len(dgm2['gens'][1])>0:
+      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma)
+    else:
+      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma)
+
+def density(point_cloud, dgm, sigma, scale, x):
+  density_x = torch.tensor(0.0, requires_grad=True) # Density at coordinate x
+  for i in range(len(dgm['dgms'][0])-1):
+    p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
+    d = dist(p1, p2) #pt of pt cloud is (0,d)
+    density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
+  return density_x * scale
+
+def loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
+  xs = torch.linspace(0.0, maxrange, npoints)
+  loss = torch.tensor(0.0, requires_grad=True)
+  # Compute difference between both functions in npoints points:
+  for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x) - density(point_cloud2, dgm2, sigma, scale, x)) ** 2
+  return loss / npoints
+
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
 def loss_push0(point_cloud, dgm):
     loss = -torch.abs(dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
@@ -236,27 +234,30 @@ def loss_push0(point_cloud, dgm):
       loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
     return loss
 
-# Summarizes all the previous functions into a single function:
-def topo_losses(points, true_points, dgm, dgm_true, topo_weights):
+# topo_losses combines all the previous functions into a single function:
+# args has to contain:
+# - topo_weights: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. weight set as 0: topofunction not used
+# - hyperparameters for topological functions: pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
+def topo_losses(points, true_points, dgm, dgm_true, args)
     dgm0_notempty = len(dgm['dgms'][0]) > 0
     dgm1_notempty = len(dgm['dgms'][1]) > 0
     loss = torch.tensor(0.0, requires_grad=True)
-    if topo_weights[0] != 0. and dgm0_notempty:
+    if args.topo_weights[0] != 0. and dgm0_notempty:
       topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
-      if gotloss==1: loss = loss + topoloss * topo_weights[0]
-    if topo_weights[1] != 0. and dgm1_notempty:
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[0]
+    if args.topo_weights[1] != 0. and dgm1_notempty:
       topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true)
-      if gotloss==1: loss = loss + topoloss * topo_weights[1]
-    if topo_weights[2] != 0. and dgm0_notempty:
-      topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, 0.001)
-      if gotloss==1: loss = loss + topoloss * topo_weights[2]
-    if topo_weights[3] != 0. and dgm1_notempty:
-      topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, 0.001)
-      if gotloss==1: loss = loss + topoloss * topo_weights[3]
-    if topo_weights[4] != 0. and dgm0_notempty:
-      loss = loss + loss_dsigma0(points, true_points, dgm, dgm_true) * topo_weights[4]
-    if topo_weights[5] != 0. and dgm1_notempty:
-      loss = loss + loss_dsigma1(points, true_points, dgm, dgm_true) * topo_weights[5]
-    if topo_weights[6] != 0. and dgm0_notempty:
-      loss = loss + loss_density(points, true_points, dgm, dgm_true, 0.2, 0.002, 35., 30) * topo_weights[6]
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[1]
+    if args.topo_weights[2] != 0. and dgm0_notempty:
+      topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, args.pers0_delta)
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[2]
+    if args.topo_weights[3] != 0. and dgm1_notempty:
+      topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, args.pers1_delta)
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[3]
+    if args.topo_weights[4] != 0. and dgm0_notempty:
+      loss = loss + loss_dsigma0(points, true_points, dgm, dgm_true, args.dsigma0_scale) * args.topo_weights[4]
+    if args.topo_weights[5] != 0. and dgm1_notempty:
+      loss = loss + loss_dsigma1(points, true_points, dgm, dgm_true, args.dsigma1_scale) * args.topo_weights[5]
+    if args.topo_weights[6] != 0. and dgm0_notempty:
+      loss = loss + loss_density(points, true_points, dgm, dgm_true, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints) * args.topo_weights[6]
     return loss
