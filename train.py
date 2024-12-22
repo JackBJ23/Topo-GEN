@@ -115,7 +115,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       val_losses1.append(val_loss1)
 
   # Training ended
-  # Save losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
+  # Plot losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
+  plt.figure() 
   plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
   plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
   plt.xlabel("Iteration")
@@ -124,7 +125,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   plt.tight_layout()
   plt.savefig('BCElosses_train_all.png')
 
-  # Save losses and validation losses over epochs:
+  # Plot losses and validation losses over epochs:
+  plt.figure()
   plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
   plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
   plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
