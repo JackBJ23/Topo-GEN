@@ -1,3 +1,6 @@
+import numpy as np
+import torch
+import torchvision.utils
 import matplotlib.pyplot as plt
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
