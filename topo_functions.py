@@ -29,8 +29,8 @@ def get_dgm(point_cloud, deg, device):
         # Get the persistence diagram: (a dictionary with information about the persistence diagrams)
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
         dgm_in_device = {
-            'dgms': torch.tensor(dgms['dgms'], device=device),
-            'gens': torch.tensor(dgms['gens'], device=device)
+            'dgms': torch.tensor(dgm['dgms'], device=device),
+            'gens': torch.tensor(dgm['gens'], device=device)
         }
         print("dgm", dgm, "dgm_device", dgm_in_device)
   return dgm_in_device
