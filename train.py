@@ -64,7 +64,7 @@ def evaluate(model0, model1, val_loader, epoch, type_eval):
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
-def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args):
+def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device):
   # Losses saved once per epoch:
   train_losses0 = []
   train_losses1 = []
@@ -175,11 +175,11 @@ if __name__ == "__main__":
   # Hyperparameters:
   args = load_config()
   torch.manual_seed(args.seed)
+  print("Weights", args.topo_weights)
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   model0 = VAE(args.n_latent)
   model1 = VAE(args.n_latent)
-  print("Weights", args.topo_weights)
   model1.load_state_dict(model0.state_dict())
-
   optimizer0 = optim.Adam(model0.parameters(), lr=args.learning_rate)
   optimizer1 = optim.Adam(model1.parameters(), lr=args.learning_rate)
   model0.train()
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   print("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test')
   print("Test losses:", test_loss0, test_loss1)
