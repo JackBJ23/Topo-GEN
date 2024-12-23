@@ -98,7 +98,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
-          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1, device).to(device)
+          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1, device)
           BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, args)
           loss1.backward()
           optimizer1.step()
