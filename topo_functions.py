@@ -34,8 +34,8 @@ def get_dgm(point_cloud, deg, device):
             'gens_0': torch.tensor(dgm['gens'][0], device=device) if len(dgm['gens'][0]) > 0 else torch.empty(0, device=device),
         }
         if deg >= 1:
-            dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device) if len(dgm['dgms'][1]) > 0 else torch.empty(0, device=device)
-            dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device) if len(dgm['gens'][1]) > 0 else torch.empty(0, device=device)
+            dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device) #if len(dgm['dgms'][1]) > 0 else torch.empty(0, device=device)
+            dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device) #if len(dgm['gens'][1]) > 0 else torch.empty(0, device=device)
   print("dgm", dgm, "dgm2", dgm_in_device)
   return dgm_in_device
 
