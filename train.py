@@ -207,7 +207,7 @@ if __name__ == "__main__":
   dgms_batches = []
   pc = [[0.,1.], [2.,2.]]
   dgm = get_dgm(pc, 1, device)
-  for step, (data, _) in enumerate(train_loader):
+  #for step, (data, _) in enumerate(train_loader):
     # dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1, device))
 
   print("Training...")
