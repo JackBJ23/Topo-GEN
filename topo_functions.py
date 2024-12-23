@@ -25,16 +25,16 @@ from gph import ripser_parallel
 def get_dgm(point_cloud, deg, device):
   with torch.no_grad():
         # Convert points for computing the persistence diagram:
-        points_np = point_cloud.numpy()
+        points_np = point_cloud.cpu().numpy()
         # Get the persistence diagram: (a dictionary with information about the persistence diagrams)
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
         dgm_in_device = {
-            'dgms_0': torch.tensor(dgm['dgms'][0], device=device),
-            'dgms_1': torch.tensor(dgm['dgms'][1], device=device),
-            'gens_0': torch.tensor(dgm['gens'][0], device=device),
-            'gens_1': torch.tensor(dgm['gens'][1], device=device),
+            'dgms_0': torch.tensor(dgm['dgms'][0], device=device) if len(dgm['dgms'][0]) > 0 else torch.empty(0, device=device),
+            'gens_0': torch.tensor(dgm['gens'][0], device=device) if len(dgm['gens'][0]) > 0 else torch.empty(0, device=device),
         }
-        print("dgm", dgm, "dgm_device", dgm_in_device)
+        if deg >= 1:
+            dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device) if len(dgm['dgms'][1]) > 0 else torch.empty(0, device=device)
+            dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device) if len(dgm['gens'][1]) > 0 else torch.empty(0, device=device)
   return dgm_in_device
 
 # Euclidean dist for torch tensors:
