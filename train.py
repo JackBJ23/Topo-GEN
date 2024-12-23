@@ -83,7 +83,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
           data = data.to(device)
-          dgm_true = dgms_batches[batch_idx].to(device)
+          dgm_true = dgms_batches[batch_idx]
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
