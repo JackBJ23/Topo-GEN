@@ -88,7 +88,7 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
     got_loss = 1
     if dgm2['dgms_1'].shape[0]==0: dgm2['dgms_1'] = torch.tensor([0.,0.], device=device)
     with torch.no_grad():
-        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_1'], dgm2['dgms_1'], matching=True)
+        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_1'].cpu().numpy(), dgm2['dgms_1'].cpu().numpy(), matching=True)
         #find the pair that gives the max distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1])
