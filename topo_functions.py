@@ -22,14 +22,18 @@ import persim
 import tadasets
 from gph import ripser_parallel
 
-def get_dgm(point_cloud, deg):
-  # Compute the persistence diagram without backprop
+def get_dgm(point_cloud, deg, device):
   with torch.no_grad():
-        # Convert points for computing PD:
+        # Convert points for computing the persistence diagram:
         points_np = point_cloud.numpy()
-        # Get PD with generators:
+        # Get the persistence diagram: (a dictionary with information about the persistence diagrams)
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
-  return dgm
+        dgm_in_device = {
+            'dgms': torch.tensor(dgms['dgms'], device=device),
+            'gens': torch.tensor(dgms['gens'], device=device)
+        }
+        print("dgm", dgm, "dgm_device", dgm_in_device)
+  return dgm_in_device
 
 # Euclidean dist for torch tensors:
 def dist(point1, point2):
