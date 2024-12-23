@@ -45,13 +45,14 @@ def loss_topovae(recon_x, x, mu, logvar, dgm, dgm_true, args):
     return BCE, KLD, BCE + KLD + topo_loss
 
 # Train and compare model0 (normal VAE) and model2 (some TopoVAE):
-def evaluate(model0, model1, val_loader, epoch, type_eval):
+def evaluate(model0, model1, val_loader, epoch, type_eval, device):
   model0.eval()
   model1.eval()
   running_loss0 = 0.
   running_loss1 = 0.
   with torch.no_grad():
       for batch_idx, (data, _) in enumerate(val_loader):
+        data = data.to(device)
         #model0
         recon_batch0, mean, log_var = model0(data)
         BCE, _ = loss_vae(recon_batch0, data, mean, log_var)
@@ -60,7 +61,7 @@ def evaluate(model0, model1, val_loader, epoch, type_eval):
         recon_batch1, mean, log_var = model1(data)
         BCE, _ = loss_vae(recon_batch1, data, mean, log_var)
         running_loss1 += BCE.item()
-        if batch_idx == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, type_eval) # batch_idx set as -1: means it is validation
+        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval) # batch_idx set as -1: means it is validation
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
@@ -81,7 +82,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss0 = 0.
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
-          dgm_true = dgms_batches[batch_idx]
+          data = data.to(device)
+          dgm_true = dgms_batches[batch_idx].to(device)
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
@@ -96,21 +98,21 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
-          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
+          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1).to(device)
           BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, args)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
           train_losses1_all.append(BCE.item())
 
-          if batch_idx % args.n_plot == 0: plot_gen_imgs(data, recon_batch0, recon_batch1, epoch, 'train', batch_idx)
+          if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx)
 
       print("End of epoch", epoch)
       # Average of losses over one epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch, 'eval')
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch, 'eval', device)
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
@@ -178,8 +180,8 @@ if __name__ == "__main__":
   print("Weights", args.topo_weights)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   print("device", device)
-  model0 = VAE(args.n_latent)
-  model1 = VAE(args.n_latent)
+  model0 = VAE(args.n_latent).to(device)
+  model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
   optimizer0 = optim.Adam(model0.parameters(), lr=args.learning_rate)
   optimizer1 = optim.Adam(model1.parameters(), lr=args.learning_rate)
@@ -209,6 +211,6 @@ if __name__ == "__main__":
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
   print("Testing...")
-  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test')
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
   print("Test losses:", test_loss0, test_loss1)
   print("Done.")
