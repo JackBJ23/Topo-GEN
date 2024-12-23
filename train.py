@@ -206,7 +206,7 @@ if __name__ == "__main__":
   print("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
-    dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1, device)
+    dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1, device))
 
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
