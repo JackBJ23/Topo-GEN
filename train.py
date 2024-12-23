@@ -209,7 +209,7 @@ if __name__ == "__main__":
   dgm = get_dgm(pc, 1, device)
   for step, (data, _) in enumerate(train_loader):
      dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1, device))
-      break
+     break
 
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
