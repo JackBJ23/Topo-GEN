@@ -30,17 +30,17 @@ def get_dgm(point_cloud, deg, device):
         # Get the persistence diagram: (a dictionary with information about the persistence diagrams)
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
         dgm_in_device = {
-            'dgms_0': torch.tensor(dgm['dgms'][0], device=device) if len(dgm['dgms'][0]) > 0 else torch.empty(0, device=device),
-            'gens_0': torch.tensor(dgm['gens'][0], device=device) if len(dgm['gens'][0]) > 0 else torch.empty(0, device=device),
+            'dgms_0': torch.tensor(dgm['dgms'][0], device=device),
+            'gens_0': torch.tensor(dgm['gens'][0], device=device)
         }
         if deg >= 1:
             dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device)
             dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device)
-        print("lengths", len(dgm['dgms'][0]), dgm_in_device['dgms_0'].shape[0], "dg1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0], "g0", len(dgm['gens'][0]), dgm_in_device['gens_0'].shape[0])
-        print("g1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0])
-        i = 0
-        print("point dgm0", point_cloud[dgm['gens'][0][i][1]], "2nd", point_cloud[dgm_in_device['gens_0'][i][1]])
-        if len(dgm['dgms'][1])>0: print("point dgm1", point_cloud[dgm['gens'][1][0][i][0]], "2nd", point_cloud[dgm_in_device['gens_1'][0][i][0]])
+        #print("lengths", len(dgm['dgms'][0]), dgm_in_device['dgms_0'].shape[0], "dg1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0], "g0", len(dgm['gens'][0]), dgm_in_device['gens_0'].shape[0])
+        #print("g1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0])
+        #i = 0
+        #print("point dgm0", point_cloud[dgm['gens'][0][i][1]], "2nd", point_cloud[dgm_in_device['gens_0'][i][1]])
+        #if len(dgm['dgms'][1])>0: print("point dgm1", point_cloud[dgm['gens'][1][0][i][0]], "2nd", point_cloud[dgm_in_device['gens_1'][0][i][0]])
   return dgm_in_device
 
 # Euclidean dist for torch tensors:
@@ -168,7 +168,7 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
   # Get persistent entropy of dgm2:
   L2 = torch.tensor(0.0)
   pers2 = torch.tensor(0.0)
-  for i in range(len(dgm2['dgms_1'])):
+  for i in range(dgm2['dgms_1'].shape[0]):
     if dgm2['dgms_1'][i][1] - dgm2['dgms'][i][0] > delta: L2 += dgm2['dgms'][i][1] - dgm2['dgms'][i][0]
 
   if L2.item()==0.0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
@@ -182,13 +182,13 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
 def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma): #maxdim of both dgms: 0
     ksigma = torch.tensor(0.0, requires_grad=True)
     ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
-    for i in range(len(dgm['gens'][0])):
+    for i in range(dgm['gens_0'].shape[0]):
         # pt in dgm: (0,d), d=dist(p1,p2)
-        p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
+        p1, p2 = point_cloud[dgm['gens_0'][i][1]], point_cloud[dgm['gens_0'][i][2]]
         d1 = dist(p1, p2)
-        for j in range(len(dgm2['gens'][0])):
+        for j in range(dgm2['gens_0'].shape[0]):
            # pt in dgm2: (0,d), d=dist(q1,q2)
-           q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
+           q1, q2 = point_cloud2[dgm2['gens_0'][j][1]], point_cloud2[dgm2['gens_0'][j][2]]
            d2 = dist(q1, q2)
            ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
@@ -204,29 +204,29 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
 def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma):
     ksigma = torch.tensor(0.0, requires_grad=True)
     ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
-    for i in range(len(dgm['gens'][1])):
+    for i in range(dgm['gens_1'].shape[0]):
         # pt in dgm: (b1,d1), with b1, d1 = dist(p2, p1), dist(dist(p3, p4)
-        p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
+        p1, p2, p3, p4 = point_cloud[dgm['gens_1'][0][i][0]], point_cloud[dgm['gens_1'][0][i][1]], point_cloud[dgm['gens_1'][0][i][2]], point_cloud[dgm['gens_1'][0][i][3]]
         b1 = dist(p1,p2)
         d1 = dist(p3,p4)
-        for j in range(len(dgm2['gens'][1])):
+        for j in range(dgm2['gens_1'].shape[0]):
           #pt in dgm2: (b2,d2)
-          q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
+          q1, q2, q3, q4 = point_cloud2[dgm2['gens_1'][0][j][0]], point_cloud2[dgm2['gens_1'][0][j][1]], point_cloud2[dgm2['gens_1'][0][j][2]], point_cloud2[dgm2['gens_1'][0][j][3]]
           b2 = dist(q1,q2)
           d2 = dist(q3,q4)
           ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
-    if len(dgm2['gens'][1])>0:
+    if dgm2['gens_1'].shape[0]>0:
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma)
     else:
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma)
 
 def density(point_cloud, dgm, sigma, scale, x):
   density_x = torch.tensor(0.0, requires_grad=True) # Density at coordinate x
-  for i in range(len(dgm['dgms'][0])-1):
-    p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
+  for i in range(dgm['dgms_0'].shape[0]-1):
+    p1, p2 = point_cloud[dgm['gens_0'][i][1]], point_cloud[dgm['gens_0'][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
     d = dist(p1, p2) #pt of pt cloud is (0,d)
     density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
   return density_x * scale
@@ -240,10 +240,10 @@ def loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, m
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
 def loss_push0(point_cloud, dgm):
-    loss = -torch.abs(dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
-    for i in range(1, len(dgm['gens'][0])):
+    loss = -torch.abs(dist(point_cloud[dgm['gens_0'][0][1]], point_cloud[dgm['gens_0'][0][2]]))/2.
+    for i in range(1, dgm['gens_0'].shape[0]):
       # Point in the diagram: (0,dist(p1,p2))
-      loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
+      loss = loss - torch.abs(dist(point_cloud[dgm['gens_0'][i][1]], point_cloud[dgm['gens_0'][i][2]]))/2. #dist to diagonal of (0,d) is d/2
     return loss
 
 # topo_losses combines all the previous functions into a single function:
@@ -251,8 +251,8 @@ def loss_push0(point_cloud, dgm):
 # - topo_weights: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. weight set as 0: topofunction not used
 # - hyperparameters for topological functions: pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
 def topo_losses(points, true_points, dgm, dgm_true, args):
-    dgm0_notempty = len(dgm['dgms'][0]) > 0
-    dgm1_notempty = len(dgm['dgms'][1]) > 0
+    dgm0_notempty = dgm['dgms_0'].shape[0] > 0
+    dgm1_notempty = dgm['dgms_1'].shape[0] > 0
     loss = torch.tensor(0.0, requires_grad=True)
     if args.topo_weights[0] != 0. and dgm0_notempty:
       topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
