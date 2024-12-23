@@ -58,7 +58,7 @@ def dist_sup_tc(b1, d1, b2, d2):
 def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
     got_loss = 1
     with torch.no_grad():
-        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_0'][:-1], dgm2['dgms_0'][:-1], matching=True)
+        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_0'][:-1].cpu().numpy(), dgm2['dgms_0'][:-1].cpu().numpy(), matching=True)
         #find the pair that gives the max distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1]) #i, j: the i-th and j-th point of the dgm1, dgm2 respectively, that give the bottleneck dist.
