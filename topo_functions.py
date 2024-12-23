@@ -25,7 +25,7 @@ from gph import ripser_parallel
 def get_dgm(point_cloud, deg, device):
   with torch.no_grad():
         # Convert points for computing the persistence diagram:
-        points_np = point_cloud.cpu().numpy()
+        points_np = point_cloud.numpy()
         # Get the persistence diagram: (a dictionary with information about the persistence diagrams)
         dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
         dgm_in_device = {
