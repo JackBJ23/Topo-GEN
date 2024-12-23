@@ -40,7 +40,7 @@ def get_dgm(point_cloud, deg, device):
         print("g1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0])
         i = 0
         print("point dgm0", point_cloud[dgm['gens'][0][i][1]], "2nd", point_cloud[dgm_in_device['gens_0'][i][1]])
-        if len(dgm['dgms'][1]>0: print("point dgm1", point_cloud[dgm['gens'][1][0][i][0]], "2nd", point_cloud[dgm_in_device['gens_1'][0][i][0]])
+        if len(dgm['dgms'][1])>0: print("point dgm1", point_cloud[dgm['gens'][1][0][i][0]], "2nd", point_cloud[dgm_in_device['gens_1'][0][i][0]])
   return dgm_in_device
 
 # Euclidean dist for torch tensors:
