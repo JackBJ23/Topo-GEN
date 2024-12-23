@@ -153,7 +153,7 @@ def load_config():
     parser = argparse.ArgumentParser(description='Train and evaluate a generative model with topological regularizers.')
     parser.add_argument('--n_latent', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=128)
-    parser.add_argument('--n_epochs', type=int, default=3)
+    parser.add_argument('--n_epochs', type=int, default=2)
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--n_plot', type=int, default=50)
