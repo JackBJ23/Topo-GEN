@@ -34,10 +34,8 @@ def get_dgm(point_cloud, deg, device):
             'gens_0': torch.tensor(dgm['gens'][0], device=device) if len(dgm['gens'][0]) > 0 else torch.empty(0, device=device),
         }
         if deg >= 1:
-            dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device) #if len(dgm['dgms'][1]) > 0 else torch.empty(0, device=device)
-            dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device) #if len(dgm['gens'][1]) > 0 else torch.empty(0, device=device)
-  if dgm_in_device['dgms_1'].shape[0]==0: dgm_in_device['dgms_1'] = torch.tensor([0.,0.], device=device)
-  print("dgm", dgm, "dgm2", dgm_in_device)
+            dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device)
+            dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device)
   return dgm_in_device
 
 # Euclidean dist for torch tensors:
@@ -83,7 +81,7 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
 
 def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
     got_loss = 1
-    if len(dgm2['dgms'][1])==0: dgm2['dgms'][1] = [[0.,0.]]
+    if dgm2['dgms_1'].shape[0]==0: dgm2['dgms_1'] = torch.tensor([0.,0.], device=device)
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
         #find the pair that gives the max distance:
