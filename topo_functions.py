@@ -36,6 +36,11 @@ def get_dgm(point_cloud, deg, device):
         if deg >= 1:
             dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device)
             dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device)
+        print("lengths", len(dgm['dgms'][0]), dgm_in_device['dgms_0'].shape[0], "dg1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0], "g0" len(dgm['gens'][0]), dgm_in_device['gens_0'].shape[0])
+        print("g1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0])
+        i = 0
+        print("point dgm0", point_cloud[dgm['gens'][0][i][1]], "2nd", point_cloud[dgm_in_device['gens_0'][i][1]])
+        print("point dgm1", point_cloud[dgm['gens'][1][0][i][0]], "2nd", point_cloud[dgm_in_device['gens_0'][0][i][0]])
   return dgm_in_device
 
 # Euclidean dist for torch tensors:
@@ -53,7 +58,7 @@ def dist_sup_tc(b1, d1, b2, d2):
 def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
     got_loss = 1
     with torch.no_grad():
-        distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
+        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_0'][:-1], dgm2['dgms_0'][:-1], matching=True)
         #find the pair that gives the max distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1]) #i, j: the i-th and j-th point of the dgm1, dgm2 respectively, that give the bottleneck dist.
@@ -64,11 +69,11 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
         # i is the index of a point of the PD. but (gens[i][1], gens[i][2]) is the pair of vertices of the point cloud that correspond to the point i=(0,d), with d=dist(gens[i][1]-gens[i][2])
         #get the 2 points that give the distance of the i-th pt in dgm in the 1st diagram and compute the loss:
     if i>=0:
-      point1_dgm1 = point_cloud[dgm['gens'][0][i][1]]
-      point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
+      point1_dgm1 = point_cloud[dgm['gens_0'][i][1]]
+      point2_dgm1 = point_cloud[dgm['gens_0'][i][2]]
 
     if i>=0 and j>=0:
-      loss = torch.abs(dist(point1_dgm1, point2_dgm1) - torch.tensor(dgm2['dgms'][0][j][1]))
+      loss = torch.abs(dist(point1_dgm1, point2_dgm1) - torch.tensor(dgm2['dgms_0'][j][1]))
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
@@ -83,7 +88,7 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
     got_loss = 1
     if dgm2['dgms_1'].shape[0]==0: dgm2['dgms_1'] = torch.tensor([0.,0.], device=device)
     with torch.no_grad():
-        distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
+        distance_bottleneck, matching = persim.bottleneck(dgm['dgms_1'], dgm2['dgms_1'], matching=True)
         #find the pair that gives the max distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1])
@@ -94,17 +99,17 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
     #get the 2 points that give the distance of the i-th pt in dgm in the 1st diagram:
     #if i>0, then the pt of dgm1 is off-diag:
     if i>=0:
-      point0_dgm1 = point_cloud[dgm['gens'][1][0][i][0]]
-      point1_dgm1 = point_cloud[dgm['gens'][1][0][i][1]]
-      point2_dgm1 = point_cloud[dgm['gens'][1][0][i][2]]
-      point3_dgm1 = point_cloud[dgm['gens'][1][0][i][3]]
+      point0_dgm1 = point_cloud[dgm['gens_1'][0][i][0]]
+      point1_dgm1 = point_cloud[dgm['gens_1'][0][i][1]]
+      point2_dgm1 = point_cloud[dgm['gens_1'][0][i][2]]
+      point3_dgm1 = point_cloud[dgm['gens_1'][0][i][3]]
       birth_dgm1 = dist(point0_dgm1, point1_dgm1)
       death_dgm1 = dist(point2_dgm1, point3_dgm1)
 
     #get the 2 points that give the distance of the j-th pt in dgm in the 2nd diagram:
     if j>=0:
-      birth_dgm2 = torch.tensor(dgm2['dgms'][1][j][0])
-      death_dgm2 = torch.tensor(dgm2['dgms'][1][j][1])
+      birth_dgm2 = torch.tensor(dgm2['dgms_1'][j][0])
+      death_dgm2 = torch.tensor(dgm2['dgms_1'][j][1])
 
     if i>=0 and j>=0:
       loss = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
@@ -121,25 +126,25 @@ def loss_persentropy0(point_cloud, dgm, dgm2, delta): # dgm of deg0. only looks 
   # Get persistent entropy of dgm:
   L = torch.tensor(0.0, requires_grad=True)
   pers = torch.tensor(0.0, requires_grad=True)
-  for i in range(len(dgm['dgms'][0])-1):
-    pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]])
+  for i in range(dgm['dgms_0'].shape[0]-1):
+    pers1 = dist(point_cloud[dgm['gens_0'][i][1]], point_cloud[dgm['gens_0'][i][2]])
     if pers1 > delta: L = L + pers1
 
   if L.item() == 0.0: return torch.tensor(0.0), 0
-  for i in range(len(dgm['dgms'][0])-1):
-    pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
+  for i in range(dgm['dgms_0'].shape[0]-1):
+    pers1 = dist(point_cloud[dgm['gens_0'][i][1]], point_cloud[dgm['gens_0'][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L) #pt of pt cloud is (0,dist(p1, p2))
 
   # Get persistent entropy of dgm2:
   L2 = torch.tensor(0.0)
   pers2 = torch.tensor(0.0)
-  for i in range(len(dgm2['dgms'][0])-1):
-    if dgm2['dgms'][0][i][1] > delta: L2 += dgm2['dgms'][0][i][1]
+  for i in range(dgm2['dgms_0'].shape[0]-1):
+    if dgm2['dgms_0'][i][1] > delta: L2 += dgm2['dgms_0'][i][1]
   
   if L2.item() == 0.0: return (pers/L) ** 2, 1
 
-  for i in range(len(dgm2['dgms'][0])-1):
-    if dgm2['dgms'][0][i][1] > delta: pers2 += dgm2['dgms'][0][i][1] * torch.log(dgm2['dgms'][0][i][1] / L2)
+  for i in range(dgm2['dgms_0'].shape[0]-1):
+    if dgm2['dgms_0'][i][1] > delta: pers2 += dgm2['dgms_0'][i][1] * torch.log(dgm2['dgms_0'][i][1] / L2)
 
   return (pers/L - pers2/L2)**2, 1
 
@@ -147,29 +152,29 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
   # Get persistent entropy of dgm:
   L = torch.tensor(0.0, requires_grad=True)
   pers = torch.tensor(0.0, requires_grad=True)
-  for i in range(len(dgm['dgms'][1])):
+  for i in range(dgm['dgms_1'].shape[0]):
     # pt in dgm: (b1,d1), with b1 = dist(p1, p2), d1 = dist(dist(p3, p4), and pers1=d1-b1.
-    pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
+    pers1 = dist(point_cloud[dgm['gens_1'][0][i][2]], point_cloud[dgm['gens_1'][0][i][3]]) - dist(point_cloud[dgm['gens_1'][0][i][0]], point_cloud[dgm['gens_1'][0][i][1]])
     if pers1 > delta: L = L + pers1
 
   if L.item()==0.0: return torch.tensor(0.0), 0
 
-  for i in range(len(dgm['dgms'][1])):
-    pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
+  for i in range(dgm['dgms_1'].shape[0]):
+    pers1 = dist(point_cloud[dgm['gens_1'][0][i][2]], point_cloud[dgm['gens_1'][0][i][3]]) - dist(point_cloud[dgm['gens_1'][0][i][0]], point_cloud[dgm['gens_1'][0][i][1]])
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
 
-  if len(dgm2['dgms'][1])==0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
+  if dgm2['dgms_1'].shape[0]==0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
 
   # Get persistent entropy of dgm2:
   L2 = torch.tensor(0.0)
   pers2 = torch.tensor(0.0)
-  for i in range(len(dgm2['dgms'][1])):
-    if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: L2 += dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]
+  for i in range(len(dgm2['dgms_1'])):
+    if dgm2['dgms_1'][i][1] - dgm2['dgms'][i][0] > delta: L2 += dgm2['dgms'][i][1] - dgm2['dgms'][i][0]
 
   if L2.item()==0.0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
 
-  for i in range(len(dgm2['dgms'][1])):
-    if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * torch.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
+  for i in range(dgm2['dgms_1'].shape[0]):
+    if dgm2['dgms_1'][i][1] - dgm2['dgms_1'][i][0] > delta: pers2 += (dgm2['dgms_1'][i][1] - dgm2['dgms_1'][i][0]) * torch.log((dgm2['dgms_1'][i][1] - dgm2['dgms_1'][i][0])/L2)
 
   return (pers/L - pers2/L2)**2, 1
 
