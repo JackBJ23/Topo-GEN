@@ -36,7 +36,7 @@ def get_dgm(point_cloud, deg, device):
         if deg >= 1:
             dgm_in_device['dgms_1'] = torch.tensor(dgm['dgms'][1], device=device)
             dgm_in_device['gens_1'] = torch.tensor(dgm['gens'][1], device=device)
-        print("lengths", len(dgm['dgms'][0]), dgm_in_device['dgms_0'].shape[0], "dg1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0], "g0" len(dgm['gens'][0]), dgm_in_device['gens_0'].shape[0])
+        print("lengths", len(dgm['dgms'][0]), dgm_in_device['dgms_0'].shape[0], "dg1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0], "g0", len(dgm['gens'][0]), dgm_in_device['gens_0'].shape[0])
         print("g1", len(dgm['dgms'][1]), dgm_in_device['dgms_1'].shape[0])
         i = 0
         print("point dgm0", point_cloud[dgm['gens'][0][i][1]], "2nd", point_cloud[dgm_in_device['gens_0'][i][1]])
