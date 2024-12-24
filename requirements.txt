@@ -8,6 +8,7 @@ torchvision
 Pillow
 tqdm
 six
+kaleido
 
 # Topological Data Analysis libraries
 giotto-tda
