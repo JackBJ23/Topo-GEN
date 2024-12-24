@@ -101,7 +101,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
   plt.ylabel("Loss")
   plt.savefig(f'{test_name}_loss_evolution.png')
   # save video of evolution of the point cloud:
-  generate_gif(point_clouds)
+  generate_gif(point_clouds, test_name)
   print(f"Test {test_name} done!")
 
 if __name__ == "__main__":
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
 
-  synthetic_test(point_cloud, point_cloud_true, 2000, 50, 0.01, 'test_1', loss_bottleneck01) # 15000
+  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1', loss_bottleneck01)
 
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
 
-  synthetic_test(point_cloud, point_cloud_true, 500, 25, 0.05, 'test_2', loss_bottleneck01) # 2500
+  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2', loss_bottleneck01)
 
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
 
