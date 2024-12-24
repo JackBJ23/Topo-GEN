@@ -43,8 +43,7 @@ def dist_sup_tc(b1, d1, b2, d2):
     # Calculate the sup norm between points (b1, d1) and (b2, d2)
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
-def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
-    got_loss = 1
+def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
         #find the pair that gives the max distance:
@@ -59,21 +58,17 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
     if i>=0:
       point1_dgm1 = point_cloud[dgm['gens'][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
-
+    
     if i>=0 and j>=0:
-      loss = torch.abs(dist(point1_dgm1, point2_dgm1) - torch.tensor(dgm2['dgms'][0][j][1]))
+      return torch.abs(dist(point1_dgm1, point2_dgm1) - torch.tensor(dgm2['dgms'][0][j][1])), 1
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
-        loss = 0
-        got_loss = 0
+        return torch.tensor(0.), 0
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
-        loss = dist(point1_dgm1, point2_dgm1)/2.
+        return dist(point1_dgm1, point2_dgm1)/2., 1
 
-    return loss, got_loss
-
-def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if loss does not depend on dgm
-    got_loss = 1
+def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     if len(dgm2['dgms'][1])==0: dgm2['dgms'][1] = [[0.,0.]]
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
@@ -100,15 +95,12 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # got_loss=1 if got loss, =0 if lo
       death_dgm2 = torch.tensor(dgm2['dgms'][1][j][1])
 
     if i>=0 and j>=0:
-      loss = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
+      return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), 1
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
-        loss = 0
-        got_loss = 0
-      else: #then j==-1, so the i-th point from dgm1 is matched to the diagonal
-        loss = (death_dgm1 - birth_dgm1)/2.
-
-    return loss, got_loss
+        return torch.tensor(0.), 0
+      else: #then j==-1, so the i-th point from dgm is matched to the diagonal
+        return (death_dgm1 - birth_dgm1)/2., 1
 
 def loss_persentropy0(point_cloud, dgm, dgm2, delta): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
   # Get persistent entropy of dgm:
