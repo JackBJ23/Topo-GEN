@@ -125,7 +125,7 @@ if __name__ == "__main__":
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
 
-  synthetic_test(point_cloud, point_cloud_true, 2000, 50, 0.01, 'test_1', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 2000, 50, 0.01, 'test_1', loss_bottleneck01) # 15000
 
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
 
