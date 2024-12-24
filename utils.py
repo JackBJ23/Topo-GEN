@@ -65,7 +65,7 @@ def plot_pc_gif(point_cloud):
     plt.close(fig)
     return fig
 
-def generate_gif(point_clouds):
+def generate_gif(point_clouds, test_name):
     # Create a list of figures for each point cloud
     figures = [plot_pc_gif(point_cloud) for point_cloud in point_clouds]
 
@@ -79,4 +79,4 @@ def generate_gif(point_clouds):
     images[0].save('point_clouds_evolution.gif', save_all=True, append_images=images[1:], duration=50, loop=0) # 70 for test3
 
     # Display the GIF
-    IPImage('point_clouds_evolution.gif')
+    IPImage(f'{test_name}_point_clouds_evolution.gif')
