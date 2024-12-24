@@ -5,7 +5,6 @@ import numpy as np
 # TDA libraries
 import ripser
 import persim
-import tadasets
 from gph import ripser_parallel
 
 def get_dgm(point_cloud, deg):
