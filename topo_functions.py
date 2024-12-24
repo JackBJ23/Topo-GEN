@@ -28,6 +28,7 @@ def dist_sup_tc(b1, d1, b2, d2):
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
 def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0.), 0
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
         #find the pair that gives the max distance:
@@ -53,7 +54,8 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
         return dist(point1_dgm1, point2_dgm1)/2., 1
 
 def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
-    if len(dgm2['dgms'][1])==0: dgm2['dgms'][1] = [[0.,0.]]
+    if len(dgm['dgms'][1]) == 0: return torch.tensor(0.), 0
+    if len(dgm2['dgms'][1])==0: dgm2['dgms'][1] = [[0.,0.]] # small change for simplifying the following calculations
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
         #find the pair that gives the max distance:
@@ -87,6 +89,7 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
         return (death_dgm1 - birth_dgm1)/2., 1
 
 def loss_persentropy0(point_cloud, dgm, dgm2, delta): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
+  if len(dgm['dgms'][0]) == 0: return torch.tensor(0.), 0
   # Get persistent entropy of dgm:
   L = torch.tensor(0.0, requires_grad=True)
   pers = torch.tensor(0.0, requires_grad=True)
@@ -113,6 +116,7 @@ def loss_persentropy0(point_cloud, dgm, dgm2, delta): # dgm of deg0. only looks 
   return (pers/L - pers2/L2)**2, 1
 
 def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
+  if len(dgm['dgms'][1]) == 0: return torch.tensor(0.), 0
   # Get persistent entropy of dgm:
   L = torch.tensor(0.0, requires_grad=True)
   pers = torch.tensor(0.0, requires_grad=True)
@@ -121,7 +125,7 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
     pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
     if pers1 > delta: L = L + pers1
 
-  if L.item()==0.0: return torch.tensor(0.0), 0
+  if L.item()==0.0: return torch.tensor(0.), 0
 
   for i in range(len(dgm['dgms'][1])):
     pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
@@ -130,8 +134,8 @@ def loss_persentropy1(point_cloud, dgm, dgm2, delta): #dgm of deg1. returns loss
   if len(dgm2['dgms'][1])==0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
 
   # Get persistent entropy of dgm2:
-  L2 = torch.tensor(0.0)
-  pers2 = torch.tensor(0.0)
+  L2 = torch.tensor(0.)
+  pers2 = torch.tensor(0.)
   for i in range(len(dgm2['dgms'][1])):
     if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: L2 += dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]
 
@@ -158,11 +162,10 @@ def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma): #maxdim of both dgms: 
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
-    k11 = ksigma0(point_cloud, point_cloud, dgm, dgm, sigma)
-    k12 = ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma)
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0.), 0
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
-    # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation)
-    return k11 - 2.0 * k12
+    # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
+    return ksigma0(point_cloud, point_cloud, dgm, dgm, sigma) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma), 1
 
 # Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
 def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma):
@@ -182,10 +185,11 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma):
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma=0.05):
+    if len(dgm['dgms'][1]) == 0: return torch.tensor(0.), 0
     if len(dgm2['gens'][1])>0:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma)
+      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma), 1
     else:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma)
+      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma), 1
 
 def density(point_cloud, dgm, sigma, scale, x):
   density_x = torch.tensor(0.0, requires_grad=True) # Density at coordinate x
@@ -196,11 +200,12 @@ def density(point_cloud, dgm, sigma, scale, x):
   return density_x * scale
 
 def loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
+  if len(dgm['dgms'][0]) == 0: return torch.tensor(0.), 0
   xs = torch.linspace(0.0, maxrange, npoints)
   loss = torch.tensor(0.0, requires_grad=True)
   # Compute difference between both functions in npoints points:
   for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x) - density(point_cloud2, dgm2, sigma, scale, x)) ** 2
-  return loss / npoints
+  return loss / npoints, 1
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
 def loss_push0(point_cloud, dgm):
@@ -215,25 +220,26 @@ def loss_push0(point_cloud, dgm):
 # - topo_weights: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. weight set as 0: topofunction not used
 # - hyperparameters for topological functions: pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
 def topo_losses(points, true_points, dgm, dgm_true, args):
-    dgm0_notempty = len(dgm['dgms'][0]) > 0
-    dgm1_notempty = len(dgm['dgms'][1]) > 0
     loss = torch.tensor(0.0, requires_grad=True)
-    if args.topo_weights[0] != 0. and dgm0_notempty:
+    if args.topo_weights[0] != 0.:
       topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
       if gotloss==1: loss = loss + topoloss * args.topo_weights[0]
-    if args.topo_weights[1] != 0. and dgm1_notempty:
+    if args.topo_weights[1] != 0.:
       topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true)
       if gotloss==1: loss = loss + topoloss * args.topo_weights[1]
-    if args.topo_weights[2] != 0. and dgm0_notempty:
+    if args.topo_weights[2] != 0.:
       topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, args.pers0_delta)
       if gotloss==1: loss = loss + topoloss * args.topo_weights[2]
-    if args.topo_weights[3] != 0. and dgm1_notempty:
+    if args.topo_weights[3] != 0.:
       topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, args.pers1_delta)
       if gotloss==1: loss = loss + topoloss * args.topo_weights[3]
-    if args.topo_weights[4] != 0. and dgm0_notempty:
-      loss = loss + loss_dsigma0(points, true_points, dgm, dgm_true, args.dsigma0_scale) * args.topo_weights[4]
-    if args.topo_weights[5] != 0. and dgm1_notempty:
-      loss = loss + loss_dsigma1(points, true_points, dgm, dgm_true, args.dsigma1_scale) * args.topo_weights[5]
-    if args.topo_weights[6] != 0. and dgm0_notempty:
-      loss = loss + loss_density(points, true_points, dgm, dgm_true, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints) * args.topo_weights[6]
-    return loss
+    if args.topo_weights[4] != 0.:
+      topoloss, gotloss = loss_dsigma0(points, true_points, dgm, dgm_true, args.dsigma0_scale)
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[4]
+    if args.topo_weights[5] != 0.:
+      topoloss, gotloss = loss_dsigma1(points, true_points, dgm, dgm_true, args.dsigma1_scale)
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[5]
+    if args.topo_weights[6] != 0.:
+      topoloss, gotloss = loss_density(points, true_points, dgm, dgm_true, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
+      if gotloss==1: loss = loss + topoloss * args.topo_weights[6]
+  return loss
