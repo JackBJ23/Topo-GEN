@@ -27,7 +27,7 @@ import scipy
 import torch
 import random
 
-from topo_functions import get_dgm, topo_losses
+from topo_functions import *
 from utils import plot_dgm, generate_gif
 
 """Total topological losses:"""
@@ -43,7 +43,7 @@ def loss_bottleneck01(point_cloud, dgm_true):
 def loss_entropy01(point_cloud, dgm_true):
   dgm = get_dgm(point_cloud, 1)
   l_topo0, got_loss0 = loss_persentropy0(point_cloud, dgm, dgm2, 0.01)
-  l_topo1, got_loss1 = loss_persentropy0(point_cloud, dgm, dgm2, 0.01)
+  l_topo1, got_loss1 = loss_persentropy1(point_cloud, dgm, dgm2, 0.01)
   if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
   # only if did not get losses from the previous functions:
   return push0(point_cloud), l_topo0.item() + l_topo1.item()
@@ -102,72 +102,68 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, name_
   generate_gif(point_clouds)
   print(f"Test {test_name} done!")
 
-"""Test 1: The learnable point cloud begins with 5 clusters, and the reference point cloud has 3 clusters."""
+if __name__ == "__main__":
+  # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
 
-# First, generate a snythetic ground truth point cloud with its dgm:
-point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
+  # First, generate a snythetic ground truth point cloud:
+  point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
 
-## Second, manually create the initial point cloud:
-point_cloud = np.zeros((64,2))
-r1 = 0.5
-for i in range(10):
-  point_cloud[i][0] = random.uniform(-r1, r1)
-  point_cloud[i][1] = random.uniform(-r1, r1)
-for i in range(10):
-  point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
-  point_cloud[i+10][1] = random.uniform(-r1, r1)
-for i in range(10):
-  point_cloud[i+20][0] = random.uniform(-r1, r1)
-  point_cloud[i+20][1] = random.uniform(-r1, r1)+20
-for i in range(10):
-  point_cloud[i+30][0] = random.uniform(-r1, r1)+30
-  point_cloud[i+30][1] = random.uniform(-r1, r1)+30
-for i in range(24):
-  point_cloud[i+40][0] = random.uniform(-r1, r1)+10
-  point_cloud[i+40][1] = random.uniform(-r1, r1)-25
+  # Second, manually create the initial point cloud:
+  point_cloud = np.zeros((64,2))
+  r1 = 0.5
+  for i in range(10):
+    point_cloud[i][0] = random.uniform(-r1, r1)
+    point_cloud[i][1] = random.uniform(-r1, r1)
+    point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
+    point_cloud[i+10][1] = random.uniform(-r1, r1)
+    point_cloud[i+20][0] = random.uniform(-r1, r1)
+    point_cloud[i+20][1] = random.uniform(-r1, r1)+20
+    point_cloud[i+30][0] = random.uniform(-r1, r1)+30
+    point_cloud[i+30][1] = random.uniform(-r1, r1)+30
+  for i in range(24):
+    point_cloud[i+40][0] = random.uniform(-r1, r1)+10
+    point_cloud[i+40][1] = random.uniform(-r1, r1)-25
 
-synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1', loss_bottleneck01)
 
-"""Test 2: The learnable point cloud begins with 2 clusters, and the reference point cloud has 4 clusters."""
+  # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
 
-point_cloud_true = np.zeros((128,2))
-r1 = 0.3
-for i in range(30):
-  point_cloud_true[i][0] = random.uniform(-r1, r1)
-  point_cloud_true[i][1] = random.uniform(-r1, r1)
-for i in range(30, 50):
-  point_cloud_true[i][0] = random.uniform(-r1, r1)+10.
-  point_cloud_true[i][1] = random.uniform(-r1, r1)
-for i in range(50,80):
-  point_cloud_true[i][0] = random.uniform(-r1, r1)-5.
-  point_cloud_true[i][1] = random.uniform(-r1, r1)+4.
-for i in range(80,128):
-  point_cloud_true[i][0] = random.uniform(-r1, r1)+8.
-  point_cloud_true[i][1] = random.uniform(-r1, r1)+13.
+  point_cloud_true = np.zeros((128,2))
+  r1 = 0.3
+  for i in range(30):
+    point_cloud_true[i][0] = random.uniform(-r1, r1)
+    point_cloud_true[i][1] = random.uniform(-r1, r1)
+  for i in range(30, 50):
+    point_cloud_true[i][0] = random.uniform(-r1, r1)+10.
+    point_cloud_true[i][1] = random.uniform(-r1, r1)
+  for i in range(50,80):
+    point_cloud_true[i][0] = random.uniform(-r1, r1)-5.
+    point_cloud_true[i][1] = random.uniform(-r1, r1)+4.
+  for i in range(80,128):
+    point_cloud_true[i][0] = random.uniform(-r1, r1)+8.
+    point_cloud_true[i][1] = random.uniform(-r1, r1)+13.
 
-point_cloud = np.zeros((64,2))
-r1 = 0.4
-for i in range(30):
-  point_cloud[i][0] = random.uniform(-r1, r1)
-  point_cloud[i][1] = random.uniform(-r1, r1)
-for i in range(34):
-  point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
-  point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
+  point_cloud = np.zeros((64,2))
+  r1 = 0.4
+  for i in range(30):
+    point_cloud[i][0] = random.uniform(-r1, r1)
+    point_cloud[i][1] = random.uniform(-r1, r1)
+  for i in range(34):
+    point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
+    point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
 
-number_of_iterations = 2500
+  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2', loss_bottleneck01)
 
-synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2', loss_bottleneck01)
+  # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
 
-"""Test 3: The learnable point cloud begins as two lines, and the reference point cloud is a circle."""
+  point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
+  #initial point cloud: 2 lines with added noise
+  point_cloud = np.zeros((64,2))
+  r1 = 0.1
+  for i in range(32):
+    point_cloud[i][0] = random.uniform(-r1, r1)
+    point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
+    point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
+    point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
 
-point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
-#initial point cloud: 2 lines with added noise
-point_cloud = np.zeros((64,2))
-r1 = 0.1
-for i in range(32):
-  point_cloud[i][0] = random.uniform(-r1, r1)
-  point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
-  point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
-  point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-
-synthetic_test(point_cloud, point_cloud_true, 7500, 50, 0.1, 'test_3', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 7500, 50, 0.1, 'test_3', loss_bottleneck01)
