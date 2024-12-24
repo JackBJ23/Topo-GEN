@@ -1,7 +1,6 @@
 import torch
 import math
 import numpy as np
-
 # TDA libraries
 import ripser
 import persim
