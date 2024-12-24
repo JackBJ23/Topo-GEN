@@ -52,19 +52,19 @@ def loss_entropy01(point_cloud, dgm_true):
 # saves: 
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final PD of point cloud, loss evolution, video of the point cloud evolution
-def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, name_test, loss_function):
+def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_name, loss_function):
   # plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
-  fig.write_image(f'{name_test}_ini_true_pointcloud')
+  fig.write_image(f'{test_name}_ini_true_pointcloud.png')
   # plot initial true PD:
   dgm_true = get_dgm(point_cloud_true, 1)
-  plot_dgm(dgm_true, f'{name_test}_ini_true_diagram')
+  plot_dgm(dgm_true, f'{test_name}_ini_true_diagram.png')
   # plot initial learnable point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud))
-  fig.write_image(f'{name_test}_ini_pointcloud')
+  fig.write_image(f'{test_name}_ini_pointcloud.png')
   # plot initial PD of the learnable point cloud:
   dgm = get_dgm(point_cloud, 1)
-  plot_dgm(dgm_true, f'{name_test}_ini_diagram')
+  plot_dgm(dgm_true, f'{test_name}_ini_diagram.png')
 
   point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32)
   point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad = True)
@@ -90,15 +90,15 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, name_
 
   print("Training ended")
   # save PD of final point cloud:
-  plot_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram')
+  plot_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram.png')
   # save final point cloud:
   fig = go.Figure(plot_point_cloud(point_clouds[-1]))
-  fig.write_image(f'{test_name}_final_pointcloud')
+  fig.write_image(f'{test_name}_final_pointcloud.png')
   # save loss evolution:
   plt.plot(xs, losses)
   plt.xlabel("Iteration")
   plt.ylabel("Loss (-1 when push function used)")
-  plt.savefig(f'{test_name}_loss_evolution')
+  plt.savefig(f'{test_name}_loss_evolution.png')
   # save video of evolution of the point cloud:
   generate_gif(point_clouds)
   print(f"Test {test_name} done!")
