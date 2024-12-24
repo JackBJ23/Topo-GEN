@@ -39,7 +39,7 @@ def loss_bottleneck01(point_cloud, dgm_true):
   l_topo1, got_loss1 = loss_bottleneck1(point_cloud, dgm, dgm_true)
   if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
   # only if did not get losses from the previous functions:
-  return push0(point_cloud), -1
+  return loss_push0(point_cloud, dgm), l_topo0.item() + l_topo1.item()
 
 def loss_entropy01(point_cloud, dgm_true):
   dgm = get_dgm(point_cloud, 1)
@@ -47,9 +47,9 @@ def loss_entropy01(point_cloud, dgm_true):
   l_topo1, got_loss1 = loss_persentropy1(point_cloud, dgm, dgm2, 0.01)
   if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
   # only if did not get losses from the previous functions:
-  return push0(point_cloud), l_topo0.item() + l_topo1.item()
+  return loss_push0(point_cloud, dgm), l_topo0.item() + l_topo1.item()
 
-# saves: 
+# saves:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final PD of point cloud, loss evolution, video of the point cloud evolution
 def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_name, loss_function):
@@ -64,7 +64,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
   fig.write_image(f'{test_name}_ini_pointcloud.png')
   # plot initial PD of the learnable point cloud:
   dgm = get_dgm(point_cloud, 1)
-  plot_dgm(dgm_true, f'{test_name}_ini_diagram.png')
+  plot_dgm(dgm, f'{test_name}_ini_diagram.png')
 
   point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32)
   point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad = True)
@@ -97,7 +97,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
   # save loss evolution:
   plt.plot(xs, losses)
   plt.xlabel("Iteration")
-  plt.ylabel("Loss (-1 when push function used)")
+  plt.ylabel("Loss")
   plt.savefig(f'{test_name}_loss_evolution.png')
   # save video of evolution of the point cloud:
   generate_gif(point_clouds)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
 
-  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 2000, 50, 0.01, 'test_1', loss_bottleneck01)
 
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
 
