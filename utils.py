@@ -1,7 +1,5 @@
-import numpy as np
-import torch
-import torchvision.utils
 import matplotlib.pyplot as plt
+import torchvision.utils
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 from plotly import graph_objects as go
