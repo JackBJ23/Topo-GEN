@@ -13,6 +13,7 @@ from sklearn import datasets
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from plotly import graph_objects as go
+import plotly.io as pio
 from gtda.plotting import plot_diagram, plot_point_cloud
 from PIL import Image
 from IPython.display import Image as IPImage
