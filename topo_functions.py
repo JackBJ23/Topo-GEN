@@ -26,9 +26,9 @@ def get_dgm(point_cloud, deg):
   # Compute the persistence diagram without backprop
   with torch.no_grad():
         # Convert points for computing PD:
-        # points_np = point_cloud.numpy()
+        points_np = point_cloud.cpu().numpy()
         # Get PD with generators:
-        dgm = ripser_parallel(point_cloud, maxdim=deg, return_generators=True)
+        dgm = ripser_parallel(points_np, maxdim=deg, return_generators=True)
   return dgm
 
 # Euclidean dist for torch tensors:
