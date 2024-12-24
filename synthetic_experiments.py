@@ -153,7 +153,7 @@ if __name__ == "__main__":
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
 
-  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 500, 25, 0.05, 'test_2', loss_bottleneck01) # 2500
 
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
 
