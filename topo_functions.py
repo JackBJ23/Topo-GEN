@@ -242,4 +242,4 @@ def topo_losses(points, true_points, dgm, dgm_true, args):
     if args.topo_weights[6] != 0.:
       topoloss, gotloss = loss_density(points, true_points, dgm, dgm_true, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
       if gotloss==1: loss = loss + topoloss * args.topo_weights[6]
-  return loss
+    return loss
