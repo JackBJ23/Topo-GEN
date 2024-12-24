@@ -74,6 +74,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
 
+  print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
       loss, lossitem = loss_function(point_cloud, dgm_true)
@@ -85,7 +86,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
         xs.append(i)
 
       if i % num_save == 0 or i == num_steps - 1: 
-        point_clouds.append(point_cloud.detach().numpy())
+        point_clouds.append(np.copy(point_cloud.detach().cpu().numpy()))
         print(f"Iteration {i}/{num_steps}, Loss: {loss.item()}")
 
   print("Training ended")
