@@ -83,7 +83,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
           data = data.to(device)
-          dgm_true = dgms_batches[batch_idx]
+          dgm_true = dgms_batches[batch_idx].to(device)
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
@@ -98,7 +98,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
-          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1, device)
+          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1).to(device)
           BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, args)
           loss1.backward()
           optimizer1.step()
@@ -205,11 +205,8 @@ if __name__ == "__main__":
   # Pre-compute persistence diagrams:
   print("Pre-computing persistence diagrams...")
   dgms_batches = []
-  pc = np.array([[0.,1.], [2.,2.]])
-  dgm = get_dgm(pc, 1, device)
   for step, (data, _) in enumerate(train_loader):
-     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1, device))
-     break
+    dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
