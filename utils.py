@@ -6,6 +6,9 @@ from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 from plotly import graph_objects as go
 
+from PIL import Image
+from IPython.display import Image as IPImage
+
 def plot_dgm(dgm):
   dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
   fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
@@ -53,3 +56,28 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
 
     plt.tight_layout()
     plt.savefig(filename)
+
+def plot_pc_gif(point_cloud):
+    fig = plt.figure(figsize=(6, 6))
+    plt.scatter(point_cloud[:, 0], point_cloud[:, 1], s=10, c='b')
+    #plt.xlabel('X')
+    plt.xlim(-10, 20)  # Adjust the limits as per your point cloud data
+    plt.ylim(-5, 30)  # Adjust the limits as per your point cloud data
+    plt.close(fig)
+    return fig
+
+def generate_gif(point_clouds):
+    # Create a list of figures for each point cloud
+    figures = [plot_pc_gif(point_cloud) for point_cloud in point_clouds]
+
+    # Save each figure as an image and store them in a list
+    images = []
+    for idx, fig in enumerate(figures):
+        fig.savefig(f'point_cloud_{idx}.png', dpi=80)
+        images.append(Image.open(f'point_cloud_{idx}.png'))
+
+    # Save the images as a GIF
+    images[0].save('point_clouds_evolution.gif', save_all=True, append_images=images[1:], duration=50, loop=0) # 70 for test3
+
+    # Display the GIF
+    IPImage('point_clouds_evolution.gif')
