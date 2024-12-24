@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.utils
 from gtda.homology._utils import _postprocess_diagrams
