@@ -1,20 +1,6 @@
-import sys
-import os
-import math
-import random
-import argparse
-import numpy as np
-import scipy
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-
 import torch
-from torch import nn, optim
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-import torchvision
-from torchvision import transforms, datasets
-from torchvision.utils import make_grid, save_image
+import math
+import numpy as np
 
 # TDA libraries
 import ripser
