@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.utils
@@ -69,14 +70,17 @@ def generate_gif(point_clouds, test_name):
     # Create a list of figures for each point cloud
     figures = [plot_pc_gif(point_cloud) for point_cloud in point_clouds]
 
+    gif_path = f'{test_name}_point_clouds_evolution.gif'
     # Save each figure as an image and store them in a list
     images = []
+    file_paths = []
     for idx, fig in enumerate(figures):
-        fig.savefig(f'point_cloud_{idx}.png', dpi=80)
-        images.append(Image.open(f'point_cloud_{idx}.png'))
+        file_path = f'point_cloud_{idx}.png'
+        fig.savefig(file_path, dpi=80)
+        images.append(Image.open(file_path))
+        file_paths.append(file_path)
 
     # Save the images as a GIF
-    images[0].save('point_clouds_evolution.gif', save_all=True, append_images=images[1:], duration=50, loop=0) # 70 for test3
-
-    # Display the GIF
-    IPImage(f'{test_name}_point_clouds_evolution.gif')
+    images[0].save(gif_path, save_all=True, append_images=images[1:], duration=50, loop=0)
+    for file_path in file_paths: os.remove(file_path)
+    IPImage(gif_path)
