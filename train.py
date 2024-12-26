@@ -32,16 +32,16 @@ from utils import plot_dgm, plot_gen_imgs
 
 def loss_vae(recon_x, x, mu, logvar):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
     # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
 
 # loss of TopoVAEs (Standard + Topoloss of degree 0 + Topoloss of degree 1)
-def loss_topovae(recon_x, x, mu, logvar, dgm, dgm_true, args):
+def loss_topovae(recon_x, x, mu, logvar, dgm, dgm_true, device, args):
     # Standard loss:
     BCE, KLD = loss_vae(recon_x, x, mu, logvar)
     # Topological loss:
-    topo_loss = topo_losses(recon_x, x, dgm, dgm_true, args)
+    topo_loss = topo_losses(recon_x, x, dgm, dgm_true, device, args)
     return BCE, KLD, BCE + KLD + topo_loss
 
 # Train and compare model0 (normal VAE) and model2 (some TopoVAE):
@@ -99,7 +99,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
           dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, args)
+          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, device, args)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
