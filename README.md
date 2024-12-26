@@ -53,7 +53,7 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 # Basic usage
 
-There are seven topological regularizers with the following arguments (point_cloud: output of the machine learning model, dgm: its persistence diagram, true_dgm: true diagram). The other values are optional and are hyperparameters that control the topological functions. The function loss_push0 does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
+There are seven topological regularizers with the following arguments (point_cloud: output of the machine learning model or with learnable coordinates, dgm: its persistence diagram, true_dgm: true diagram). The other values are optional and are hyperparameters that control the topological functions. The function loss_push0 does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
 ```
 loss_bottleneck0(point_cloud, dgm, true_dgm)
 loss_bottleneck1(point_cloud, dgm, true_dgm)
