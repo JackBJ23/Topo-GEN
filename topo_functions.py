@@ -111,7 +111,7 @@ def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg
   if L2 == 0.: return (pers/L) ** 2, 1
 
   for i in range(len(dgm2['dgms'][0])-1):
-    if dgm2['dgms'][0][i][1] > delta: pers2 += dgm2['dgms'][0][i][1] * torch.log(dgm2['dgms'][0][i][1] / L2)
+    if dgm2['dgms'][0][i][1] > delta: pers2 += dgm2['dgms'][0][i][1] * math.log(dgm2['dgms'][0][i][1] / L2)
 
   return (pers/L - pers2/L2)**2, 1
 
@@ -142,7 +142,7 @@ def loss_persentropy1(point_cloud, dgm, dgm2, device, delta=0.001): #dgm of deg1
   if L2 == 0.: return (pers/L)**2, 1 # the entropy of dgm2 is 0
 
   for i in range(len(dgm2['dgms'][1])):
-    if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * torch.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
+    if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * math.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
 
   return (pers/L - pers2/L2)**2, 1
 
