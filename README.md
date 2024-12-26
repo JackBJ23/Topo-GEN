@@ -45,6 +45,8 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
+# Basic usage
+
 # Example: TopoVAE
 
 In our experiments, we find interesting behaviors. For instance, a VAE trained wit the bottleneck loss for homology degrees 0 and 1 yields improved image quality and diversity in early training, as shown below (taken at training step 50). Left: input data, middle: output from standard VAE, right: output from TopoVAE. 
