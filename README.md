@@ -4,6 +4,13 @@ This repository presents a new approach for training generative models leveragin
 
 In particular, we introduce a new family of topological regularizers that can be implemented into the training process of any generative model. Algorithms in this repository are fully supported to run on the GPU.
 
+# Installation
+
+To install the repository:
+´´´
+pip install
+´´´
+
 # Proof-of-concept Example: Synthetic Experiments
 
 To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, updated through gradient descent. In particular, we impose a ground truth persistence diagram that captures some topological properties. In each training step, we compute the persistence diagram of the learnable point cloud, and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. Overall, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
