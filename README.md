@@ -4,7 +4,7 @@ This repository presents a new approach for training generative models leveragin
 
 This repository implements persistence diagrams into the training process of generative models using several new approaches. 
 
-# Examples: Synthetic Experiments
+# Proof-of-concept Example: Synthetic Experiments
 
 Additionally, to provide a proof-of-concept example, we have included a file where we apply the topological loss terms into synthetic point clouds in the plane. These synthetic experiments show that the point clouds learn to continuously deform to acquired the desired topological features. 
 
@@ -20,9 +20,9 @@ Briefly explained, applying topological regularizers into generative models work
 
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
-# 
+# Example: TopoVAE
 
-In our experiments, we find interesting behaviors. For instance, a VAE trained with parameters [15.0, 15.0, 0., 0., 0., 0., 0.] yields an improved image quality and diversity in early training, as shown below (left: input data, middle: output from VAE, right: output from TopoVAE). 
+In our experiments, we find interesting behaviors. For instance, a VAE trained wit the bottleneck loss for homology degrees 0 and 1 yields improved image quality and diversity in early training, as shown below (taken at training step 50). Left: input data, middle: output from standard VAE, right: output from TopoVAE. 
 
 <img src="assets/imgs_generated.png" alt="Images Generated" width="700"/>
 
