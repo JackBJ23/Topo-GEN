@@ -76,7 +76,7 @@ Additionally, we have unified all the topological regularizers into a single fun
 from topo_functions import topo_losses, get_dgm
 topo_losses(point_cloud, true_point_cloud, dgm_true, topo_weights)
 ```
-Where topo_weights is the list of weights asociated to each topological loss: [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density]. In order to not use a function, set its weight to 0. Furthermore, dgm_true can be set as None, and it will be automatically generated in the function.
+Where topo_weights is the list of weights asociated to each topological loss: [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density]. In order to not to use a function, set its weight to 0. Furthermore, dgm_true can be set as None, and it will be automatically generated in the function.
 
 # Example: TopoVAE
 
