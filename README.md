@@ -16,6 +16,6 @@ This performance correlates with a faster decay of the Binary Cross-Entropy loss
 
 Furthermore, as shown below, we observe an interesting behavior: when applying topological regularizers, the latent vectors seem to redistribute them selves in a more organized way according to their classes---compared to the standard VAE.
 
-<img src="assets/latent_dist.png" alt="Latent Distribution" width="500"/>
+<img src="assets/latent_dist.png" alt="Latent Distribution" width="700"/>
 
 We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
