@@ -20,11 +20,11 @@ In the third test (right), we start at 2 segments, and the ground truth persiste
     <img src="assets/synthetic3_video.gif" width="30%">
 </div>
 
-To run these synthetic experiments run:
+To run these synthetic experiments:
 ```
 --python synthetic_experiments.py
 ```
-To run new synthetic experiments with new point clouds run:
+To run new synthetic experiments with new point clouds:
 ```
 --point cloud (optional) --true_point_cloud (optional) --loss_parameters (optional)
 ```
