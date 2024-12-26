@@ -65,7 +65,7 @@ loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma1=0.05)
 loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 loss_push0(point_cloud, dgm)
 ```
-Each function returns two arguments: loss, gotloss. If gotloss is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If gotloss is 0, the topological loss only depends on ground truth data and is not added to the total loss. To generate a persistence diagram, do:
+Each function returns two values: loss, gotloss. If gotloss is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If gotloss is 0, the topological loss only depends on ground truth data and is not added to the total loss. To generate a persistence diagram, do:
 ```
 dgm = get_dgm(point_cloud, deg=1)
 ```
