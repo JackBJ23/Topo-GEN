@@ -4,4 +4,4 @@ This repository presents a new approach for training generative models leveragin
 
 Additionally, to provide a proof-of-concept example, we have included a file where we apply the topological loss terms into synthetic point clouds in the plane. These synthetic experiments show that the point clouds learn to continuously deform to acquired the desired topological features. 
 
-<img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="500"/>
+<img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
