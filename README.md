@@ -21,11 +21,13 @@ In the third test (right), we start at 2 segments, and the ground truth persiste
 </div>
 
 To run these synthetic experiments run:
+```
 --python synthetic_experiments.py
-
+```
 To run new synthetic experiments with new point clouds run:
+```
 --point cloud (optional) --true_point_cloud (optional) --loss_parameters (optional)
-
+```
 The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). Leaving --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. Otherwise, fill the vector of weights [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density] with some non-negative float values. Each is asociated with a different topological loss. 
 
 # Architecture of Topology-Informed Models
