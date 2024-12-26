@@ -37,11 +37,11 @@ In the third test (right), we start with 2 segments, and the ground truth persis
 
 To run these synthetic experiments:
 ```
---python synthetic_experiments.py
+!python synthetic_experiments.py
 ```
 To run new synthetic experiments with new point clouds:
 ```
---python synthetic_experiments.py --point_cloud (add) --true_point_cloud (add)
+!python synthetic_experiments.py --point_cloud (add) --true_point_cloud (add)
 ```
 For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). 
 
@@ -53,11 +53,16 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 # Basic usage
 
+There are seven topological regularizers: 
+
+
 We provide a way to directly train VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
 ```
---python 
+!python train.py --topo_weights 10.,10.,5.,5.,0.,0.,0.
 ```
-Leaving --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. Otherwise, fill the vector of weights [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density] with some non-negative float values. Each is asociated with a different topological loss. 
+To start, we recommend setting the topological weights with 15.,15.,0.,0.,0.,0.,0. --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. The argument topo_weights corresponds to the weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density; each is asociated with a different topological loss (e..g, w_bottleneck0 with the bottleneck loss of degree 0). 
+
+The program will automatically save plots of true, VAE, and TopoVAE-generated images once during training for each epoch, once in evaluation for each epoch, and it will save the BCE loss evolution during training comparing the VAE and TopoVAE. 
 
 # Example: TopoVAE
 
