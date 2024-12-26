@@ -106,7 +106,7 @@ We believe that the integration of topology into generative models through diffe
 
 # More information
 
-For details of topological regularizers, stability properties, differentiability results, and more detailed information about their meaning and the meaning of their hyperparameters, see B. Jedlicki, Jack. "Topogen: topology-informed generative models.", [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
+For details of topological regularizers, stability properties, differentiability results, and more detailed information about their meaning and the meaning of their hyperparameters, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
 # References
 
