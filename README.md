@@ -13,7 +13,7 @@ To install the repository:
 pip install https://github.com/JackBJ23/Topo-GEN.git
 ``` 
 
-# Proof-of-concept Example: Synthetic Experiments
+# Proof-of-concept example: synthetic experiments
 
 To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, updated through gradient descent. In particular, we impose a ground truth persistence diagram that captures some topological properties. In each training step, we compute the persistence diagram of the learnable point cloud, and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
 
@@ -39,7 +39,7 @@ To run new synthetic experiments with new point clouds:
 ```
 The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). Leaving --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. Otherwise, fill the vector of weights [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density] with some non-negative float values. Each is asociated with a different topological loss. 
 
-# Architecture of Topology-Informed Models
+# Working principle of topology-informed generative models
 
 Briefly explained, applying topological regularizers into generative models works as follows. 
 
@@ -60,8 +60,6 @@ Furthermore, as shown below, we observe an interesting behavior: when applying t
 <img src="assets/latent_dist.png" alt="Latent Distribution" width="700"/>
 
 We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
-
-# Further Information
 
 # References
 
