@@ -4,6 +4,10 @@ This repository presents a new approach for training generative models leveragin
 
 Additionally, to provide a proof-of-concept example, we have included a file where we apply the topological loss terms into synthetic point clouds in the plane. These synthetic experiments show that the point clouds learn to continuously deform to acquired the desired topological features. 
 
+
+
+Briefly explained, applying topological regularizers into generative models works as follows. 
+
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
 In our experiments, we find interesting behaviors. For instance, a VAE trained with parameters [15.0, 15.0, 0., 0., 0., 0., 0.] yields an improved image quality and diversity in early training, as shown below (left: input data, middle: output from VAE, right: output from TopoVAE). 
