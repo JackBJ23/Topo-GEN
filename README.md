@@ -12,10 +12,10 @@ In our experiments, we find interesting behaviors. For instance, a VAE trained w
 
 This performance correlates with a faster decay of the Binary Cross-Entropy loss during the first 100 training steps, as shown below. 
 
-<img src="assets/losses.png" alt="Loss Evolution" width="700"/>
+<img src="assets/losses.png" alt="Loss Evolution" width="300"/>
 
 Furthermore, as we see beloe, we observe an interesting behavior: when applying topological regularizers, the latent vectors seem to redistribute them selves in a more organized way according to their classes---compared to the standard VAE.
 
-<img src="assets/latent_dist.png" alt="Latent Distribution" width="700"/>
+<img src="assets/latent_dist.png" alt="Latent Distribution" width="500"/>
 
 We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
