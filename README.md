@@ -71,7 +71,7 @@ dgm = get_dgm(point_cloud, deg=1)
 ```
 Where the shape of the point cloud is expected to be (Number of points, Dimension of each point). Additionally, deg is the homology degree (0 or 1) and not specifying it sets it as 1 (the more general option). 
 
-Alternatively, we have unified all the topological regularizers into a single function in order to combine them in a straightforward way. To use it, do:
+Additionally, we have unified all the topological regularizers into a single function, topo_losses, in order to combine them in a straightforward way. To use it, do:
 ```
 from topo_functions import topo_losses, get_dgm
 topo_losses(point_cloud, true_point_cloud, dgm_true, topo_weights)
