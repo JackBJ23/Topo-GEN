@@ -104,6 +104,10 @@ Furthermore, as shown below, we observe an interesting behavior: when applying t
 
 We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
 
+# More information
+
+For details of topological regularizers, stability properties, differentiability results, and more detailed information about their meaning and the meaning of their hyperparameters, see B. Jedlicki, Jack. "Topogen: topology-informed generative models.", [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
+
 # References
 
 If you found this library useful in your research, please consider citing. 
