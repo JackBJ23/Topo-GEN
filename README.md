@@ -11,7 +11,13 @@ Algorithms in this repository are fully supported to run on the GPU.
 To install the repository:
 ```
 pip install https://github.com/JackBJ23/Topo-GEN.git
-``` 
+```
+Or, to run directly on Google Colab:
+```
+!git clone https://github.com/JackBJ23/Topo-GEN.git
+%cd Topo-GEN
+!pip install -r requirements.txt
+```
 
 # Proof-of-concept example: synthetic experiments
 
@@ -35,9 +41,9 @@ To run these synthetic experiments:
 ```
 To run new synthetic experiments with new point clouds:
 ```
---python synthetic_experiments.py --point cloud (add) --true_point_cloud (add)
+--python synthetic_experiments.py --point_cloud (add) --true_point_cloud (add)
 ```
-The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). Leaving --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. Otherwise, fill the vector of weights [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density] with some non-negative float values. Each is asociated with a different topological loss. 
+For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). 
 
 # Working principle of topology-informed generative models
 
@@ -46,6 +52,12 @@ The working principle of topology-informed variational autoencoders (or other ge
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
 # Basic usage
+
+We provide a way to directly train VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
+```
+--python 
+```
+Leaving --loss_parameters blank will lead to using the bottleneck loss of degrees 0 and 1. Otherwise, fill the vector of weights [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density] with some non-negative float values. Each is asociated with a different topological loss. 
 
 # Example: TopoVAE
 
