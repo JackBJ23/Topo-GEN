@@ -7,9 +7,9 @@ In particular, we introduce a new family of topological regularizers that can be
 # Installation
 
 To install the repository:
-´´´
+```
 pip install https://github.com/JackBJ23/Topo-GEN.git
-´´´
+```
 
 # Proof-of-concept Example: Synthetic Experiments
 
