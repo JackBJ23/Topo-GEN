@@ -15,13 +15,13 @@ pip install https://github.com/JackBJ23/Topo-GEN.git
 
 # Proof-of-concept Example: Synthetic Experiments
 
-To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, updated through gradient descent. In particular, we impose a ground truth persistence diagram that captures some topological properties. In each training step, we compute the persistence diagram of the learnable point cloud, and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. As a consequence, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
+To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, updated through gradient descent. In particular, we impose a ground truth persistence diagram that captures some topological properties. In each training step, we compute the persistence diagram of the learnable point cloud, and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
 
-In the first test (left), we start at 5 clusters, and the ground truth persistence diagram indicates the presence of 3 clusters. The point cloud thus deforms itself to reach this goal. 
+In the first test (left), we start with 5 clusters, and the ground truth persistence diagram indicates the presence of 3 clusters. The point cloud thus deforms itself to reach this goal. 
 
-In the second test (middle), we start at 2 clusters, and the ground truth persistence diagram indicates the presence of 4 clusters. 
+In the second test (middle), we start with 2 clusters, and the ground truth persistence diagram indicates the presence of 4 clusters. 
 
-In the third test (right), we start at 2 segments, and the ground truth persistence diagram indicates the presence of one circle. 
+In the third test (right), we start with 2 segments, and the ground truth persistence diagram indicates the presence of one circle. 
 
 <div style="display: flex; justify-content: space-between;">
     <img src="assets/synthetic1_video.gif" width="30%">
