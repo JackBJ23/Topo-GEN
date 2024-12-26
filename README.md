@@ -14,7 +14,7 @@ This performance correlates with a faster decay of the Binary Cross-Entropy loss
 
 <img src="assets/losses.png" alt="Loss Evolution" width="300"/>
 
-Furthermore, as we see beloe, we observe an interesting behavior: when applying topological regularizers, the latent vectors seem to redistribute them selves in a more organized way according to their classes---compared to the standard VAE.
+Furthermore, as shown below, we observe an interesting behavior: when applying topological regularizers, the latent vectors seem to redistribute them selves in a more organized way according to their classes---compared to the standard VAE.
 
 <img src="assets/latent_dist.png" alt="Latent Distribution" width="500"/>
 
