@@ -4,7 +4,7 @@ This repository presents a new approach for training generative models leveragin
 
 Additionally, to provide a proof-of-concept example, we have included a file where we apply the topological loss terms into synthetic point clouds in the plane. These synthetic experiments show that the point clouds learn to continuously deform to acquired the desired topological features. 
 
-<img src="path/to/demo.gif" width="300"/>
+<img src="path/to/demo.gif" width="300">
 
 Briefly explained, applying topological regularizers into generative models works as follows. 
 
