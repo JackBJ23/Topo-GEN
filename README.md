@@ -72,7 +72,7 @@ Where the shape of the point cloud is expected to be (Number of points, Dimensio
 
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
-from topo_functions import topo_losses, get_dgm
+from topo_functions import topo_losses
 topoloss = topo_losses(point_cloud, true_point_cloud, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu")
 ```
 Details about this function are given below. 
