@@ -28,8 +28,7 @@ import scipy
 import torch
 import random
 
-from topo_functions import *
-from utils import plot_dgm, generate_gif
+from topogen import get_dgm, loss_bottleneck0, loss_bottleneck1, loss_push0, plot_dgm, generate_gif
 
 def loss_bottleneck01(point_cloud, dgm_true):
   dgm = get_dgm(point_cloud, 1)
