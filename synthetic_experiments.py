@@ -112,7 +112,7 @@ def test1():
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1')
 
 def test2():
   point_cloud_true = np.zeros((128,2))
@@ -138,7 +138,7 @@ def test2():
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2')
 
 def test3():
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
@@ -150,7 +150,7 @@ def test3():
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, 7500, 50, 0.1, 'test_3', loss_bottleneck01)
+  synthetic_test(point_cloud, point_cloud_true, 7500, 50, 0.1, 'test_3')
 
 if __name__ == "__main__":
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
