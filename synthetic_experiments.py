@@ -80,7 +80,8 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
 
       if i % num_save == 0 or i == num_steps - 1: 
         point_clouds.append(np.copy(point_cloud.detach().cpu().numpy()))
-        print(f"Iteration {i}/{num_steps}, Loss: {loss.item()}")
+      if i % 100 == 0 or i == num_steps - 1:
+        print(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
 
   print("Training ended")
   # save PD of final point cloud:
