@@ -68,7 +68,7 @@ Each function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss v
 ```
 dgm = get_dgm(point_cloud, deg)
 ```
-Where the shape of the point cloud is expected to be (Number of points, Dimension of each point). Additionally, `deg` is the homology degree (0 or 1) and not specifying it sets it as 1 (the more general option). 
+Where the shape of the point cloud is expected to be (Number of points, Dimension of each point), and `deg` is the homology degree (0 or 1, 1 being the more general option). 
 
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
