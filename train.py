@@ -68,7 +68,7 @@ def evaluate(model0, model1, val_loader, epoch, type_eval, device):
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
-def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device):
+def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
   # Losses saved once per epoch:
   train_losses0 = []
   train_losses1 = []
@@ -121,7 +121,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
   # Training ended
   # Plot losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  plt.figure() 
+  plt.figure()
   plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
   plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
   plt.xlabel("Iteration")
@@ -162,7 +162,9 @@ def load_config():
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--n_plot', type=int, default=50)
+    parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
     parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
+    parser.add_argument('--save_models', type=str, default="n", choices=["y", "n"], help="Select y for saving the models after training, and n for not saving them.")
     # Hyperparameters for some topological functions (default values already given):
     parser.add_argument('--pers0_delta', type=float, default=0.001)
     parser.add_argument('--pers1_delta', type=float, default=0.001)
@@ -172,7 +174,6 @@ def load_config():
     parser.add_argument('--density_scale', type=float, default=0.002)
     parser.add_argument('--density_maxrange', type=float, default=35.)
     parser.add_argument('--density_npoints', type=int, default=30)
-    parser.add_argument('--checkpoint_path', type=str, default=None, help='Path to the checkpoint file to load model weights')
     args = parser.parse_args()
     return args
 
@@ -180,9 +181,9 @@ if __name__ == "__main__":
   # Hyperparameters:
   args = load_config()
   torch.manual_seed(args.seed)
-  print("Weights", args.topo_weights)
+  print("Topological weights:", args.topo_weights)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  print("device", device)
+  print("Device:", device)
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
@@ -212,7 +213,7 @@ if __name__ == "__main__":
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   print("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, args, device)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
   print("Test losses:", test_loss0, test_loss1)
