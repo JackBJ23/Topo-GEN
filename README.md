@@ -12,7 +12,8 @@ To install the repository:
 ```
 pip install https://github.com/JackBJ23/Topo-GEN.git
 ```
-Or, to run directly on Google Colab:
+
+Or, to run on Google Colab:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
