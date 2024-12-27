@@ -215,31 +215,41 @@ def loss_push0(point_cloud, dgm):
       loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
     return loss
 
-# topo_losses combines all the previous functions into a single function:
-# args has to contain:
-# - topo_weights: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. weight set as 0: topofunction not used
-# - hyperparameters for topological functions: pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
-def topo_losses(points, true_points, dgm, dgm_true, device, args):
+# topo_losses combines all the previous topological regularizers into a single function
+# Required arguments:
+# points: learnable point cloud
+# true_points: ground truth point cloud
+# topo_weights: associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. If weight set as 0, its topofunction is not used
+# Optional arguments:
+# deg: homology degree (0 or 1, 1 is the more general option)
+# dgm_true: persistence diagram of the ground truth data. If None, calculated inside the function
+# Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
+# pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
+# device: "cuda" or "cpu"
+def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
+                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
+    dgm = get_dgm(points, deg)
+    if dgm_true==None: dgm_true = get_dgm(true_points, deg)
     loss = torch.tensor(0., device=device)
-    if args.topo_weights[0] != 0.:
+    if topo_weights[0] != 0.:
       topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[0]
-    if args.topo_weights[1] != 0.:
+      if gotloss==1: loss = loss + topoloss * topo_weights[0]
+    if topo_weights[1] != 0.:
       topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[1]
-    if args.topo_weights[2] != 0.:
-      topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, device, args.pers0_delta)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[2]
-    if args.topo_weights[3] != 0.:
-      topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, device, args.pers1_delta)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[3]
-    if args.topo_weights[4] != 0.:
-      topoloss, gotloss = loss_dsigma0(points, true_points, dgm, dgm_true, device, args.dsigma0_scale)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[4]
-    if args.topo_weights[5] != 0.:
-      topoloss, gotloss = loss_dsigma1(points, true_points, dgm, dgm_true, device, args.dsigma1_scale)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[5]
-    if args.topo_weights[6] != 0.:
-      topoloss, gotloss = loss_density(points, true_points, dgm, dgm_true, device, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
-      if gotloss==1: loss = loss + topoloss * args.topo_weights[6]
+      if gotloss==1: loss = loss + topoloss * topo_weights[1]
+    if topo_weights[2] != 0.:
+      topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, device, pers0_delta)
+      if gotloss==1: loss = loss + topoloss *  topo_weights[2]
+    if topo_weights[3] != 0.:
+      topoloss, gotloss = loss_persentropy1(points, dgm, dgm_true, device, pers1_delta)
+      if gotloss==1: loss = loss + topoloss * topo_weights[3]
+    if topo_weights[4] != 0.:
+      topoloss, gotloss = loss_dsigma0(points, true_points, dgm, dgm_true, device, dsigma0_scale)
+      if gotloss==1: loss = loss + topoloss * topo_weights[4]
+    if topo_weights[5] != 0.:
+      topoloss, gotloss = loss_dsigma1(points, true_points, dgm, dgm_true, device, dsigma1_scale)
+      if gotloss==1: loss = loss + topoloss * topo_weights[5]
+    if topo_weights[6] != 0.:
+      topoloss, gotloss = loss_density(points, true_points, dgm, dgm_true, device, density_sigma, density_scale, density_maxrange, density_npoints)
+      if gotloss==1: loss = loss + topoloss * topo_weights[6]
     return loss
