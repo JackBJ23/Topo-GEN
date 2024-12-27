@@ -16,8 +16,7 @@ import torchvision
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen.topo_functions import get_dgm, topo_losses
-from topogen.utils import plot_dgm, plot_gen_imgs
+from topogen import get_dgm, topo_losses, plot_gen_imgs
 from models import VAE
 
 def loss_vae(recon_x, x, mu, logvar):
