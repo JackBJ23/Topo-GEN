@@ -10,7 +10,7 @@ Algorithms in this repository are fully supported to run on the GPU.
 
 To install the repository:
 ```
-pip install https://github.com/JackBJ23/Topo-GEN.git
+pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
 Or, to run on Google Colab:
