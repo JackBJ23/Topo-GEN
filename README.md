@@ -81,7 +81,7 @@ Details about this function are given below.
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 
-### **Required Arguments**
+#### Required Arguments
 - **`points`**: Learnable point cloud or output of a machine learning model. 
 - **`true_points`**: Ground truth point cloud.
 - **`topo_weights`**: List of weights associated with each topological loss:
