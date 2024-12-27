@@ -35,7 +35,7 @@ In the third test (right), we start with 2 segments, and the ground truth persis
     <img src="assets/synthetic3_video.gif" width="30%">
 </div>
 
-To run these synthetic experiments:
+To run these experiments:
 ```
 !python synthetic_experiments.py
 ```
