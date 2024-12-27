@@ -80,19 +80,16 @@ Details about this function are given below.
 ## Keyword arguments for topo_losses
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
-
 #### Required Arguments
 - **`points`**: Learnable point cloud or output of a machine learning model. 
 - **`true_points`**: Ground truth point cloud.
 - **`topo_weights`**: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`.
   - If a weight is set to `0`, its corresponding topological function is not used.
-
-### **Optional Arguments**
+#### Optional Arguments
 - **`deg`**: Homology degree (`0` or `1`, where `1` is the more general option).
 - **`dgm_true`**: Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
-
-### **Parameters for Topological Functions**
+#### Parameters for Topological Functions
 The following parameters are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
 - **`pers0_delta`**: Default = `0.001`
 - **`pers1_delta`**: Default = `0.001`
@@ -102,10 +99,8 @@ The following parameters are set to reference values by default but can be modif
 - **`density_scale`**: Default = `0.002`
 - **`density_maxrange`**: Default = `35.0`
 - **`density_npoints`**: Default = `30`
-
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
-
-### **Device**
+#### Device
 - Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
 
 ## Example: TopoVAE
