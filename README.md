@@ -40,7 +40,7 @@ To run these experiments:
 ```
 !python synthetic_experiments.py
 ```
-To run new synthetic experiments with new point clouds:
+To run more synthetic experiments with new point clouds:
 ```
 import numpy as np
 from synthetic_experiments import synthetic_test
