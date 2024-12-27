@@ -45,7 +45,7 @@ import numpy as np
 from synthetic_experiments import synthetic_test
 synthetic_test(point_cloud, point_cloud_true, num_training_steps=2000, num_save=50, learning_rate=0.001, test_name="test")
 ```
-Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. The argument `num_save` specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation. The function will save images of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. Only the first two arguments are required.
+Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. The argument `num_save` specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation. Only the first two arguments are required. The function will save images of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. 
 
 ## Working principle of topology-informed generative models
 
