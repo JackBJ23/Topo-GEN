@@ -53,7 +53,7 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 # Basic usage
 
-There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. The function `loss_push0` does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
+There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. 
 ```
 from topo_functions import *
 loss_bottleneck0(point_cloud, dgm, true_dgm)
@@ -63,7 +63,6 @@ loss_persentropy1 (point_cloud, dgm, true_dgm, delta1=0.01)
 loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, sigma0=0.05),
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
-loss_push0(point_cloud, dgm)
 ```
 Each function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. To generate a persistence diagram, do:
 ```
