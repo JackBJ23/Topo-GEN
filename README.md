@@ -136,7 +136,7 @@ We believe that the integration of topology into generative models through diffe
 
 # More information
 
-For more details about persistence diagrams, topological regularizers, stability and differentiability properties, and more detailed information about the meaning of these functions, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
+For more details about persistence diagrams, topological regularizers, stability and differentiability properties, and more information about the meaning of these functions, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
 # References
 
