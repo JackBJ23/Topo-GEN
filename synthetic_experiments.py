@@ -35,9 +35,12 @@ def loss_bottleneck01(point_cloud, dgm_true):
   dgm = get_dgm(point_cloud, 1)
   l_topo0, got_loss0 = loss_bottleneck0(point_cloud, dgm, dgm_true)
   l_topo1, got_loss1 = loss_bottleneck1(point_cloud, dgm, dgm_true)
-  if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
+  loss_item = 0.
+  if got_loss0==1: loss_item += l_topo0.item()
+  if got_loss1==1: loss_item += l_topo1.item()
+  if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, loss_item
   # only if did not get losses from the previous functions:
-  return loss_push0(point_cloud, dgm), l_topo0.item() + l_topo1.item()
+  return loss_push0(point_cloud, dgm), loss_item
 
 # Function for running a synthetic test with the bottleneck functions. Saves:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
