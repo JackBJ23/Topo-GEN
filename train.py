@@ -14,18 +14,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader, random_split
 import torchvision
 from torchvision import transforms, datasets
-from torchvision.utils import make_grid, save_image
-from plotly import graph_objects as go
-from IPython.display import Image, display
 
-# TDA libraries
-import ripser
-import persim
-import tadasets
-from gph import ripser_parallel
-from gtda.homology._utils import _postprocess_diagrams
-from gtda.plotting import plot_diagram, plot_point_cloud
-
+# Import topological functions and model
 from topogen.topo_functions import get_dgm, topo_losses
 from topogen.utils import plot_dgm, plot_gen_imgs
 from models import VAE
