@@ -197,8 +197,8 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
 def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.05):
     if len(dgm['dgms'][1]) == 0: return 0., 0
     if len(dgm2['gens'][1])>0:
-       ll = ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
-       print(f"ds1: device: {ll.device}, grad {ll.requires_grad}")
+      ll = ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
+      print(f"ds1: device: {ll.device}, grad {ll.requires_grad}")
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), 1
     else:
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), 1
