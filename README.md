@@ -43,7 +43,7 @@ To run new synthetic experiments with new point clouds:
 ```
 !python synthetic_experiments.py --point_cloud (add) --true_point_cloud (add)
 ```
-For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need of manually designing the diagram). 
+For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need for manually designing the diagram). 
 
 # Working principle of topology-informed generative models
 
