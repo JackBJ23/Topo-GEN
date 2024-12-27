@@ -42,7 +42,7 @@ def loss_bottleneck01(point_cloud, dgm_true):
 # saves:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final PD of point cloud, loss evolution, video of the point cloud evolution
-def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_name, loss_function):
+def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_name):
   # plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
@@ -67,7 +67,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps, num_save, lr, test_
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = loss_function(point_cloud, dgm_true)
+      loss, lossitem = loss_bottleneck01(point_cloud, dgm_true)
       loss.backward()
       optimizer.step()
 
@@ -155,11 +155,10 @@ def test3():
 if __name__ == "__main__":
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
   test1()
-  print("Test 1 done")
+  print("Test 1 done.")
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
   test2()
-  print("Test 2 done")
+  print("Test 2 done.")
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
   test3()
-  print("Test 3 done")
-  
+  print("Test 3 done.")
