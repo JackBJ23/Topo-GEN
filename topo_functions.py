@@ -228,8 +228,8 @@ def loss_push0(point_cloud, dgm):
 # device: "cuda" or "cpu"
 def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
-    dgm = get_dgm(points, deg)
-    if dgm_true==None: dgm_true = get_dgm(true_points, deg)
+    dgm = get_dgm(points.view(true_points.size(0), -1), deg)
+    if dgm_true==None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
     loss = torch.tensor(0., device=device)
     if topo_weights[0] != 0.:
       topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
