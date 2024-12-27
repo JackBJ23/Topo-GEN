@@ -45,7 +45,7 @@ def loss_bottleneck01(point_cloud, dgm_true):
 # Function for running a synthetic test with the bottleneck functions. Saves:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final persistence diagram of point cloud, loss evolution, video of the point cloud evolution
-def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, lr=0.001, test_name="test")
+def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, lr=0.001, test_name="test"):
   # plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
