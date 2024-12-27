@@ -36,12 +36,15 @@ def loss_vae(recon_x, x, mu, logvar):
     # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
 
-# loss of TopoVAEs (Standard + Topoloss of degree 0 + Topoloss of degree 1)
-def loss_topovae(recon_x, x, mu, logvar, dgm, dgm_true, device, args):
+# loss of TopoVAEs (Standard + Topolosses)
+def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
+                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
     # Standard loss:
     BCE, KLD = loss_vae(recon_x, x, mu, logvar)
     # Topological loss:
-    topo_loss = topo_losses(recon_x, x, dgm, dgm_true, device, args)
+    topo_loss = topo_losses(recon_x, x, topo_weights, deg, dgm_true, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
+                density_sigma, density_scale, density_maxrange, density_npoints, device)
+    
     return BCE, KLD, BCE + KLD + topo_loss
 
 # Train and compare model0 (normal VAE) and model2 (some TopoVAE):
@@ -98,8 +101,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
-          dgm = get_dgm(recon_batch1.view(data.size(0), -1), 1)
-          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm, dgm_true, device, args)
+          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm_true, args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints, device)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
