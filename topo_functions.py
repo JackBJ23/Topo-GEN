@@ -53,6 +53,8 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
         return 0., 0
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
+        ll = dist(point1_dgm1, point2_dgm1)/2.
+        print(f"b0: device: {ll.device}, grad {ll.requires_grad}")
         return dist(point1_dgm1, point2_dgm1)/2., 1
 
 def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
@@ -90,6 +92,8 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
         return 0., 0
       else: #then j==-1, so the i-th point from dgm is matched to the diagonal
+        ll = (death_dgm1 - birth_dgm1)/2.
+        print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
         return (death_dgm1 - birth_dgm1)/2., 1
 
 def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
