@@ -26,9 +26,9 @@ from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
 from gtda.plotting import plot_diagram, plot_point_cloud
 
-from topo_functions import get_dgm, topo_losses
+from topogen.topo_functions import get_dgm, topo_losses
+from topogen.utils import plot_dgm, plot_gen_imgs
 from models import VAE
-from utils import plot_dgm, plot_gen_imgs
 
 def loss_vae(recon_x, x, mu, logvar):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
