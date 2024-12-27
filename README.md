@@ -75,7 +75,7 @@ Where the shape of the point cloud is expected to be `(number of points, dimensi
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
 from topo_functions import topo_losses
-topoloss = topo_losses(point_cloud, true_point_cloud, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu")
+topoloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
 Details about this function are given below. 
 
@@ -92,8 +92,9 @@ The `topo_losses` function combines the seven topological regularizers into a si
 - **`deg`**: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
 - **`dgm_true`**: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
 - **`device`**: Default = `"cpu"`. Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
-#### Parameters for Topological Functions
-The following parameters are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
+
+The following parameters, which control the topological functions, are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
+
 - **`pers0_delta`**: Default = `0.001`
 - **`pers1_delta`**: Default = `0.001`
 - **`dsigma0_scale`**: Default = `0.05`
