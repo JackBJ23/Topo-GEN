@@ -58,7 +58,7 @@ The working principle of topology-informed generative models is demonstrated bel
 
 There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. 
 ```
-from topo_functions import *
+from topogen import *
 loss_bottleneck0(point_cloud, dgm, true_dgm)
 loss_bottleneck1(point_cloud, dgm, true_dgm)
 loss_persentropy0(point_cloud, dgm, true_dgm, device, delta0=0.01)
@@ -75,7 +75,7 @@ Where the shape of the point cloud is expected to be `(number of points, dimensi
 
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
-from topo_functions import topo_losses
+from topogen import topo_losses
 topoloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
 Details about this function are given below. 
