@@ -53,7 +53,7 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 # Basic usage
 
-There are seven topological regularizers, presented below. Note that point_cloud is the learnable point cloud or output of a machine learning model; dgm is its persistence diagram; true_point_cloud is the ground truth point cloud, and true_dgm is its diagram. The other arguments are optional and control the topological functions. The function loss_push0 does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
+There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. The function `loss_push0` does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
 ```
 from topo_functions import *
 loss_bottleneck0(point_cloud, dgm, true_dgm)
@@ -65,13 +65,13 @@ loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 loss_push0(point_cloud, dgm)
 ```
-Each function returns two values: loss, gotloss. If gotloss is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If gotloss is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. To generate a persistence diagram, do:
+Each function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. To generate a persistence diagram, do:
 ```
-dgm = get_dgm(point_cloud, deg=1)
+dgm = get_dgm(point_cloud, deg)
 ```
-Where the shape of the point cloud is expected to be (Number of points, Dimension of each point). Additionally, deg is the homology degree (0 or 1) and not specifying it sets it as 1 (the more general option). 
+Where the shape of the point cloud is expected to be (Number of points, Dimension of each point). Additionally, `deg` is the homology degree (0 or 1) and not specifying it sets it as 1 (the more general option). 
 
-Additionally, we have unified all the topological regularizers into a single function, topo_losses, in order to combine them in a straightforward way. To use it, do:
+Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
 from topo_functions import topo_losses, get_dgm
 topoloss = topo_losses(point_cloud, true_point_cloud, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu")
