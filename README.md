@@ -89,8 +89,9 @@ The `topo_losses` function combines the seven topological regularizers into a si
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`.
   - If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
-- **`deg`**: Homology degree (`0` or `1`, where `1` is the more general option).
-- **`dgm_true`**: Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
+- **`deg`**: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
+- **`dgm_true`**: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
+- **`device`**: Default = `"cpu"`. Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
 #### Parameters for Topological Functions
 The following parameters are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
 - **`pers0_delta`**: Default = `0.001`
@@ -103,8 +104,6 @@ The following parameters are set to reference values by default but can be modif
 - **`density_npoints`**: Default = `30`
 
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
-#### Device
-- Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
 
 ## Example: TopoVAE
 
