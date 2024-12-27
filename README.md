@@ -41,9 +41,11 @@ To run these experiments:
 ```
 To run new synthetic experiments with new point clouds:
 ```
-!python synthetic_experiments.py --point_cloud (add) --true_point_cloud (add)
+import numpy as np
+from synthetic_experiments import synthetic_test
+synthetic_test(point_cloud, point_cloud_true, 4000, 50, learning_rate, "additional_test")
 ```
-For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need for manually designing the diagram). 
+Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g. an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. 
 
 ## Working principle of topology-informed generative models
 
@@ -68,7 +70,7 @@ Each function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss v
 ```
 dgm = get_dgm(point_cloud, deg)
 ```
-Where the shape of the point cloud is expected to be (Number of points, Dimension of each point), and `deg` is the homology degree (0 or 1, where 1 is the more general option). 
+Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1, where 1 is the more general option). 
 
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
