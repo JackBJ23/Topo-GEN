@@ -45,6 +45,8 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
     
     if i>=0 and j>=0:
+      ll = torch.abs(dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1])
+      print(f"b0: device: {ll.device}, grad {ll.requires_grad}")
       return torch.abs(dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), 1
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
@@ -81,6 +83,8 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       death_dgm2 = dgm2['dgms'][1][j][1]
 
     if i>=0 and j>=0:
+      ll = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
+      print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
       return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), 1
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
@@ -113,6 +117,8 @@ def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg
   for i in range(len(dgm2['dgms'][0])-1):
     if dgm2['dgms'][0][i][1] > delta: pers2 += dgm2['dgms'][0][i][1] * math.log(dgm2['dgms'][0][i][1] / L2)
 
+  ll = (pers/L - pers2/L2)**2
+  print(f"e0: device: {ll.device}, grad {ll.requires_grad}")
   return (pers/L - pers2/L2)**2, 1
 
 def loss_persentropy1(point_cloud, dgm, dgm2, device, delta=0.001): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
@@ -144,6 +150,8 @@ def loss_persentropy1(point_cloud, dgm, dgm2, device, delta=0.001): #dgm of deg1
   for i in range(len(dgm2['dgms'][1])):
     if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * math.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
 
+  ll = (pers/L - pers2/L2)**2
+  print(f"e1: device: {ll.device}, grad {ll.requires_grad}")
   return (pers/L - pers2/L2)**2, 1
 
 #return Reininghaus kernel ksigma: (could make it slightly faster with different functions for each dgm (dgm2 does not need backpropagation)), but let it same for all dgms
@@ -165,6 +173,8 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.05):
     if len(dgm['dgms'][0]) == 0: return 0., 0
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
     # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
+    ll = ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
+    print(f"ds0: device: {ll.device}, grad {ll.requires_grad}")
     return ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), 1
 
 # Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
@@ -187,6 +197,8 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
 def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.05):
     if len(dgm['dgms'][1]) == 0: return 0., 0
     if len(dgm2['gens'][1])>0:
+       ll = ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
+       print(f"ds1: device: {ll.device}, grad {ll.requires_grad}")
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), 1
     else:
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), 1
@@ -205,6 +217,9 @@ def loss_density(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.2, scale=
   loss = torch.tensor(0., device=device)
   # Compute difference between both functions in npoints points:
   for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x, device) - density(point_cloud2, dgm2, sigma, scale, x, device)) ** 2
+  
+  ll = loss / npoints
+  print(f"density: device: {ll.device}, grad {ll.requires_grad}")
   return loss / npoints, 1
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
