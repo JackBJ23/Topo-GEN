@@ -80,8 +80,6 @@ The only required arguments are point_cloud, true_point_cloud, and topo_weights,
 
 # Keyword arguments for topo_losses
 
-## Topological Losses: `topo_losses` Function
-
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 
 ### **Required Arguments**
