@@ -238,11 +238,11 @@ def loss_push0(point_cloud, dgm):
 # Optional arguments:
 # deg: homology degree (0 or 1, 1 is the more general option)
 # dgm_true: persistence diagram of the ground truth data. If None, calculated inside the function
+# device: "cuda" or "cpu"
 # Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
 # pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
-# device: "cuda" or "cpu"
-def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
-                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
+def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
+                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     dgm = get_dgm(points.view(true_points.size(0), -1), deg)
     if dgm_true==None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
     loss = torch.tensor(0., device=device)
