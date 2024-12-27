@@ -45,13 +45,13 @@ To run new synthetic experiments with new point clouds:
 ```
 For instance, an input point cloud of three points in 2D can be [[0., 0.], [1., 0.], [0., 1.]]. The algorithm will directly convert the true point cloud into the ground truth diagram capturing its properties (to avoid the need for manually designing the diagram). 
 
-# Working principle of topology-informed generative models
+## Working principle of topology-informed generative models
 
 The working principle of topology-informed variational autoencoders (or other generative models) is illustrated below, and can be summarized as follows. Take a generative model that produces images or any type of data that can be represented as an array of real numbers, and view each data element as an individual point. During each training iteration, a batch of N data points is given to the model and N points are generated as output. Then, some measure of dissimilarity between the true and the generated data (e.g., binary cross-entropy loss) is computed and used as a loss function. When implementing the topological regularizers, in each training iteration we compute the persistence diagram of the batch of N true points, and the persistence diagram of the N generated points, both viewed as point clouds. The two resulting persistence diagrams are then compared using some measure of dissimilarity, and the regularizer captures this measure. Hence, the modification of the weights of the generative model through gradient descent aims to produce data with a spatial distribution that looks like the distribution of the true data. Furthermore, there is also an extension of this method, also illustrated below, which relies on applying the topological regularizers on the batch of latent vectors instead of the final outputs of the model, in order to control the distribution in the latent space.
 
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
-# Basic usage
+## Basic usage
 
 There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. 
 ```
@@ -77,7 +77,7 @@ topoloss = topo_losses(point_cloud, true_point_cloud, topo_weights, deg=1, dgm_t
 ```
 Details about this function are given below. 
 
-# Keyword arguments for topo_losses
+## Keyword arguments for topo_losses
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 
@@ -108,7 +108,7 @@ For details about the meaning of these values, see B. Jedlicki, Jack. [2024](htt
 ### **Device**
 - Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
 
-# Example: TopoVAE
+## Example: TopoVAE
 
 We provide a way to directly train VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
 ```
@@ -118,7 +118,7 @@ Where `topo_weights` is the list of weights associated with each topological los
 
 Furthermore, the file will automatically save plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it will save the evolution of the BCE losses.
 
-# Some results
+## Some results
 
 In our experiments, we find interesting behaviors. For instance, a VAE trained wit the bottleneck loss for homology degrees 0 and 1 yields improved image quality and diversity in early training, as shown below (taken at training step 50). Left: input data, middle: output from standard VAE, right: output from TopoVAE. 
 
@@ -134,11 +134,11 @@ Furthermore, as shown below, we observe an interesting behavior: when applying t
 
 We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
 
-# More information
+## More information
 
 For more details about persistence diagrams, topological regularizers, stability and differentiability properties, and more information about the meaning of these functions, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
-# References
+## References
 
 If you found this library useful in your research, please consider citing. 
 
