@@ -53,7 +53,7 @@ The working principle of topology-informed variational autoencoders (or other ge
 
 # Basic usage
 
-There are seven topological regularizers, presented below. Note that point_cloud is the output of the machine learning model or with learnable coordinates; dgm is its persistence diagram; true_point_cloud is the ground truth point cloud and true_dgm is its diagram. The other arguments are optional and control the topological functions. The function loss_push0 does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
+There are seven topological regularizers, presented below. Note that point_cloud is the learnable point cloud or output of a machine learning model; dgm is its persistence diagram; true_point_cloud is the ground truth point cloud, and true_dgm is its diagram. The other arguments are optional and control the topological functions. The function loss_push0 does not rely on a ground truth diagram, but is rather an auxiliary function that can be used to "push" points or clusters away from each other. 
 ```
 from topo_functions import *
 loss_bottleneck0(point_cloud, dgm, true_dgm)
@@ -76,14 +76,14 @@ Additionally, we have unified all the topological regularizers into a single fun
 from topo_functions import topo_losses, get_dgm
 topoloss = topo_losses(point_cloud, true_point_cloud, topo_weights, deg=1, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu")
 ```
-The only required arguments are point_cloud, true_point_cloud, and topo_weights, where topo_weights is the list of weights asociated to each topological loss: [w_bottleneck0, w_bottleneck1, w_entropy0, w_entropy1, w_ksigma0, w_ksigma1, w_density]. In order to not to use a function, set its weight to 0. More details about this function are given below. 
+Details about this function are given below. 
 
 # Keyword arguments for topo_losses
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 
 ### **Required Arguments**
-- **`points`**: Learnable point cloud.
+- **`points`**: Learnable point cloud or output of a machine learning model. 
 - **`true_points`**: Ground truth point cloud.
 - **`topo_weights`**: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`.
@@ -103,7 +103,7 @@ The following parameters are set to reference values by default but can be modif
 - **`density_scale`**: Default = `0.002`
 - **`density_maxrange`**: Default = `35.0`
 - **`density_npoints`**: Default = `30`
-  
+
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
 ### **Device**
