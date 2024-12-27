@@ -101,6 +101,7 @@ The following parameters are set to reference values by default but can be modif
 - **`density_scale`**: Default = `0.002`
 - **`density_maxrange`**: Default = `35.0`
 - **`density_npoints`**: Default = `30`
+
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 #### Device
 - Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
