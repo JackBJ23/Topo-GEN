@@ -57,18 +57,18 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     plt.tight_layout()
     plt.savefig(filename)
 
-def plot_pc_gif(point_cloud):
+def plot_pc_gif(point_cloud, x1, x2, y1, y2):
     fig = plt.figure(figsize=(6, 6))
     plt.scatter(point_cloud[:, 0], point_cloud[:, 1], s=10, c='b')
     #plt.xlabel('X')
-    plt.xlim(-10, 20)  # Adjust the limits as per your point cloud data
-    plt.ylim(-5, 30)  # Adjust the limits as per your point cloud data
+    plt.xlim(x1, x2)
+    plt.ylim(y1, y2)
     plt.close(fig)
     return fig
 
-def generate_gif(point_clouds, test_name):
+def generate_gif(point_clouds, test_name, x1, x2, y1, y2):
     # Create a list of figures for each point cloud
-    figures = [plot_pc_gif(point_cloud) for point_cloud in point_clouds]
+    figures = [plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
 
     gif_path = f'{test_name}_point_clouds_evolution.gif'
     # Save each figure as an image and store them in a list
