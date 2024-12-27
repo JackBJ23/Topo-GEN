@@ -8,12 +8,12 @@ Algorithms in this repository are fully supported to run on the GPU.
 
 ## Installation
 
-To install the repository:
+To install the topogen library:
 ```
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-Or, to run on Google Colab:
+To run the experiments and tests on Google Colab:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
