@@ -59,6 +59,7 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
 
 def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     if len(dgm['dgms'][1]) == 0: return 0., 0
+    print("dgm2", dgm2['dgms'][1])
     if len(dgm2['dgms'][1])==0: 
       print("dgm2 1", dgm2['dgms'][1])
       original_dgm2_dgms_1 = dgm2['dgms'][1]
