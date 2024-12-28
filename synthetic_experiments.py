@@ -1,32 +1,10 @@
-import numpy as np
-from gph import ripser_parallel
 import sys
-
-# Import utils
-import numpy as np
-from gtda.homology._utils import _postprocess_diagrams
-
-# To generate dataset
-from sklearn import datasets
-
-# Plotting
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from plotly import graph_objects as go
-import plotly.io as pio
-from gtda.plotting import plot_diagram, plot_point_cloud
-from PIL import Image
-from IPython.display import Image as IPImage
-
-#used this: https://persim.scikit-tda.org/en/latest/notebooks/distances.html
-import persim
-import tadasets
-import ripser
-#other packages:
-import math
-import scipy
 import torch
+import numpy as np
 import random
+import tadasets
+import matplotlib.pyplot as plt
+from gtda.plotting import plot_point_cloud
 
 from topogen import get_dgm, loss_bottleneck0, loss_bottleneck1, loss_push0, plot_dgm, generate_gif
 
