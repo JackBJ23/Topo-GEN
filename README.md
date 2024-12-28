@@ -13,7 +13,7 @@ To install the `topogen` library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-To run synthetic experiments and tests with TopoVAEs on Google Colab:
+Additionally, we have included in this repository a file to run synthetic experiments, `synthetic_experiments.py` and a file to test topological regularizers on VAEs, `topovae_experiments.py`. To run these tests, for instance on Google Colab, do:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
