@@ -5,6 +5,7 @@ import random
 import tadasets
 import matplotlib.pyplot as plt
 from gtda.plotting import plot_point_cloud
+from plotly import graph_objects as go
 
 from topogen import get_dgm, loss_bottleneck0, loss_bottleneck1, loss_push0, plot_dgm, generate_gif
 
