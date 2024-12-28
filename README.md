@@ -13,7 +13,7 @@ To install the `topogen` library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-Additionally, we have included in this repository a file to run synthetic experiments (`synthetic_experiments.py`) and a file to test topological regularizers on VAEs (`topovae_experiments.py`). To run these tests on Google Colab, do:
+Furthermore, this repository includes additional files for testing and experimentation: `synthetic_experiments.py` to run synthetic experiments with point clouds in 2D to test the functionality of the library, and `synthetic_experiments.py` to test topological regularizers on variational autoencoders (VAEs). To run these experiments on Google Colab:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
@@ -56,7 +56,7 @@ The working principle of topology-informed generative models is illustrated belo
 
 ## Basic usage
 
-There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. 
+There are seven topological regularizers, presented below. 
 ```
 from topogen import *
 loss_bottleneck0(point_cloud, dgm, true_dgm, device)
@@ -67,11 +67,13 @@ loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05),
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-Each function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. To generate a persistence diagram, do:
+The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model); `dgm` (its persistence diagram); `true_point_cloud` (the ground truth point cloud), and `true_dgm` (its diagram). The other arguments are optional and control the topological functions. To generate a persistence diagram, do:
 ```
 dgm = get_dgm(point_cloud, deg)
 ```
 Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1, where 1 is the more general option). 
+
+Each topological function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. 
 
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
