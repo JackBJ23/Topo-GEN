@@ -65,6 +65,7 @@ def synthetic_test(point_cloud, point_cloud_true, device, num_steps=2000, num_sa
   fig = go.Figure(plot_point_cloud(point_clouds[-1]))
   fig.write_image(f'{test_name}_final_pointcloud.png')
   # save loss evolution:
+  plt.figure()
   plt.plot(xs, losses)
   plt.xlabel("Iteration")
   plt.ylabel("Loss")
