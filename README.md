@@ -113,9 +113,7 @@ We provide a way to directly train VAEs on the FashionMNIST dataset using topolo
 ```
 !python train.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
-Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. 
-
-Furthermore, the file will automatically save plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it will save the evolution of the BCE losses.
+Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. The file automatically saves plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it saves a plot of the evolution of the BCE losses for the VAE and the TopoVAE. 
 
 ## Some results
 
