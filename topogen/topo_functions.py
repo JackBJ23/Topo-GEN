@@ -27,8 +27,8 @@ def dist_sup_tc(b1, d1, b2, d2):
     # Calculate the sup norm between points (b1, d1) and (b2, d2)
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
-def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
-    if len(dgm['dgms'][0]) == 0: return 0., 0
+def loss_bottleneck0(point_cloud, dgm, dgm2, device): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), 0
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
         #find the pair that gives the max distance:
@@ -51,14 +51,14 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
-        return 0., 0
+        return torch.tensor(0., device=device), 0
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
         ll = dist(point1_dgm1, point2_dgm1)/2.
         print(f"b0: device: {ll.device}, grad {ll.requires_grad}")
         return dist(point1_dgm1, point2_dgm1)/2., 1
 
-def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
-    if len(dgm['dgms'][1]) == 0: return 0., 0
+def loss_bottleneck1(point_cloud, dgm, dgm2, device): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
+    if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), 0
     # if dgm2['dgms'][1] is empty, make a small change for simplifying the following calculations:
     if len(dgm2['dgms'][1]) == 0: 
       dgm2_dgms1_empty = True
@@ -99,14 +99,14 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), 1
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
-        return 0., 0
+        return torch.tensor(0., device=device), 0
       else: #then j==-1, so the i-th point from dgm is matched to the diagonal
         ll = (death_dgm1 - birth_dgm1)/2.
         print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
         return (death_dgm1 - birth_dgm1)/2., 1
 
 def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
-  if len(dgm['dgms'][0]) == 0: return 0., 0
+  if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), 0
   # Get persistent entropy of dgm:
   L = torch.tensor(0., device=device)
   pers = torch.tensor(0., device=device)
@@ -114,7 +114,7 @@ def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg
     pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]])
     if pers1 > delta: L = L + pers1
 
-  if L.item() == 0.: return 0., 0
+  if L.item() == 0.: return torch.tensor(0., device=device), 0
   for i in range(len(dgm['dgms'][0])-1):
     pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L) #pt of pt cloud is (0,dist(p1, p2))
@@ -135,7 +135,7 @@ def loss_persentropy0(point_cloud, dgm, dgm2, device, delta=0.001): # dgm of deg
   return (pers/L - pers2/L2)**2, 1
 
 def loss_persentropy1(point_cloud, dgm, dgm2, device, delta=0.001): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
-  if len(dgm['dgms'][1]) == 0: return 0., 0
+  if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), 0
   # Get persistent entropy of dgm:
   L = torch.tensor(0., device=device)
   pers = torch.tensor(0., device=device)
@@ -144,7 +144,7 @@ def loss_persentropy1(point_cloud, dgm, dgm2, device, delta=0.001): #dgm of deg1
     pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
     if pers1 > delta: L = L + pers1
 
-  if L.item()==0.: return 0., 0
+  if L.item()==0.: return torch.tensor(0., device=device), 0
 
   for i in range(len(dgm['dgms'][1])):
     pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
@@ -183,7 +183,7 @@ def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device): #maxdim of bot
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.05):
-    if len(dgm['dgms'][0]) == 0: return 0., 0
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), 0
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
     # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
     ll = ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
@@ -208,7 +208,7 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.05):
-    if len(dgm['dgms'][1]) == 0: return 0., 0
+    if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), 0
     if len(dgm2['gens'][1])>0:
       ll = ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
       print(f"ds1: device: {ll.device}, grad {ll.requires_grad}")
@@ -225,7 +225,7 @@ def density(point_cloud, dgm, sigma, scale, x, device):
   return density_x * scale
 
 def loss_density(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
-  if len(dgm['dgms'][0]) == 0: return 0., 0
+  if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), 0
   xs = torch.linspace(0., maxrange, npoints)
   loss = torch.tensor(0., device=device)
   # Compute difference between both functions in npoints points:
@@ -260,10 +260,10 @@ def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device=
     if dgm_true==None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
     loss = torch.tensor(0., device=device)
     if topo_weights[0] != 0.:
-      topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true)
+      topoloss, gotloss = loss_bottleneck0(points, dgm, dgm_true, device)
       if gotloss==1: loss = loss + topoloss * topo_weights[0]
     if topo_weights[1] != 0.:
-      topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true)
+      topoloss, gotloss = loss_bottleneck1(points, dgm, dgm_true, device)
       if gotloss==1: loss = loss + topoloss * topo_weights[1]
     if topo_weights[2] != 0.:
       topoloss, gotloss = loss_persentropy0(points, dgm, dgm_true, device, pers0_delta)
