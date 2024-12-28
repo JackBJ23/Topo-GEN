@@ -30,21 +30,18 @@ import random
 
 from topogen import get_dgm, loss_bottleneck0, loss_bottleneck1, loss_push0, plot_dgm, generate_gif
 
-def loss_bottleneck01(point_cloud, dgm_true):
+def loss_bottleneck01(point_cloud, dgm_true, device):
   dgm = get_dgm(point_cloud, 1)
-  l_topo0, got_loss0 = loss_bottleneck0(point_cloud, dgm, dgm_true)
-  l_topo1, got_loss1 = loss_bottleneck1(point_cloud, dgm, dgm_true)
-  loss_item = 0.
-  if got_loss0==1: loss_item += l_topo0.item()
-  if got_loss1==1: loss_item += l_topo1.item()
-  if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, loss_item
+  l_topo0, got_loss0 = loss_bottleneck0(point_cloud, dgm, dgm_true, device)
+  l_topo1, got_loss1 = loss_bottleneck1(point_cloud, dgm, dgm_true, device)
+  if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
   # only if did not get losses from the previous functions:
   return loss_push0(point_cloud, dgm), loss_item
 
 # Function for running a synthetic test with the bottleneck functions. Saves:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final persistence diagram of point cloud, loss evolution, video of the point cloud evolution
-def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
+def synthetic_test(point_cloud, point_cloud_true, device, num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
   # plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
@@ -58,10 +55,10 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, l
   dgm = get_dgm(point_cloud, 1)
   plot_dgm(dgm, f'{test_name}_ini_diagram.png')
 
-  point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32)
-  point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad = True)
+  point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32, device=device)
+  point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad = True, device=device)
 
-  point_clouds = [point_cloud.detach().numpy()]
+  point_clouds = [point_cloud.detach().cpu().numpy()]
   losses = []
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
@@ -69,7 +66,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, l
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = loss_bottleneck01(point_cloud, dgm_true)
+      loss, lossitem = loss_bottleneck01(point_cloud, dgm_true, device)
       loss.backward()
       optimizer.step()
 
@@ -97,7 +94,7 @@ def synthetic_test(point_cloud, point_cloud_true, num_steps=2000, num_save=50, l
   generate_gif(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
-def test1():
+def test1(device):
   # First, generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Second, manually create the initial point cloud:
@@ -115,9 +112,9 @@ def test1():
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, 15000, 50, 0.01, 'test_1')
+  synthetic_test(point_cloud, point_cloud_true, device, 15000, 50, 0.01, 'test_1')
 
-def test2():
+def test2(device):
   point_cloud_true = np.zeros((128,2))
   r1 = 0.3
   for i in range(30):
@@ -141,9 +138,9 @@ def test2():
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, 2500, 25, 0.05, 'test_2')
+  synthetic_test(point_cloud, point_cloud_true, device, 2500, 25, 0.05, 'test_2')
 
-def test3():
+def test3(device):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   #initial point cloud: 2 lines with added noise
   point_cloud = np.zeros((64,2))
@@ -153,15 +150,16 @@ def test3():
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, 7500, 50, 0.1, 'test_3')
+  synthetic_test(point_cloud, point_cloud_true, device, 7500, 50, 0.1, 'test_3')
 
 if __name__ == "__main__":
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
-  test1()
+  test1(device)
   print("Test 1 done.")
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
-  test2()
+  test2(device)
   print("Test 2 done.")
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
-  test3()
+  test3(device)
   print("Test 3 done.")
