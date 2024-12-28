@@ -157,7 +157,7 @@ def load_config():
     parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs.")
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--n_plot', type=int, default=50, help="Separation in training steps in between saving generated images.")
+    parser.add_argument('--n_plot', type=int, default=50, help="Interval (in training steps) at which generated images are saved.")
     parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
     parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
     parser.add_argument('--save_models', type=str, default="n", choices=["y", "n"], help="Select y for saving the models after training, and n for not saving them.")
