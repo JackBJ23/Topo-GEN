@@ -59,12 +59,12 @@ def loss_bottleneck0(point_cloud, dgm, dgm2): # second value returned: 1 if got 
 
 def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     if len(dgm['dgms'][1]) == 0: return 0., 0
-    print("dgm2", dgm2['dgms'][1])
+    # if dgm2['dgms'][1] is empty, make a small change for simplifying the following calculations:
     if len(dgm2['dgms'][1])==0: 
-      print("dgm2 1", dgm2['dgms'][1])
       dgm2_dgms1_empty = True
-      dgm2['dgms'][1] = [[0.,0.]] # small change for simplifying the following calculations
-    else: dgm2_dgms1_empty = False
+      dgm2['dgms'][1] = [[0.,0.]]
+    else: 
+      dgm2_dgms1_empty = False
     
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
@@ -90,7 +90,8 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       birth_dgm2 = dgm2['dgms'][1][j][0]
       death_dgm2 = dgm2['dgms'][1][j][1]
 
-    if dgm2_dgms1_empty: dgm2['dgms'][1] = [] # go back to initial form, in case it is being used in other topofunctions
+    # if dgm2 had been modified, go back to its initial form (in case it is used in other topofunctions):
+    if dgm2_dgms1_empty: dgm2['dgms'][1] = []
     
     if i>=0 and j>=0:
       ll = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
