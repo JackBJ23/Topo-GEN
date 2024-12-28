@@ -35,9 +35,9 @@ loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, sc
 ```
 The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model); `dgm` (its persistence diagram); `true_point_cloud` (the ground truth point cloud), and `true_dgm` (its diagram). The other arguments are optional and control the topological functions. To generate a persistence diagram, do:
 ```
-dgm = get_dgm(point_cloud, deg)
+dgm = get_dgm(point_cloud)
 ```
-Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1, where 1 is the more general option). 
+Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`.
 
 Each topological function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. 
 
