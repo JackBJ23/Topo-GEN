@@ -13,7 +13,7 @@ To install the topogen library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-To run the experiments and tests on Google Colab:
+To run synthetic experiments and tests with TopoVAEs on Google Colab:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
