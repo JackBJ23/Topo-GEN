@@ -131,7 +131,7 @@ Furthermore, as shown below, we observe an interesting behavior: when applying t
 
 <img src="assets/latent_dist.png" alt="Latent Distribution" width="700"/>
 
-We believe that the integration of topology into generative models through differentiable loss functions represents a promising new direction, with our initial results suggesting promising potential for future applications.
+We believe that the integration of topology into generative models through differentiable loss functions represents an exciting new direction, with our initial results suggesting promising potential for future applications.
 
 ## More information
 
