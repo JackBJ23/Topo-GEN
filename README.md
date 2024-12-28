@@ -59,8 +59,8 @@ The working principle of topology-informed generative models is illustrated belo
 There are seven topological regularizers, presented below. Note that `point_cloud` is the learnable point cloud or output of a machine learning model; `dgm` is its persistence diagram; `true_point_cloud` is the ground truth point cloud, and `true_dgm` is its diagram. The other arguments are optional and control the topological functions. 
 ```
 from topogen import *
-loss_bottleneck0(point_cloud, dgm, true_dgm)
-loss_bottleneck1(point_cloud, dgm, true_dgm)
+loss_bottleneck0(point_cloud, dgm, true_dgm, device)
+loss_bottleneck1(point_cloud, dgm, true_dgm, device)
 loss_persentropy0(point_cloud, dgm, true_dgm, device, delta0=0.01)
 loss_persentropy1 (point_cloud, dgm, true_dgm, device, delta1=0.01)
 loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05),
@@ -109,9 +109,9 @@ For details about the meaning of these values, see B. Jedlicki, Jack. [2024](htt
 
 ## Example: TopoVAE
 
-We provide a way to directly train VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
+We provide a way to directly train and test VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
 ```
-!python train.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
+!python topovae_experiments.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
 Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. The file automatically saves plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it saves a plot of the evolution of the BCE losses for the VAE and the TopoVAE. 
 
