@@ -209,6 +209,10 @@ if __name__ == "__main__":
 
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
+  if args.save_models == "y":
+      torch.save(model0.state_dict(), "model0_weights.pth")
+      torch.save(model1.state_dict(), "model1_weights.pth")
+      print("Weights of VAE and TopoVAE saved.")
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
   print("Test losses:", test_loss0, test_loss1)
