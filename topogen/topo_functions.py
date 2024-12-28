@@ -6,7 +6,7 @@ import ripser
 import persim
 from gph import ripser_parallel
 
-def get_dgm(point_cloud, deg):
+def get_dgm(point_cloud, deg=1):
   # Compute the persistence diagram without backprop
   with torch.no_grad():
         # Convert points for computing PD:
