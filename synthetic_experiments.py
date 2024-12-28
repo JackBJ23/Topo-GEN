@@ -91,7 +91,7 @@ def test1(device):
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, device, 15000, 50, 0.01, 'test_1')
+  synthetic_test(point_cloud, point_cloud_true, device, 300, 50, 0.01, 'test_1') #15000
 
 def test2(device):
   point_cloud_true = np.zeros((128,2))
@@ -117,7 +117,7 @@ def test2(device):
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, device, 2500, 25, 0.05, 'test_2')
+  synthetic_test(point_cloud, point_cloud_true, device, 300, 25, 0.05, 'test_2') #2500
 
 def test3(device):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
@@ -129,7 +129,7 @@ def test3(device):
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, device, 7500, 50, 0.1, 'test_3')
+  synthetic_test(point_cloud, point_cloud_true, device, 300, 50, 0.1, 'test_3') #7500
 
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
