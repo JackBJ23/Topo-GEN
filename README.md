@@ -49,7 +49,7 @@ topoloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, 
 
 Details about this function are given below. 
 
-## Keyword arguments for topo_losses
+## Arguments for topo_losses
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 #### Required Arguments
