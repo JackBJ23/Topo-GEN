@@ -62,8 +62,10 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
     print("dgm2", dgm2['dgms'][1])
     if len(dgm2['dgms'][1])==0: 
       print("dgm2 1", dgm2['dgms'][1])
-      original_dgm2_dgms_1 = dgm2['dgms'][1]
+      dgm2_dgms1_empty = True
       dgm2['dgms'][1] = [[0.,0.]] # small change for simplifying the following calculations
+    else: dgm2_dgms1_empty = False
+    
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
         #find the pair that gives the max distance:
@@ -88,6 +90,8 @@ def loss_bottleneck1(point_cloud, dgm, dgm2): # second value returned: 1 if got 
       birth_dgm2 = dgm2['dgms'][1][j][0]
       death_dgm2 = dgm2['dgms'][1][j][1]
 
+    if dgm2_dgms1_empty: dgm2['dgms'][1] = [] # go back to initial form, in case it is being used in other topofunctions
+    
     if i>=0 and j>=0:
       ll = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
       print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
