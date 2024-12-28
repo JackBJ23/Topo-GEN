@@ -8,7 +8,7 @@ Algorithms in this repository are fully supported to run on the GPU.
 
 ## Installation
 
-To install the topogen library:
+To install the `topogen` library:
 ```
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
