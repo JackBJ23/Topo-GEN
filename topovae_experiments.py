@@ -19,13 +19,14 @@ from torchvision import transforms, datasets
 from topogen import get_dgm, topo_losses, plot_gen_imgs
 from models import VAE
 
+# Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
     KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
     # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
 
-# loss of TopoVAEs (Standard + Topolosses)
+# Loss of TopoVAEs (Standard + Topolosses)
 def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
     # Standard loss:
@@ -36,7 +37,7 @@ def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_de
     
     return BCE, KLD, BCE + KLD + topo_loss
 
-# Train and compare model0 (normal VAE) and model2 (some TopoVAE):
+# Evaluate model0 (normal VAE) and model1 (TopoVAE):
 def evaluate(model0, model1, val_loader, epoch, type_eval, device):
   model0.eval()
   model1.eval()
@@ -51,12 +52,14 @@ def evaluate(model0, model1, val_loader, epoch, type_eval, device):
         running_loss0 += BCE.item()
         #model1
         recon_batch1, mean, log_var = model1(data)
+        # No need to compute topoloss here, only need BCE for comparison:
         BCE, _ = loss_vae(recon_batch1, data, mean, log_var)
         running_loss1 += BCE.item()
-        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval) # batch_idx set as -1: means it is validation
+        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval)
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
+# Train and compare model0 (normal VAE) and model1 (TopoVAE):
 def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
   # Losses saved once per epoch:
   train_losses0 = []
@@ -64,7 +67,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   val_losses0 = []
   val_losses1 = []
 
-  # Losses saved in all training steps to view a more detailed evolution:
+  # Losses saved at all training steps, for plotting the loss evolution with more detail:
   train_losses0_all = []
   train_losses1_all = []
 
@@ -75,7 +78,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
           data = data.to(device)
-          dgm_true = dgms_batches[batch_idx]
+          dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch, to avoid computation time
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
@@ -117,20 +120,24 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   plt.ylabel("BCE loss")
   plt.legend(loc='upper right')
   plt.tight_layout()
-  plt.savefig('BCElosses_train_all.png')
+  plt.savefig('BCElosses_train_all_steps.png')
 
   # Plot losses and validation losses over epochs:
-  plt.figure()
-  plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
-  plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
-  plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
-  plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
-  plt.xticks(ticks=np.arange(0, len(train_losses0)), labels=np.arange(0, len(train_losses0)))
-  plt.xlabel("Epoch")
-  plt.ylabel("BCE loss")
-  plt.legend(loc='upper right')
-  plt.tight_layout()
-  plt.savefig('BCElosses_train_val.png')
+  if args.n_epochs > 1:
+      plt.figure()
+      plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
+      plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
+      plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
+      plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
+      plt.xticks(ticks=np.arange(0, len(train_losses0)), labels=np.arange(0, len(train_losses0)))
+      plt.xlabel("Epoch")
+      plt.ylabel("BCE loss")
+      plt.legend(loc='upper right')
+      plt.tight_layout()
+      plt.savefig('BCElosses_train_val_epochs.png')
+  else:
+      print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}".)
+      print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}".)
 
   return model0, model1
 
@@ -146,15 +153,15 @@ def parse_topo_weights(value):
 def load_config():
     parser = argparse.ArgumentParser(description="Train and evaluate a generative model with topological regularizers.")
     parser.add_argument('--n_latent', type=int, default=10, help="Latent dimension of the VAE.")
-    parser.add_argument('--batch_size', type=int, default=128)
-    parser.add_argument('--n_epochs', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=128, help="Batch size for training the model.")
+    parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs.")
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--n_plot', type=int, default=50)
+    parser.add_argument('--n_plot', type=int, default=50, help="Separation in training steps in between saving generated images.")
     parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
     parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
     parser.add_argument('--save_models', type=str, default="n", choices=["y", "n"], help="Select y for saving the models after training, and n for not saving them.")
-    # Hyperparameters for some topological functions (default values already given):
+    # Hyperparameters for some topological functions (reference values by default):
     parser.add_argument('--pers0_delta', type=float, default=0.001)
     parser.add_argument('--pers1_delta', type=float, default=0.001)
     parser.add_argument('--dsigma0_scale', type=float, default=0.05)
@@ -167,7 +174,6 @@ def load_config():
     return args
 
 if __name__ == "__main__":
-  # Hyperparameters:
   args = load_config()
   torch.manual_seed(args.seed)
   print("Topological weights:", args.topo_weights)
@@ -189,7 +195,7 @@ if __name__ == "__main__":
   train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
   test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
 
-  train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+  train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False) # Set shuffle=False to pre-compute persistence diagrams for all batches only once before training
   val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
   test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
@@ -206,4 +212,4 @@ if __name__ == "__main__":
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
   print("Test losses:", test_loss0, test_loss1)
-  print("Done.")
+  print("Done!")
