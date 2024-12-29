@@ -25,19 +25,19 @@ Furthermore, this repository includes additional files for testing the topologic
 There are seven topological regularizers, presented below. Each function computes a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model) and `true_point_cloud` (the ground truth point cloud). 
 ```
 from topogen import *
-loss_bottleneck0(point_cloud, true_point_cloud, dgm, dgm2, device)
-loss_bottleneck1(point_cloud, true_point_cloud, dgm, dgm2, device)
-loss_persentropy0(point_cloud, true_point_cloud, dgm, dgm2, device, delta0=0.01)
-loss_persentropy1(point_cloud, true_point_cloud, dgm, dgm2, device, delta1=0.01)
-loss_dsigma0(point_cloud, true_point_cloud, dgm, dgm2, device, sigma0=0.05)
-loss_dsigma1(point_cloud, true_point_cloud, dgm, dgm2, device, sigma1=0.05)
-loss_density(point_cloud, true_point_cloud, dgm, dgm2, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
+loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2, device)
+loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2, device)
+loss_persentropy0(point_cloud, point_cloud2, dgm, dgm2, device, delta0=0.01)
+loss_persentropy1(point_cloud, point_cloud2, dgm, dgm2, device, delta1=0.01)
+loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, device, sigma0=0.05)
+loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, device, sigma1=0.05)
+loss_density(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
 For each function, the input arguments and outputs are the following:
 
 #### Input arguments:
 - `point_cloud` (tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
-- `true_point_cloud` (tensor-like): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
+- `point_cloud2` (tensor-like): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
 - `dgm` (dict, optional): Persistence diagram for the first point cloud. If `None`, it will be computed.
 - `dgm2` (dict, optional): Persistence diagram for the true point cloud. If `None`, it will be computed.
 - `device` (str, optional): The device to use for computations. Defaults to `"cpu"`.
