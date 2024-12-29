@@ -47,7 +47,7 @@ For each function, the input arguments and outputs are the following:
 - `loss`: The computed loss value as a scalar tensor.
 - `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise.
 
-Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only before for calling the functions. To generate a persistence diagram, do:
+Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before for calling the functions. To generate a persistence diagram, do:
 ```
 from topogen import get_dgm
 dgm = get_dgm(point_cloud, deg)
