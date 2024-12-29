@@ -65,8 +65,8 @@ The function returns the total topological loss, `topoloss`, and a boolean `gotl
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 #### Required Arguments
-- `points`: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
-- `true_points`: Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
+- `points`: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, additional dimensions)`.
+- `true_points`: Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
