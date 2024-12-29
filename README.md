@@ -22,9 +22,10 @@ This repository also includes additional files for testing the topological regul
 
 ## Basic usage
 
-There are seven topological regularizers, presented below. Each function computes a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. 
+The library provides seven topological regularizers, each computing a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. To use them, do:
 ```
 from topogen import *
+
 loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2, device)
 loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2, device)
 loss_persentropy0(point_cloud, point_cloud2, dgm, dgm2, device, delta0=0.01)
