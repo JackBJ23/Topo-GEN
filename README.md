@@ -22,7 +22,7 @@ Furthermore, this repository includes additional files for testing the topologic
 
 ## Basic usage
 
-There are seven topological regularizers, presented below. The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model) and `true_point_cloud` (the ground truth point cloud). 
+There are seven topological regularizers, presented below. Each function computes a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model) and `true_point_cloud` (the ground truth point cloud). 
 ```
 from topogen import *
 loss_bottleneck0(point_cloud, true_point_cloud, dgm, true_dgm, device)
@@ -33,7 +33,19 @@ loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05)
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments control the topological functions. If not specified, functions will run on CPU by default. Each topological function returns two values: `loss, gotloss`. If `gotloss` is `True`, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is `False`, the topological loss only depends on ground truth data and does not need to be added to the total loss. 
+For each following, the input and output are the following:
+
+#### Input arguments:
+- `point_cloud`(tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
+- `point_cloud2` (tensor-like): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
+- `dgm` (dict, optional): Persistence diagram for the first point cloud. If `None`, it will be computed.
+- `dgm2` (dict, optional): Persistence diagram for the true point cloud. If `None`, it will be computed.
+- `device` (str, optional): The device to use for computations. Defaults to `"cpu"`.
+- Additional arguments that control the topological functions.
+
+#### Output:
+- `loss`: The computed loss value as a scalar tensor.
+- `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise (i.e., when the loss only depends on ground truth data and does not need to be added to the total loss).
 
 Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only before for calling the functions. To generate a persistence diagram, do:
 ```
@@ -47,20 +59,20 @@ Additionally, we have unified all the topological regularizers into a single fun
 from topogen import topo_losses
 topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
-The function returns the total topological loss, `topoloss`, and a boolean `gotloss` which is `True` if the total loss depends on the input point cloud, and `False` otherwise. More details about this function are given below. 
+The function returns the total topological loss, `topoloss`, and a boolean `gotloss` which is `True` if the total loss depends on the input point cloud, and `False` otherwise. Details about its arguments are given below. 
 
 ## Arguments for topo_losses
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 #### Required Arguments
-- **`points`**: Learnable point cloud or output of a machine learning model. 
-- **`true_points`**: Ground truth point cloud.
+- **`points`**: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
+- **`true_points`**: Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
 - **`topo_weights`**: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
 - **`deg`**: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
 - **`dgm_true`**: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
-- **`device`**: Default = `"cpu"`. Specify `"cuda"` or `"cpu"` for the device on which to perform the calculations.
+- **`device`**: Default = `"cpu"`. The device to use for computations.
 
 The following parameters, which control the topological functions, are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
 
