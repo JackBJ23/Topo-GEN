@@ -105,7 +105,7 @@ In the third test (right), we start with 2 segments, and the ground truth persis
     <img src="assets/synthetic3_video.gif" width="30%">
 </div>
 
-To run these experiments on Google Colab:
+To run these experiments:
 ```
 !python synthetic_experiments.py
 ```
@@ -125,7 +125,7 @@ The working principle of topology-informed generative models is illustrated belo
 
 ## Example: TopoVAE
 
-We provide a way to directly train and test VAEs on the FashionMNIST dataset using topological regularizers. To do so, run on Google Colab:
+We provide a way to directly train and test VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
 ```
 !python topovae_experiments.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
