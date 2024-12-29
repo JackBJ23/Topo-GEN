@@ -24,12 +24,14 @@ def get_loss(point_cloud, point_cloud_true, dgm_true, device):
   dgm = get_dgm(point_cloud, 1)
   loss, gotloss = topo_losses(point_cloud, point_cloud_true, dgm, dgm_true, device)
   if gotloss: return loss, loss.item()
+  # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
+  # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
 # Function for running a synthetic test with the bottleneck functions. This function saves images of:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
-def synthetic_test(point_cloud, point_cloud_true, device, num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
+def synthetic_test(point_cloud, point_cloud_true, device, topoweights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
   # Plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
@@ -54,7 +56,7 @@ def synthetic_test(point_cloud, point_cloud_true, device, num_steps=2000, num_sa
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = loss_bottleneck01(point_cloud, point_cloud_true, dgm_true, device)
+      loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, device)
       loss.backward()
       optimizer.step()
 
