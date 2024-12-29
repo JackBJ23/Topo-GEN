@@ -33,7 +33,7 @@ loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05),
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments are optional and control the topological functions. If not specified, functions will run on CPU by default. Additionally, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before calling the functions. To generate a persistence diagram, do:
+The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments control the topological functions. If not specified, functions will run on CPU by default. Additionally, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before calling the functions. To generate a persistence diagram, do:
 ```
 dgm = get_dgm(point_cloud, deg)
 ```
