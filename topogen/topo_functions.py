@@ -29,14 +29,14 @@ from gph import ripser_parallel
 
   Input arguments:
     - Required:
-      - points: learnable point cloud
-      - true_points: ground truth point cloud
-      - topo_weights: associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
-      If weight set as 0, its topofunction is not used
+      - points: Learnable point cloud.
+      - true_points: Ground truth point cloud.
+      - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
+      If weight set as 0, its topofunction is not used.
     - Optional:
-      - deg (default: 1): homology degree (0 or 1, 1 is the more general option)
-      - dgm_true (default: None): persistence diagram of the ground truth data. If None, calculated inside the function
-      - device (default: "cpu"): "cuda" or "cpu". 
+      - deg (default: 1): Homology degree (0 or 1, 1 is the more general option).
+      - dgm_true (default: None): Persistence diagram of the ground truth data. If None, calculated inside the function.
+      - device (default: "cpu"): The device to use for computations.
       - Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
       pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
 
