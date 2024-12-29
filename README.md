@@ -54,7 +54,7 @@ dgm = get_dgm(point_cloud, deg)
 ```
 Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
 
-Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
+Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to use them and combined them in a straightforward way. To use it, do:
 ```
 from topogen import topo_losses
 topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
