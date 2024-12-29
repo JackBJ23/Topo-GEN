@@ -15,7 +15,7 @@ def plot_dgm(dgm, filename):
   fig.write_image(filename)
 
 def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None):
-    if step==None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
+    if step is None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
     else: filename = f'figures_epoch_{epoch}_step_{step}_{eval_type}.png'
 
     # Reshape tensors for visualization
