@@ -25,10 +25,10 @@ Furthermore, this repository includes additional files for testing the topologic
 There are seven topological regularizers, presented below. The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model) and `true_point_cloud` (the ground truth point cloud). 
 ```
 from topogen import *
-loss_bottleneck0(point_cloud, dgm, true_dgm, device)
-loss_bottleneck1(point_cloud, dgm, true_dgm, device)
-loss_persentropy0(point_cloud, dgm, true_dgm, device, delta0=0.01)
-loss_persentropy1 (point_cloud, dgm, true_dgm, device, delta1=0.01)
+loss_bottleneck0(point_cloud, true_point_cloud, dgm, true_dgm, device)
+loss_bottleneck1(point_cloud, true_point_cloud, dgm, true_dgm, device)
+loss_persentropy0(point_cloud, true_point_cloud, dgm, true_dgm, device, delta0=0.01)
+loss_persentropy1(point_cloud, true_point_cloud, dgm, true_dgm, device, delta1=0.01)
 loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05),
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
