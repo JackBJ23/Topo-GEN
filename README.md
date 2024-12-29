@@ -45,10 +45,9 @@ Each topological function returns two values: `loss, gotloss`. If `gotloss` is 1
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, in order to combine them in a straightforward way. To use it, do:
 ```
 from topogen import topo_losses
-topoloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
+topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
-
-Details about this function are given below. 
+The function returns the total topological loss, `topoloss`, and a boolean `gotloss` which is `True` if the total loss depends on the input point cloud, and `False` otherwise. More details about this function are given below. 
 
 ## Arguments for topo_losses
 
