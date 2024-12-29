@@ -53,6 +53,7 @@ For each function, the input arguments and outputs are the following:
 Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before for calling the functions. To generate a persistence diagram, do:
 ```
 from topogen import get_dgm
+
 dgm = get_dgm(point_cloud, deg)
 ```
 Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
@@ -60,6 +61,7 @@ Where the shape of the point cloud is expected to be `(number of points, dimensi
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, to enable their efficient and straightforward combination. To use it, do:
 ```
 from topogen import topo_losses
+
 topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
 The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. See below for details about its arguments. 
@@ -114,6 +116,7 @@ To run more synthetic experiments with new point clouds:
 ```
 import numpy as np
 from synthetic_experiments import synthetic_test
+
 synthetic_test(point_cloud, point_cloud_true, num_training_steps=2000, num_save=50, learning_rate=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.)
 ```
 Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. The argument `num_save` specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation, and the last four arguments are the window limits for the animation. Only the first two arguments are required. The function will save images of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. 
