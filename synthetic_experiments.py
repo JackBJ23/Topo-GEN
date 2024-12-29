@@ -85,7 +85,7 @@ def synthetic_test(point_cloud, point_cloud_true, device, topoweights=[1.,1.,0.,
   generate_gif(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
-def test1(device):
+def test1(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   # First, generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Second, manually create the initial point cloud:
@@ -103,9 +103,9 @@ def test1(device):
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, device, 300, 50, 0.01, 'test_1') # 15000
+  synthetic_test(point_cloud, point_cloud_true, device, tw, 300, 50, 0.01, 'test_1') # 15000
 
-def test2(device):
+def test2(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = np.zeros((128,2))
   r1 = 0.3
   for i in range(30):
@@ -129,9 +129,9 @@ def test2(device):
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, device, 300, 25, 0.05, 'test_2') # 2500
+  synthetic_test(point_cloud, point_cloud_true, device, tw, 300, 25, 0.05, 'test_2') # 2500
 
-def test3(device):
+def test3(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   # Initial point cloud: 2 lines with added noise
   point_cloud = np.zeros((64,2))
@@ -141,7 +141,7 @@ def test3(device):
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, device, 300, 50, 0.1, 'test_3') # 7500
+  synthetic_test(point_cloud, point_cloud_true, device, tw, 300, 50, 0.1, 'test_3') # 7500
 
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
