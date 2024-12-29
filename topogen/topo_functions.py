@@ -35,7 +35,8 @@ from gph import ripser_parallel
       If weight set as 0, its topofunction is not used.
     - Optional:
       - deg (default: 1): Homology degree (0 or 1, 1 is the more general option).
-      - dgm_true (default: None): Persistence diagram of the ground truth data. If None, calculated inside the function.
+      - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
+      - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
       - device (default: "cpu"): The device to use for computations.
       - Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
       pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
