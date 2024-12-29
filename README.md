@@ -40,9 +40,9 @@ For each function, the input arguments and outputs are the following:
   - `point_cloud` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
   - `point_cloud2` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
 - **Optional:**
-  - `dgm` (dict): Persistence diagram for the first point cloud. If `None`, it will be computed.
-  - `dgm2` (dict): Persistence diagram for the true point cloud. If `None`, it will be computed.
-  - `device` (str): The device to use for computations. Defaults to `"cpu"`.
+  - `dgm`: Persistence diagram for the first point cloud. If `None`, it will be computed.
+  - `dgm2`: Persistence diagram for the true point cloud. If `None`, it will be computed.
+  - `device`: The device to use for computations. Defaults to `"cpu"`.
   - Additional arguments that control the topological functions.
 
 #### Output:
@@ -67,8 +67,8 @@ The function returns the total topological loss, `topoloss`, and `gotloss`, whic
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 #### Required Arguments
-- `points`: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, additional dimensions)`.
-- `true_points`: Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
+- `points` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, additional dimensions)`.
+- `true_points` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
