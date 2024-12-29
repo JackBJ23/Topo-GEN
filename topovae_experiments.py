@@ -32,7 +32,7 @@ def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_de
     # Standard loss:
     BCE, KLD = loss_vae(recon_x, x, mu, logvar)
     # Topological loss:
-    topo_loss, _ = topo_losses(recon_x, x, topo_weights, deg, dgm_true, device, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
+    topo_loss, _ = topo_losses(recon_x, x, topo_weights, deg, None, dgm_true, device, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
                 density_sigma, density_scale, density_maxrange, density_npoints)
     
     return BCE, KLD, BCE + KLD + topo_loss
