@@ -33,7 +33,7 @@ from gph import ripser_parallel
       - true_points: ground truth point cloud
       - topo_weights: associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
       If weight set as 0, its topofunction is not used
-    - Optional arguments:
+    - Optional:
       - deg (default: 1): homology degree (0 or 1, 1 is the more general option)
       - dgm_true (default: None): persistence diagram of the ground truth data. If None, calculated inside the function
       - device (default: "cpu"): "cuda" or "cpu". 
