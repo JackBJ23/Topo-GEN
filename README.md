@@ -45,7 +45,7 @@ For each following, the input and output are the following:
 
 #### Output:
 - `loss`: The computed loss value as a scalar tensor.
-- `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise (i.e., when the loss only depends on ground truth data and does not need to be added to the total loss).
+- `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise.
 
 Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only before for calling the functions. To generate a persistence diagram, do:
 ```
