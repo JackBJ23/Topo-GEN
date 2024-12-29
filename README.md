@@ -35,6 +35,7 @@ loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, sc
 ```
 The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments control the topological functions. If not specified, functions will run on CPU by default. Additionally, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before calling the functions. To generate a persistence diagram, do:
 ```
+from topogen import get_dgm
 dgm = get_dgm(point_cloud, deg)
 ```
 Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
