@@ -136,8 +136,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       plt.tight_layout()
       plt.savefig('BCElosses_train_val_epochs.png')
   else:
-      print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}".)
-      print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}".)
+      print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
+      print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
 
   return model0, model1
 
