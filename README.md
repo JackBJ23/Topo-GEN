@@ -62,9 +62,9 @@ Additionally, we have unified all the topological regularizers into a single fun
 ```
 from topogen import topo_losses
 
-topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
+topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
 ```
-The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. See below for details about its arguments. 
+The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. See below for details about its arguments.
 
 ## Arguments for topo_losses
 
@@ -76,6 +76,7 @@ The `topo_losses` function combines the seven topological regularizers into a si
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
 - `deg`: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
+- `dgm`: Default = `None`. Persistence diagram for the learnable point cloud. If `None`, it will be computed.
 - `dgm_true`: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
 - `device`: Default = `"cpu"`. The device to use for computations.
 
