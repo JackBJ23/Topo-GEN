@@ -316,43 +316,44 @@ def loss_push0(point_cloud, dgm):
 
 def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
-    gotloss = 0
+    n_gotloss = 0
     if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), deg)
     if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
+    
     loss = torch.tensor(0., device=device)
     if topo_weights[0] != 0.:
       topoloss, gotloss0 = loss_bottleneck0(points, true_points, dgm, dgm_true, device)
       if gotloss0:
         loss = loss + topoloss * topo_weights[0]
-        gotloss += 1
+        n_gotloss += 1
     if topo_weights[1] != 0.:
       topoloss, gotloss1 = loss_bottleneck1(points, true_points, dgm, dgm_true, device)
       if gotloss1: 
         loss = loss + topoloss * topo_weights[1]
-        gotloss += 1 
+        n_gotloss += 1 
     if topo_weights[2] != 0.:
       topoloss, gotloss2 = loss_persentropy0(points, true_points, dgm, dgm_true, device, pers0_delta)
       if gotloss2: 
         loss = loss + topoloss *  topo_weights[2]
-        gotloss += 1
+        n_gotloss += 1
     if topo_weights[3] != 0.:
       topoloss, gotloss3 = loss_persentropy1(points, true_points, dgm, dgm_true, device, pers1_delta)
       if gotloss3: 
         loss = loss + topoloss * topo_weights[3]
-        gotloss += 1
+        n_gotloss += 1
     if topo_weights[4] != 0.:
       topoloss, gotloss4 = loss_dsigma0(points, true_points, dgm, dgm_true, device, dsigma0_scale)
       if gotloss4: 
         loss = loss + topoloss * topo_weights[4]
-        gotloss += 1
+        n_gotloss += 1
     if topo_weights[5] != 0.:
       topoloss, gotloss5 = loss_dsigma1(points, true_points, dgm, dgm_true, device, dsigma1_scale)
       if gotloss5: 
         loss = loss + topoloss * topo_weights[5]
-        gotloss += 1
+        n_gotloss += 1
     if topo_weights[6] != 0.:
       topoloss, gotloss6 = loss_density(points, true_points, dgm, dgm_true, device, density_sigma, density_scale, density_maxrange, density_npoints)
-      if gotloss6: 
+      if gotloss6:
         loss = loss + topoloss * topo_weights[6]
-        gotloss += 1
-    return loss, gotloss > 0
+        n_gotloss += 1
+    return loss, n_gotloss > 0
