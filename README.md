@@ -33,7 +33,7 @@ loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05)
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-For each following, the input and output are the following:
+For each function, the input arguments and outputs are the following:
 
 #### Input arguments:
 - `point_cloud`(tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
