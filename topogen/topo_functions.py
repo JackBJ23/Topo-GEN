@@ -8,8 +8,8 @@ from gph import ripser_parallel
 
 """
   The topological regularizers are the functions loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
-  loss_dsigma0, loss_dsigma1, loss_density. Each functions computes a different measure of dissimilarity between the diagram
-  of the learnable point cloud and the ground truth persistence diagram. 
+  loss_dsigma0, loss_dsigma1, loss_density. Each function computes a different measure of dissimilarity between the diagram
+  of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments:
   
   Input arguments:
     - point_cloud (tensor-like:): The learnable point cloud. Expected shape (number of points, dimension of each point).
@@ -18,12 +18,31 @@ from gph import ripser_parallel
     - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
     - device (str, optional): The device to use for computations. Defaults to "cpu".
     - Additional arguments that control the topological functions.
+  
   Returns:
     - torch.Tensor: The computed loss value as a scalar tensor.
-    - int: A status flag (1 if the loss depends on the diagrams, 0 otherwise).
+    - bool: A status flag (True if the loss depends on the diagrams, False otherwise).
+"""
 
-  All functions are combined in the function topo_losses.
+"""
+  All topological regularizers are unified in the function topo_losses. 
+
   Input arguments:
+    - Required:
+      - points: learnable point cloud
+      - true_points: ground truth point cloud
+      - topo_weights: associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
+      If weight set as 0, its topofunction is not used
+    - Optional arguments:
+      - deg (default: 1): homology degree (0 or 1, 1 is the more general option)
+      - dgm_true (default: None): persistence diagram of the ground truth data. If None, calculated inside the function
+      - device (default: "cpu"): "cuda" or "cpu". 
+      - Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
+      pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
+
+  Returns:
+    - torch.Tensor: The computed total loss value as a scalar tensor.
+    - bool: A status flag (True if the loss depends on the diagrams, False otherwise).
 """
 
 def get_dgm(point_cloud, deg=1):
@@ -187,7 +206,7 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cp
     pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
 
-  if len(dgm2['dgms'][1])==0: return (pers/L)**2, 1 # the entropy of dgm2 is 0
+  if len(dgm2['dgms'][1])==0: return (pers/L)**2, True # the entropy of dgm2 is 0
 
   # Get persistent entropy of dgm2:
   L2 = 0.
@@ -295,17 +314,6 @@ def loss_push0(point_cloud, dgm):
     loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
   return loss
 
-# topo_losses combines all the previous topological regularizers into a single function
-# Required arguments:
-# points: learnable point cloud
-# true_points: ground truth point cloud
-# topo_weights: associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. If weight set as 0, its topofunction is not used
-# Optional arguments:
-# deg: homology degree (0 or 1, 1 is the more general option)
-# dgm_true: persistence diagram of the ground truth data. If None, calculated inside the function
-# device: "cuda" or "cpu"
-# Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
-# pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
 def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     gotloss = 0
