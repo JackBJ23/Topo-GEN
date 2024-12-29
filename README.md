@@ -36,7 +36,7 @@ loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, sc
 For each function, the input arguments and outputs are the following:
 
 #### Input arguments:
-- `point_cloud`(tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
+- `point_cloud` (tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
 - `point_cloud2` (tensor-like): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
 - `dgm` (dict, optional): Persistence diagram for the first point cloud. If `None`, it will be computed.
 - `dgm2` (dict, optional): Persistence diagram for the true point cloud. If `None`, it will be computed.
