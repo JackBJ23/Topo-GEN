@@ -33,7 +33,7 @@ loss_dsigma0(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma0=0.05)
 loss_dsigma1(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma1=0.05)
 loss_density(point_cloud, true_point_cloud, dgm, true_dgm, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments control the topological functions. If not specified, functions will run on CPU by default. Each topological function returns two values: `loss, gotloss`. If `gotloss` is 1, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is 0, the topological loss only depends on ground truth data and does not need to be added to the total loss. 
+The argument `dgm` is the persistence diagram of the learnable point cloud, and `true_dgm` is the persistence diagram of the ground truth point cloud. The other arguments control the topological functions. If not specified, functions will run on CPU by default. Each topological function returns two values: `loss, gotloss`. If `gotloss` is `True`, the loss value depends on the learnable point cloud and can be added to the total loss. If `gotloss` is `False`, the topological loss only depends on ground truth data and does not need to be added to the total loss. 
 
 Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only before for calling the functions. To generate a persistence diagram, do:
 ```
