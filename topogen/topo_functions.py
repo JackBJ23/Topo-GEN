@@ -6,6 +6,26 @@ import ripser
 import persim
 from gph import ripser_parallel
 
+"""
+  The topological regularizers are the functions loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
+  loss_dsigma0, loss_dsigma1, loss_density. Each functions computes a different measure of dissimilarity between the diagram
+  of the learnable point cloud and the ground truth persistence diagram. 
+  
+  Input arguments:
+    - point_cloud (tensor-like:): The learnable point cloud. Expected shape (number of points, dimension of each point).
+    - point_cloud2 (tensor-like): The true point cloud. Expected shape (number of points, dimension of each point).
+    - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
+    - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
+    - device (str, optional): The device to use for computations. Defaults to "cpu".
+    - Additional arguments that control the topological functions.
+  Returns:
+    - torch.Tensor: The computed loss value as a scalar tensor.
+    - int: A status flag (1 if the loss depends on the diagrams, 0 otherwise).
+
+  All functions are combined in the function topo_losses.
+  Input arguments:
+"""
+
 def get_dgm(point_cloud, deg=1):
   # Compute the persistence diagram without backprop
   with torch.no_grad():
@@ -288,28 +308,43 @@ def loss_push0(point_cloud, dgm):
 # pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
 def topo_losses(points, true_points, topo_weights, deg=1, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
+    gotloss = 0
     dgm = get_dgm(points.view(true_points.size(0), -1), deg)
     if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
     loss = torch.tensor(0., device=device)
     if topo_weights[0] != 0.:
-      topoloss, gotloss = loss_bottleneck0(points, true_points, dgm, dgm_true, device)
-      if gotloss==1: loss = loss + topoloss * topo_weights[0]
+      topoloss, gotloss0 = loss_bottleneck0(points, true_points, dgm, dgm_true, device)
+      if gotloss0==1: 
+        loss = loss + topoloss * topo_weights[0]
+        gotloss += 1
     if topo_weights[1] != 0.:
-      topoloss, gotloss = loss_bottleneck1(points, true_points, dgm, dgm_true, device)
-      if gotloss==1: loss = loss + topoloss * topo_weights[1]
+      topoloss, gotloss1 = loss_bottleneck1(points, true_points, dgm, dgm_true, device)
+      if gotloss1==1: 
+        loss = loss + topoloss * topo_weights[1]
+        gotloss += 1 
     if topo_weights[2] != 0.:
-      topoloss, gotloss = loss_persentropy0(points, true_points, dgm, dgm_true, device, pers0_delta)
-      if gotloss==1: loss = loss + topoloss *  topo_weights[2]
+      topoloss, gotloss2 = loss_persentropy0(points, true_points, dgm, dgm_true, device, pers0_delta)
+      if gotloss2==1: 
+        loss = loss + topoloss *  topo_weights[2]
+        gotloss += 1
     if topo_weights[3] != 0.:
-      topoloss, gotloss = loss_persentropy1(points, true_points, dgm, dgm_true, device, pers1_delta)
-      if gotloss==1: loss = loss + topoloss * topo_weights[3]
+      topoloss, gotloss3 = loss_persentropy1(points, true_points, dgm, dgm_true, device, pers1_delta)
+      if gotloss3==1: 
+        loss = loss + topoloss * topo_weights[3]
+        gotloss += 1
     if topo_weights[4] != 0.:
-      topoloss, gotloss = loss_dsigma0(points, true_points, dgm, dgm_true, device, dsigma0_scale)
-      if gotloss==1: loss = loss + topoloss * topo_weights[4]
+      topoloss, gotloss4 = loss_dsigma0(points, true_points, dgm, dgm_true, device, dsigma0_scale)
+      if gotloss4==1: 
+        loss = loss + topoloss * topo_weights[4]
+        gotloss += 1
     if topo_weights[5] != 0.:
-      topoloss, gotloss = loss_dsigma1(points, true_points, dgm, dgm_true, device, dsigma1_scale)
-      if gotloss==1: loss = loss + topoloss * topo_weights[5]
+      topoloss, gotloss5 = loss_dsigma1(points, true_points, dgm, dgm_true, device, dsigma1_scale)
+      if gotloss5==1: 
+        loss = loss + topoloss * topo_weights[5]
+        gotloss += 1
     if topo_weights[6] != 0.:
-      topoloss, gotloss = loss_density(points, true_points, dgm, dgm_true, device, density_sigma, density_scale, density_maxrange, density_npoints)
-      if gotloss==1: loss = loss + topoloss * topo_weights[6]
-    return loss
+      topoloss, gotloss6 = loss_density(points, true_points, dgm, dgm_true, device, density_sigma, density_scale, density_maxrange, density_npoints)
+      if gotloss6==1: 
+        loss = loss + topoloss * topo_weights[6]
+        gotloss += 1
+    return loss, gotloss > 0
