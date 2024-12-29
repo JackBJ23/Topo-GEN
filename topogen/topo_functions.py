@@ -21,7 +21,7 @@ from gph import ripser_parallel
   
   Returns:
     - torch.Tensor: The computed loss value as a scalar tensor.
-    - bool: A status flag (True if the loss depends on the diagrams, False otherwise).
+    - bool: A status flag (True if the loss depends on the learnable point cloud, False otherwise).
 """
 
 """
