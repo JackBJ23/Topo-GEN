@@ -13,7 +13,7 @@ To install the `topogen` library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-Furthermore, this repository includes additional files for testing the topological regularizers: `synthetic_experiments.py` to run synthetic experiments with point clouds in 2D, and `synthetic_experiments.py` to test topological regularizers on variational autoencoders (VAEs). To run these experiments on Google Colab:
+Furthermore, this repository includes additional files for testing the topological regularizers: `synthetic_experiments.py` to run synthetic experiments with point clouds in 2D, and `synthetic_experiments.py` to test topological regularizers on variational autoencoders (VAEs). To run these experiments, for instance, on Google Colab:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
