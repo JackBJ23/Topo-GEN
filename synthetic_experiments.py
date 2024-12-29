@@ -10,10 +10,10 @@ from plotly import graph_objects as go
 from topogen import get_dgm, loss_bottleneck0, loss_bottleneck1, loss_push0, plot_dgm, generate_gif
 
 # Loss function for the point cloud:
-def loss_bottleneck01(point_cloud, dgm_true, device):
+def loss_bottleneck01(point_cloud, point_cloud_true, dgm_true, device):
   dgm = get_dgm(point_cloud, 1)
-  l_topo0, got_loss0 = loss_bottleneck0(point_cloud, dgm, dgm_true, device)
-  l_topo1, got_loss1 = loss_bottleneck1(point_cloud, dgm, dgm_true, device)
+  l_topo0, got_loss0 = loss_bottleneck0(point_cloud, point_cloud_true, dgm, dgm_true, device)
+  l_topo1, got_loss1 = loss_bottleneck1(point_cloud, point_cloud_true, dgm, dgm_true, device)
   if got_loss0==1 or got_loss1==1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
   # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions 
@@ -47,7 +47,7 @@ def synthetic_test(point_cloud, point_cloud_true, device, num_steps=2000, num_sa
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = loss_bottleneck01(point_cloud, dgm_true, device)
+      loss, lossitem = loss_bottleneck01(point_cloud, point_cloud_true, dgm_true, device)
       loss.backward()
       optimizer.step()
 
