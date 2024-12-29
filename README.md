@@ -65,25 +65,25 @@ The function returns the total topological loss, `topoloss`, and a boolean `gotl
 
 The `topo_losses` function combines the seven topological regularizers into a single, unified function.
 #### Required Arguments
-- **`points`**: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
-- **`true_points`**: Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
-- **`topo_weights`**: List of weights associated with each topological loss:
+- `points`: Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
+- `true_points`: Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
+- `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 #### Optional Arguments
-- **`deg`**: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
-- **`dgm_true`**: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
-- **`device`**: Default = `"cpu"`. The device to use for computations.
+- `deg`: Default = `1`. Homology degree (`0` or `1`, where `1` is the more general option).
+- `dgm_true`: Default = `None`. Persistence diagram of the ground truth data. If `None`, it is calculated inside the function.
+- `device`: Default = `"cpu"`. The device to use for computations.
 
 The following parameters, which control the topological functions, are set to reference values by default but can be modified depending on the dataset, model, or other considerations:
 
-- **`pers0_delta`**: Default = `0.001`
-- **`pers1_delta`**: Default = `0.001`
-- **`dsigma0_scale`**: Default = `0.05`
-- **`dsigma1_scale`**: Default = `0.05`
-- **`density_sigma`**: Default = `0.2`
-- **`density_scale`**: Default = `0.002`
-- **`density_maxrange`**: Default = `35.0`
-- **`density_npoints`**: Default = `30`
+- `pers0_delta`: Default = `0.001`
+- `pers1_delta`: Default = `0.001`
+- `dsigma0_scale`: Default = `0.05`
+- `dsigma1_scale`: Default = `0.05`
+- `density_sigma`: Default = `0.2`
+- `density_scale`: Default = `0.002`
+- `density_maxrange`: Default = `35.0`
+- `density_npoints`: Default = `30`
 
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
