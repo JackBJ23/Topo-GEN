@@ -13,7 +13,7 @@ To install the `topogen` library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-Furthermore, this repository includes additional files for testing the topological regularizers: `synthetic_experiments.py` to run synthetic experiments with point clouds in 2D, and `synthetic_experiments.py` to test topological regularizers on variational autoencoders (VAEs). To clone the repository and run these experiments, for instance on Google Colab, do:
+This repository also includes additional files for testing the topological regularizers: `synthetic_experiments.py` to run synthetic experiments with point clouds in 2D, and `synthetic_experiments.py` to test topological regularizers on variational autoencoders (VAEs). To clone the repository and run these experiments, for instance on Google Colab, do:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
@@ -22,7 +22,7 @@ Furthermore, this repository includes additional files for testing the topologic
 
 ## Basic usage
 
-There are seven topological regularizers, presented below. Each function computes a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. The only required arguments are `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (the ground truth point cloud). 
+There are seven topological regularizers, presented below. Each function computes a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. 
 ```
 from topogen import *
 loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2, device)
@@ -36,12 +36,14 @@ loss_density(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.2, scale=0.00
 For each function, the input arguments and outputs are the following:
 
 #### Input arguments:
-- `point_cloud` (tensor-like:): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
-- `point_cloud2` (tensor-like): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
-- `dgm` (dict, optional): Persistence diagram for the first point cloud. If `None`, it will be computed.
-- `dgm2` (dict, optional): Persistence diagram for the true point cloud. If `None`, it will be computed.
-- `device` (str, optional): The device to use for computations. Defaults to `"cpu"`.
-- Additional arguments that control the topological functions.
+- **Required:**
+  - `point_cloud` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
+  - `point_cloud2` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
+- **Optional:**
+  - `dgm` (dict): Persistence diagram for the first point cloud. If `None`, it will be computed.
+  - `dgm2` (dict): Persistence diagram for the true point cloud. If `None`, it will be computed.
+  - `device` (str): The device to use for computations. Defaults to `"cpu"`.
+  - Additional arguments that control the topological functions.
 
 #### Output:
 - `loss`: The computed loss value as a scalar tensor.
