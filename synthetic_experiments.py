@@ -20,9 +20,9 @@ def loss_bottleneck01(point_cloud, point_cloud_true, dgm_true, device):
   return loss_push0(point_cloud, dgm), l_topo0.item() + l_topo1.item()
 
 # A more general loss:
-def get_loss(point_cloud, point_cloud_true, dgm_true, device):
+def get_loss(point_cloud, point_cloud_true, topoweights, dgm_true, device):
   dgm = get_dgm(point_cloud, 1)
-  loss, gotloss = topo_losses(point_cloud, point_cloud_true, dgm, dgm_true, device)
+  loss, gotloss = topo_losses(point_cloud, point_cloud_true, topoweights, 1, dgm, dgm_true, device)
   if gotloss: return loss, loss.item()
   # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
@@ -56,7 +56,7 @@ def synthetic_test(point_cloud, point_cloud_true, device, topoweights=[1.,1.,0.,
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, device)
+      loss, lossitem = get_loss(point_cloud, point_cloud_true, topoweights, dgm_true, device)
       loss.backward()
       optimizer.step()
 
