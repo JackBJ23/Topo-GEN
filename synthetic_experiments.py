@@ -18,17 +18,17 @@ def get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true, device):
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
-"""
-Function for running a synthetic test with the bottleneck functions. This function saves images of:
-i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
-f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
-
-Comments on arguments:
-- num_save: specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the
-final animation.
-- x1, x2, y1, y2: the window limits for the animation
-"""
-def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu", num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
+def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.):
+  """
+  Function for running a synthetic test with the bottleneck functions. This function saves images of:
+  i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
+  f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
+  
+  Comments on arguments:
+  - num_save: specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the
+  final animation.
+  - x1, x2, y1, y2: the window limits for the animation
+  """
   # Plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
@@ -82,7 +82,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   generate_gif(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
-def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
+def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   # First, generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Second, manually create the initial point cloud:
@@ -100,9 +100,9 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, device, 1000, 50, 0.01, 'test_1') # 15000
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 15000, 0.01, "test_1", num_save=50)
 
-def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
+def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = np.zeros((128,2))
   r1 = 0.3
   for i in range(30):
@@ -126,9 +126,9 @@ def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, device, 1000, 25, 0.05, 'test_2') # 2500
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 2500, 0.05, "test_2", num_save=25)
 
-def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
+def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   # Initial point cloud: 2 lines with added noise
   point_cloud = np.zeros((64,2))
@@ -138,16 +138,16 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, device, 1000, 50, 0.1, 'test_3') # 7500
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 7500, 0.1, "test_3", num_save=50)
 
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
-  test1(device=device)
+  test1()
   print("Test 1 done.")
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
-  test2(device=device)
+  test2()
   print("Test 2 done.")
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
-  test3(device=device)
+  test3()
   print("Test 3 done.")
