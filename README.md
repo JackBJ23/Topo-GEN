@@ -4,6 +4,10 @@ This repository presents a new approach for training generative models leveragin
 
 To this aim, we introduce a library, `topogen`, providing a new family of topological regularizers that can be implemented in the training process of any generative model. More in general, they can be implemented as loss functions in any machine learning problem that involves learning to generate a point cloud from another input point cloud, regardless of their dimensions, number of points, or format. In fact, a key aspect of persistence diagrams is that they translate the topological and geometrical features of point clouds into an object that can be efficiently compared among different point clouds, even if they lie in different spaces and have different numbers of points.
 
+Additionally, we include in this repository additional files to test the topological regularizers in two scenarios:
+- `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
+- `topovae_experiments.py` allows to test topological regularizers on variational autoencoders (VAEs).
+
 Algorithms in this repository are fully supported to run on the GPU.
 
 ## Installation
@@ -13,10 +17,7 @@ To install the `topogen` library:
 pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
-This repository also includes additional files for testing the topological regularizers: 
-- `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
-- `topovae_experiments.py` allows to test topological regularizers on variational autoencoders (VAEs).
-To clone the repository and run these experiments, for instance on Google Colab, do:
+To clone the repository and run the tests, for instance on Google Colab, do:
 ```
 !git clone https://github.com/JackBJ23/Topo-GEN.git
 %cd Topo-GEN
