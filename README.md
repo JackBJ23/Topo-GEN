@@ -14,7 +14,7 @@ pip install git+https://github.com/JackBJ23/Topo-GEN.git
 ```
 
 This repository also includes additional files for testing the topological regularizers: 
-- `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test with arbitrary point clouds in 2D an topological regularizers.
+- `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
 - `topovae_experiments.py` to test topological regularizers on variational autoencoders (VAEs).
 To clone the repository and run these experiments, for instance on Google Colab, do:
 ```
