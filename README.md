@@ -6,7 +6,7 @@ To this aim, we introduce `topogen`, a library that provides a new family of top
 
 Furthermore, we provide additional files to test topological regularizers:
 - `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
-- `topovae_experiments.py` allows to test topological regularizers on variational autoencoders (VAEs).
+- `topovae_experiments.py` allows to train and test variational autoencoders (VAEs) using topological regularizers.
 
 Algorithms in this repository are fully supported to run on the GPU.
 
