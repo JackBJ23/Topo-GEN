@@ -69,7 +69,7 @@ The function returns the total topological loss, `topoloss`, and `gotloss`, whic
 - `true_points` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
-See [topogen/topo_functions.py](`topogen/topo_functions.py`) for more details about its optional arguments. 
+See [https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py](`topogen/topo_functions.py`) for more details about its optional arguments. 
 
 ## Synthetic experiments: A "Virtual Playground"
 
