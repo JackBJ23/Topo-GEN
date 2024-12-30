@@ -66,15 +66,13 @@ The function returns the total topological loss, `topoloss`, and `gotloss`, whic
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 
-Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. To generate a persistence diagram, do:
+See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional keyword arguments. We recommend pre-computing the ground truth persistence diagrams before training to enhance training speed. To generate a persistence diagram, do:
 ```
 from topogen import get_dgm
 
 dgm = get_dgm(point_cloud, deg)
 ```
 Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
-
-See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional keyword arguments. 
 
 ## Synthetic experiments
 
