@@ -14,19 +14,19 @@ def plot_dgm(dgm, filename):
   fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
   fig.write_image(filename)
 
-def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None):
+def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
     if step is None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
     else: filename = f'figures_epoch_{epoch}_step_{step}_{eval_type}.png'
 
     # Reshape tensors for visualization
-    data = data.reshape(-1, 1, 28, 28)
-    recon_batch_0 = recon_batch_0.reshape(-1, 1, 28, 28)
-    recon_batch_t = recon_batch_t.reshape(-1, 1, 28, 28)
+    data = data.reshape(-1, 1, img_size, img_size)
+    recon_batch_0 = recon_batch_0.reshape(-1, 1, img_size, img_size)
+    recon_batch_t = recon_batch_t.reshape(-1, 1, img_size, img_size)
 
     # Create grids for each dataset
-    grid_data = torchvision.utils.make_grid(data[:32], nrow=8, normalize=True)
-    grid_recon_0 = torchvision.utils.make_grid(recon_batch_0[:32], nrow=8, normalize=True)
-    grid_recon_t = torchvision.utils.make_grid(recon_batch_t[:32], nrow=8, normalize=True)
+    grid_data = torchvision.utils.make_grid(data[:n_imgs], nrow=8, normalize=True)
+    grid_recon_0 = torchvision.utils.make_grid(recon_batch_0[:n_imgs], nrow=8, normalize=True)
+    grid_recon_t = torchvision.utils.make_grid(recon_batch_t[:n_imgs], nrow=8, normalize=True)
 
     # Convert tensors to numpy arrays for plotting
     grid_data = grid_data.cpu().numpy().transpose((1, 2, 0))
