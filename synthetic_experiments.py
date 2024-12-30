@@ -10,16 +10,6 @@ from plotly import graph_objects as go
 from topogen import get_dgm, loss_push0, topo_losses
 
 # Loss function for the point cloud:
-def loss_bottleneck01(point_cloud, point_cloud_true, dgm_true, device):
-  dgm = get_dgm(point_cloud, 1)
-  l_topo0, got_loss0 = loss_bottleneck0(point_cloud, point_cloud_true, dgm, dgm_true, device)
-  l_topo1, got_loss1 = loss_bottleneck1(point_cloud, point_cloud_true, dgm, dgm_true, device)
-  if got_loss0 or got_loss1: return l_topo0 + l_topo1, l_topo0.item() + l_topo1.item()
-  # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
-  # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions 
-  return loss_push0(point_cloud, dgm), l_topo0.item() + l_topo1.item()
-
-# A more general loss:
 def get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true, device):
   dgm = get_dgm(point_cloud, 1)
   loss, gotloss = topo_losses(point_cloud, point_cloud_true, topo_weights, 1, dgm, dgm_true, device)
