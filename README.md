@@ -4,7 +4,7 @@ This repository presents a new approach for training generative models leveragin
 
 To this aim, we introduce the library `topogen`, providing a new family of topological regularizers. These functions can be implemented as loss functions in any machine learning problem that involves learning to generate a point cloud from another input point cloud, regardless of their dimensions, number of points, or format. In fact, a key aspect of persistence diagrams is that they translate the topological and geometrical features of point clouds into an object that can be efficiently compared among different point clouds, even if they lie in different spaces and have different numbers of points.
 
-Additionally, we include in this repository additional files to test the topological regularizers in two scenarios:
+Additionally, we include in this repository additional files to test topological regularizers:
 - `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
 - `topovae_experiments.py` allows to test topological regularizers on variational autoencoders (VAEs).
 
