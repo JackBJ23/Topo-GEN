@@ -93,7 +93,7 @@ The following parameters, which control the topological functions, are set to re
 
 For details about the meaning of these values, see B. Jedlicki, Jack. [2024](https://diposit.ub.edu/dspace/handle/2445/217016).
 
-## Proof-of-concept example: synthetic experiments
+## Synthetic experiments: a "Virtual Playground"
 
 To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, which are updated through gradient descent. In each test, we impose a ground truth persistence diagram that captures some topological properties. At each training step we compute the persistence diagram of the learnable point cloud and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
 
@@ -113,12 +113,13 @@ To run these experiments:
 ```
 !python synthetic_experiments.py
 ```
-To run more synthetic experiments with new point clouds:
+
+Furthermore, for the interested reader, we provide a "virtual playground" where the user can run other synthetic experiments and experiment with different combinations of topological regularizers on arbitrary point clouds in the plane. To do so, run:
 ```
 import numpy as np
 from synthetic_experiments import synthetic_test
 
-synthetic_test(point_cloud, point_cloud_true, num_training_steps=2000, num_save=50, learning_rate=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.)
+synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_training_steps=2000, num_save=50, learning_rate=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.)
 ```
 Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. The argument `num_save` specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation, and the last four arguments are the window limits for the animation. Only the first two arguments are required. The function will save images of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. 
 
