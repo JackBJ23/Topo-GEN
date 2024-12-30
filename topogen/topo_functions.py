@@ -7,43 +7,25 @@ import persim
 from gph import ripser_parallel
 
 """
-  The topological regularizers are the functions loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
+  The topological regularizers are: loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
   loss_dsigma0, loss_dsigma1, loss_density. Each function computes a different measure of dissimilarity between the diagram
-  of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments:
+  of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments and outputs:
   
-  Input arguments:
-    - point_cloud (tensor-like:): The learnable point cloud. Expected shape (number of points, dimension of each point).
-    - point_cloud2 (tensor-like): The true point cloud. Expected shape (number of points, dimension of each point).
-    - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
-    - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
-    - device (str, optional): The device to use for computations. Defaults to "cpu".
-    - Additional optional arguments that control the topological functions.
-  
-  Returns:
-    - torch.Tensor: The computed loss value as a scalar tensor.
-    - bool: A status flag (True if the loss depends on the learnable point cloud, False otherwise).
-"""
-
-"""
-  All topological regularizers are unified in the function topo_losses. 
-
   Input arguments:
     - Required:
-      - points: Learnable point cloud.
-      - true_points: Ground truth point cloud.
-      - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
-      If weight set as 0, its topofunction is not used.
+      - point_cloud (torch.Tensor): The learnable point cloud. Expected shape (number of points, dimension of each point).
+      - point_cloud2 (torch.Tensor): The true point cloud. Expected shape (number of points, dimension of each point).
     - Optional:
-      - deg (default: 1): Homology degree (0 or 1, 1 is the more general option).
-      - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
-      - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
-      - device (default: "cpu"): The device to use for computations.
-      - Parameters for topological functions (set to reference values, but can be modified depending on the dataset, model, etc.):
-      pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30
+      - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
+      - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
+      - device (str, optional): The device to use for computations. Defaults to "cpu".
+      - Additional optional arguments that control the topological functions.
+    
+  Output:
+    - The computed loss value as a scalar tensor (torch.Tensor). 
+    - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
 
-  Returns:
-    - torch.Tensor: The computed total loss value as a scalar tensor.
-    - bool: A status flag (True if the loss depends on the diagrams, False otherwise).
+  All topological regularizers are unified in the function topo_losses. See details before its definition at the end of the file.
 """
 
 def get_dgm(point_cloud, deg=1):
@@ -315,6 +297,35 @@ def loss_push0(point_cloud, dgm):
     loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
   return loss
 
+"""
+  topo_losses: function that unifies the 7 topological regularizers. 
+  
+  Input arguments:
+    - Required:
+      - points (torch.Tensor): Learnable point cloud.
+      - true_points (torch.Tensor): Ground truth point cloud.
+      - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
+      If weight set as 0, its topofunction is not used.
+    - Optional:
+      - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
+      - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
+      - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
+      - device (default: "cpu"): The device to use for computations.
+      The following parameters, which control the topological functions, are set to reference values by default but can be modified
+      depending on the dataset, model, or other considerations:
+      - pers0_delta: Default = 0.001
+      - pers1_delta: Default = 0.001
+      - dsigma0_scale: Default = 0.05
+      - dsigma1_scale: Default = 0.05
+      - density_sigma: Default = 0.2
+      - density_scale: Default = 0.002
+      - density_maxrange: Default = 35.0
+      - density_npoints: Default = 30
+  
+  Output:
+    - The computed loss value as a scalar tensor (torch.Tensor). 
+    - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
+"""
 def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     n_gotloss = 0
