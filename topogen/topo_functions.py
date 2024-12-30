@@ -305,8 +305,8 @@ def loss_push0(point_cloud, dgm):
   
   Input arguments:
     - Required:
-      - points (torch.Tensor): Learnable point cloud.
-      - true_points (torch.Tensor): Ground truth point cloud.
+      - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
+      - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
       - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
       If weight set as 0, its topofunction is not used.
     - Optional:
