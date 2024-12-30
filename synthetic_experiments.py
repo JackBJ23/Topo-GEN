@@ -31,7 +31,7 @@ def get_loss(point_cloud, point_cloud_true, topoweights, dgm_true, device):
 # Function for running a synthetic test with the bottleneck functions. This function saves images of:
 # i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
 # f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
-def synthetic_test(point_cloud, point_cloud_true, device, topoweights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
+def synthetic_test(point_cloud, point_cloud_true, topoweights=[1.,1.,0.,0.,0.,0.,0.], device="cpu", num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
   # Plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
   fig.write_image(f'{test_name}_ini_true_pointcloud.png')
@@ -103,7 +103,7 @@ def test1(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   for i in range(24):
     point_cloud[i+40][0] = random.uniform(-r1, r1)+10
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
-  synthetic_test(point_cloud, point_cloud_true, device, tw, 1000, 50, 0.01, 'test_1') # 15000
+  synthetic_test(point_cloud, point_cloud_true, tw, device, 1000, 50, 0.01, 'test_1') # 15000
 
 def test2(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = np.zeros((128,2))
@@ -129,7 +129,7 @@ def test2(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   for i in range(34):
     point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
-  synthetic_test(point_cloud, point_cloud_true, device, tw, 1000, 25, 0.05, 'test_2') # 2500
+  synthetic_test(point_cloud, point_cloud_true, tw, device, 1000, 25, 0.05, 'test_2') # 2500
 
 def test3(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
@@ -141,7 +141,7 @@ def test3(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
     point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
     point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
     point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
-  synthetic_test(point_cloud, point_cloud_true, device, tw, 1000, 50, 0.1, 'test_3') # 7500
+  synthetic_test(point_cloud, point_cloud_true, tw, device, 1000, 50, 0.1, 'test_3') # 7500
 
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
