@@ -75,16 +75,12 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
     
     if i>=0 and j>=0:
-      ll = torch.abs(dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1])
-      print(f"b0: device: {ll.device}, grad {ll.requires_grad}")
       return torch.abs(dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
         return torch.tensor(0., device=device), False
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
-        ll = dist(point1_dgm1, point2_dgm1)/2.
-        print(f"b0: device: {ll.device}, grad {ll.requires_grad}")
         return dist(point1_dgm1, point2_dgm1)/2., True
 
 def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu"): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
@@ -128,15 +124,11 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu
     if dgm2_dgms1_empty: dgm2['dgms'][1] = []
     
     if i>=0 and j>=0:
-      ll = dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2)
-      print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
       return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), True
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
         return torch.tensor(0., device=device), False
       else: #then j==-1, so the i-th point from dgm is matched to the diagonal
-        ll = (death_dgm1 - birth_dgm1)/2.
-        print(f"b1: device: {ll.device}, grad {ll.requires_grad}")
         return (death_dgm1 - birth_dgm1)/2., True
 
 def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", delta=0.001): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
@@ -168,8 +160,6 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cp
   for i in range(len(dgm2['dgms'][0])-1):
     if dgm2['dgms'][0][i][1] > delta: pers2 += dgm2['dgms'][0][i][1] * math.log(dgm2['dgms'][0][i][1] / L2)
 
-  ll = (pers/L - pers2/L2)**2
-  print(f"e0: device: {ll.device}, grad {ll.requires_grad}")
   return (pers/L - pers2/L2)**2, True
 
 def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", delta=0.001): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
@@ -205,8 +195,6 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cp
   for i in range(len(dgm2['dgms'][1])):
     if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * math.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
 
-  ll = (pers/L - pers2/L2)**2
-  print(f"e1: device: {ll.device}, grad {ll.requires_grad}")
   return (pers/L - pers2/L2)**2, True
 
 #return Reininghaus kernel ksigma: (could make it slightly faster with different functions for each dgm (dgm2 does not need backpropagation)), but let it same for all dgms
@@ -232,8 +220,6 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", s
     if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
     # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
-    ll = ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
-    print(f"ds0: device: {ll.device}, grad {ll.requires_grad}")
     return ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
 
 # Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
@@ -260,8 +246,6 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", s
     
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), False
     if len(dgm2['gens'][1])>0:
-      ll = ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device)
-      print(f"ds1: device: {ll.device}, grad {ll.requires_grad}")
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
     else:
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), True
@@ -284,9 +268,6 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", s
   loss = torch.tensor(0., device=device)
   # Compute difference between both functions in npoints points:
   for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x, device) - density(point_cloud2, dgm2, sigma, scale, x, device)) ** 2
-  
-  ll = loss / npoints
-  print(f"density: device: {ll.device}, grad {ll.requires_grad}")
   return loss / npoints, True
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
@@ -302,33 +283,33 @@ def loss_push0(point_cloud, dgm):
 
 def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
+      """
+      topo_losses: function that unifies the 7 topological regularizers. 
+      Input arguments:
+        - Required:
+          - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
+          - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
+          - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
+          If weight set as 0, its topofunction is not used.
+        - Optional:
+          - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
+          - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
+          - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
+          - device (default: "cpu"): The device to use for computations.
+          The following parameters, which control the topological functions, are set to reference values by default but can be modified
+          depending on the dataset, model, or other considerations:
+          - pers0_delta: Default = 0.001
+          - pers1_delta: Default = 0.001
+          - dsigma0_scale: Default = 0.05
+          - dsigma1_scale: Default = 0.05
+          - density_sigma: Default = 0.2
+          - density_scale: Default = 0.002
+          - density_maxrange: Default = 35.0
+          - density_npoints: Default = 30
+      Output:
+        - The computed loss value as a scalar tensor (torch.Tensor). 
+        - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
     """
-    topo_losses: function that unifies the 7 topological regularizers. 
-    Input arguments:
-      - Required:
-        - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
-        - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
-        - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
-        If weight set as 0, its topofunction is not used.
-      - Optional:
-        - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
-        - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
-        - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
-        - device (default: "cpu"): The device to use for computations.
-        The following parameters, which control the topological functions, are set to reference values by default but can be modified
-        depending on the dataset, model, or other considerations:
-        - pers0_delta: Default = 0.001
-        - pers1_delta: Default = 0.001
-        - dsigma0_scale: Default = 0.05
-        - dsigma1_scale: Default = 0.05
-        - density_sigma: Default = 0.2
-        - density_scale: Default = 0.002
-        - density_maxrange: Default = 35.0
-        - density_npoints: Default = 30
-    Output:
-      - The computed loss value as a scalar tensor (torch.Tensor). 
-      - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
-  """
     n_gotloss = 0
     if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), deg)
     if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
