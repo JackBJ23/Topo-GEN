@@ -18,9 +18,16 @@ def get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true, device):
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
-# Function for running a synthetic test with the bottleneck functions. This function saves images of:
-# i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
-# f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
+"""
+Function for running a synthetic test with the bottleneck functions. This function saves images of:
+i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
+f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
+
+Comments on arguments:
+- num_save: specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the
+final animation.
+- x1, x2, y1, y2: the window limits for the animation
+"""
 def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], device="cpu", num_steps=2000, num_save=50, lr=0.001, test_name="test", x1=-10., x2=40., y1=-40., y2=40.):
   # Plot initial true point cloud:
   fig = go.Figure(plot_point_cloud(point_cloud_true))
