@@ -114,7 +114,7 @@ To run these experiments:
 !python synthetic_experiments.py
 ```
 
-Furthermore, for the interested reader, we provide a "virtual playground" where the user can run other synthetic experiments and experiment with different combinations of topological regularizers on arbitrary point clouds in the plane. To do so, run:
+Furthermore, we provide a "virtual playground" where the user can run other synthetic experiments and experiment with different combinations of topological regularizers on arbitrary point clouds in the plane. To do so, run:
 ```
 import numpy as np
 from synthetic_experiments import synthetic_test
