@@ -85,7 +85,7 @@ def synthetic_test(point_cloud, point_cloud_true, topoweights=[1.,1.,0.,0.,0.,0.
   generate_gif(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
-def test1(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
+def test1(tw=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
   # First, generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Second, manually create the initial point cloud:
@@ -105,7 +105,7 @@ def test1(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
     point_cloud[i+40][1] = random.uniform(-r1, r1)-25
   synthetic_test(point_cloud, point_cloud_true, tw, device, 1000, 50, 0.01, 'test_1') # 15000
 
-def test2(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
+def test2(tw=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
   point_cloud_true = np.zeros((128,2))
   r1 = 0.3
   for i in range(30):
@@ -131,7 +131,7 @@ def test2(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
     point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
   synthetic_test(point_cloud, point_cloud_true, tw, device, 1000, 25, 0.05, 'test_2') # 2500
 
-def test3(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
+def test3(tw=[1.,1.,0.,0.,0.,0.,0.], device="cpu"):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   # Initial point cloud: 2 lines with added noise
   point_cloud = np.zeros((64,2))
@@ -146,11 +146,11 @@ def test3(device="cpu", tw=[1.,1.,0.,0.,0.,0.,0.]):
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
-  test1(device)
+  test1(device=device)
   print("Test 1 done.")
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
-  test2(device)
+  test2(device=device)
   print("Test 2 done.")
   # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
-  test3(device)
+  test3(device=device)
   print("Test 3 done.")
