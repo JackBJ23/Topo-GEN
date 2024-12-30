@@ -54,14 +54,6 @@ For each function, the input arguments and outputs are the following:
 - `loss`: The computed loss value as a scalar tensor.
 - `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise.
 
-Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. It is also preferable to compute the persistence diagram of the learnable point cloud only once before for calling the functions. To generate a persistence diagram, do:
-```
-from topogen import get_dgm
-
-dgm = get_dgm(point_cloud, deg)
-```
-Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
-
 Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, to enable their efficient and straightforward combination. To use it, do:
 ```
 from topogen import topo_losses
@@ -73,6 +65,14 @@ The function returns the total topological loss, `topoloss`, and `gotloss`, whic
 - `true_points` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
+
+Furthermore, we recommend pre-computing the persistence diagrams before training to enhance training speed. To generate a persistence diagram, do:
+```
+from topogen import get_dgm
+
+dgm = get_dgm(point_cloud, deg)
+```
+Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
 
 See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional keyword arguments. 
 
