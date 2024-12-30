@@ -1,6 +1,6 @@
 # Topo-GEN: Topology-Informed Generative Models
 
-This repository presents a new approach for training generative models leveraging computational topology. In particular, we use persistence diagrams, a mathematical tool providing a description of the "shape" of point clouds in any metric space. This union seeks to provide models with previously unexplored information about the structure of the true and the generated data, in order to enhance their training process. 
+This repository introduces a new approach for training generative models leveraging computational topology. Specifically, it employs persistence diagrams, a mathematical tool that captures the "shape" of point clouds within any metric space. This union seeks to provide models with previously unexplored information about the structure of the true and the generated data, in order to enhance their training process. 
 
 To this aim, we introduce the library `topogen`, providing a new family of topological regularizers. These functions can be implemented as loss functions in any machine learning problem that involves learning to generate a point cloud from another input point cloud, regardless of their dimensions, number of points, or format. In fact, a key aspect of persistence diagrams is that they translate the topological and geometrical features of point clouds into an object that can be efficiently compared among different point clouds, even if they lie in different spaces and have different numbers of points.
 
