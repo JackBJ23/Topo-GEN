@@ -20,7 +20,6 @@ class VAE_Encoder(nn.Module):
         logvar = self.fc_logvar(x)
         return mu, logvar
 
-# Define the VAE decoder
 class VAE_Decoder(nn.Module):
     def __init__(self, latent_dim):
         super(VAE_Decoder, self).__init__()
@@ -37,7 +36,7 @@ class VAE_Decoder(nn.Module):
         x = torch.sigmoid(self.deconv2(x))
         return x
 
-# Define the VAE model that combines the encoder and decoder
+# VAE model that combines the encoder and decoder
 class VAE(nn.Module):
     def __init__(self, latent_dim):
         super(VAE, self).__init__()
