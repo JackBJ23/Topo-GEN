@@ -26,6 +26,9 @@ from gph import ripser_parallel
     - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
 
   All topological regularizers are unified in the function topo_losses. See details before its definition at the end of the file.
+
+  Additionally, the function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
+  used to "push" points or clusters away from each other. 
 """
 
 def get_dgm(point_cloud, deg=1):
