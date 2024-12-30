@@ -283,32 +283,32 @@ def loss_push0(point_cloud, dgm):
 
 def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
-      """
-      topo_losses: function that unifies the 7 topological regularizers. 
-      Input arguments:
-        - Required:
-          - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
-          - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
-          - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
-          If weight set as 0, its topofunction is not used.
-        - Optional:
-          - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
-          - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
-          - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
-          - device (default: "cpu"): The device to use for computations.
-          The following parameters, which control the topological functions, are set to reference values by default but can be modified
-          depending on the dataset, model, or other considerations:
-          - pers0_delta: Default = 0.001
-          - pers1_delta: Default = 0.001
-          - dsigma0_scale: Default = 0.05
-          - dsigma1_scale: Default = 0.05
-          - density_sigma: Default = 0.2
-          - density_scale: Default = 0.002
-          - density_maxrange: Default = 35.0
-          - density_npoints: Default = 30
-      Output:
-        - The computed loss value as a scalar tensor (torch.Tensor). 
-        - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
+    """
+    topo_losses: unifies the 7 topological regularizers. 
+    Input arguments:
+      - Required:
+        - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
+        - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
+        - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
+        If weight set as 0, its topofunction is not used.
+      - Optional:
+        - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
+        - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
+        - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
+        - device (default: "cpu"): The device to use for computations.
+        The following parameters, which control the topological functions, are set to reference values by default but can be modified
+        depending on the dataset, model, or other considerations:
+        - pers0_delta: Default = 0.001
+        - pers1_delta: Default = 0.001
+        - dsigma0_scale: Default = 0.05
+        - dsigma1_scale: Default = 0.05
+        - density_sigma: Default = 0.2
+        - density_scale: Default = 0.002
+        - density_maxrange: Default = 35.0
+        - density_npoints: Default = 30
+    Output:
+      - The computed loss value as a scalar tensor (torch.Tensor). 
+      - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
     """
     n_gotloss = 0
     if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), deg)
