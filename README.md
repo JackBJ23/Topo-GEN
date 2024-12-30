@@ -66,15 +66,15 @@ Additionally, we have unified all the topological regularizers into a single fun
 ```
 from topogen import topo_losses
 
-topoloss, gotloss = topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05, density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30)
+topoloss, gotloss = topo_losses(points, true_points, topo_weights)
 ```
-The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. The only required arguments are:
+The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. The required arguments are:
 - `points` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, additional dimensions)`.
 - `true_points` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
 - `topo_weights`: List of weights associated with each topological loss:
   `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
 
-See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional arguments. 
+See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional keyword arguments. 
 
 ## Synthetic experiments: A "Virtual Playground"
 
