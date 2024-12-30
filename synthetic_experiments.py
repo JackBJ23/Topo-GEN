@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from gtda.plotting import plot_point_cloud
 from plotly import graph_objects as go
 
-from topogen import get_dgm, loss_push0, topo_losses
+from topogen import get_dgm, loss_push0, topo_losses, plot_dgm, generate_gif
 
 # Loss function for the point cloud:
 def get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true, device):
