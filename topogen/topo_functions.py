@@ -7,28 +7,28 @@ import persim
 from gph import ripser_parallel
 
 """
-  The topological regularizers are: loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
-  loss_dsigma0, loss_dsigma1, loss_density. Each function computes a different measure of dissimilarity between the diagram
-  of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments and outputs:
+The topological regularizers are: loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
+loss_dsigma0, loss_dsigma1, loss_density. Each function computes a different measure of dissimilarity between the diagram
+of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments and outputs:
+
+Input arguments:
+  - Required:
+    - point_cloud (torch.Tensor): The learnable point cloud. Expected shape (number of points, dimension of each point).
+    - point_cloud2 (torch.Tensor): The true point cloud. Expected shape (number of points, dimension of each point).
+  - Optional:
+    - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
+    - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
+    - device (str, optional): The device to use for computations. Defaults to "cpu".
+    - Additional optional arguments that control the topological functions.
   
-  Input arguments:
-    - Required:
-      - point_cloud (torch.Tensor): The learnable point cloud. Expected shape (number of points, dimension of each point).
-      - point_cloud2 (torch.Tensor): The true point cloud. Expected shape (number of points, dimension of each point).
-    - Optional:
-      - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
-      - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
-      - device (str, optional): The device to use for computations. Defaults to "cpu".
-      - Additional optional arguments that control the topological functions.
-    
-  Output:
-    - The computed loss value as a scalar tensor (torch.Tensor). 
-    - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
+Output:
+  - The computed loss value as a scalar tensor (torch.Tensor). 
+  - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
 
-  All topological regularizers are unified in the function topo_losses. See details under its definition.
+All topological regularizers are unified in the function topo_losses. See details under its definition.
 
-  Additionally, the function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
-  used to "push" points or clusters away from each other. 
+Additionally, the function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
+used to "push" points or clusters away from each other. 
 """
 
 def get_dgm(point_cloud, deg=1):
