@@ -17,5 +17,5 @@ __all__ = [
     "loss_persentropy0", "loss_persentropy1",
     "loss_dsigma0", "loss_dsigma1", 
     "loss_density", "loss_push0", "topo_losses", 
-    "plot_dgm", "plot_gen_imgs", "generate_gif"
+    "save_fig_dgm", "save_gen_imgs", "save_animation"
 ]
