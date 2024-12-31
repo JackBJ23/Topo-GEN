@@ -18,7 +18,6 @@ Input arguments:
   - Optional:
     - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
     - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
-    - device (str, optional): The device to use for computations. Defaults to "cpu".
     - Additional optional arguments that control the topological functions.
   
 Output:
