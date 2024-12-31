@@ -28,11 +28,11 @@ def loss_vae(recon_x, x, mu, logvar):
 
 # Loss of TopoVAEs (Standard + Topolosses)
 def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
-                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30, device="cpu"):
+                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     # Standard loss:
     BCE, KLD = loss_vae(recon_x, x, mu, logvar)
     # Topological loss:
-    topo_loss, _ = topo_losses(recon_x, x, topo_weights, deg, None, dgm_true, device, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
+    topo_loss, _ = topo_losses(recon_x, x, topo_weights, deg, None, dgm_true, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
                 density_sigma, density_scale, density_maxrange, density_npoints)
     
     return BCE, KLD, BCE + KLD + topo_loss
@@ -93,7 +93,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model1: TopoVAE
           recon_batch1, mean, log_var = model1(data)
-          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm_true, args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints, device)
+          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm_true, args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
