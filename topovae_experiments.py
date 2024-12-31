@@ -16,7 +16,7 @@ import torchvision
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen import get_dgm, topo_losses, plot_gen_imgs
+from topogen import get_dgm, topo_losses, save_gen_imgs
 from models import VAE
 
 # Standard loss of VAE
@@ -55,7 +55,7 @@ def evaluate(model0, model1, val_loader, epoch, type_eval, device):
         # No need to compute topoloss here, only need BCE for comparison:
         BCE, _ = loss_vae(recon_batch1, data, mean, log_var)
         running_loss1 += BCE.item()
-        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval)
+        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval)
 
   return running_loss0/len(val_loader), running_loss1/len(val_loader)
 
@@ -100,7 +100,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           train_losses1_all.append(BCE.item())
           print("step", batch_idx)
 
-          if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx)
+          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx)
 
       print("End of epoch", epoch)
       # Average of losses over one epoch:
