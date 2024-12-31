@@ -59,12 +59,12 @@ def dist_2(a, b, c, d):
 def dist_sup_tc(b1, d1, b2, d2):
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
-def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu"):
+def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
     # If dgm is empty, there is no topological loss:
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=point_cloud.device), False
     # Compute bottleneck distance:
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
@@ -86,18 +86,18 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
-        return torch.tensor(0., device=device), False
+        return torch.tensor(0., device=point_cloud.device), False
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
         return dist(point1_dgm1, point2_dgm1)/2., True
 
-def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu"): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
+def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
     
-    if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), False
+    if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=point_cloud.device), False
     # if dgm2['dgms'][1] is empty, make a small change for simplifying the following calculations:
-    if len(dgm2['dgms'][1]) == 0: 
+    if len(dgm2['dgms'][1]) == 0:
       dgm2_dgms1_empty = True
       dgm2['dgms'][1] = [[0., 0.]]
     else: 
@@ -134,11 +134,12 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu
       return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), True
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
-        return torch.tensor(0., device=device), False
+        return torch.tensor(0., device=point_cloud.device), False
       else: #then j==-1, so the i-th point from dgm is matched to the diagonal
         return (death_dgm1 - birth_dgm1)/2., True
 
-def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", delta=0.001): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
+def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.001): # dgm of deg0. only looks at points with pers=|d|>delta in both dgms
+  device = point_cloud.device
   # First, check if the dgms have been provided:
   if dgm is None: dgm = get_dgm(point_cloud, 0)
   if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
@@ -169,7 +170,8 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cp
 
   return (pers/L - pers2/L2)**2, True
 
-def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", delta=0.001): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
+def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.001): #dgm of deg1. returns loss, got_loss (0 if did not get it). only looks at points with pers=|d-b|>delta (in both dgms) (for avoiding large gradients)
+  device = point_cloud.device
   # First, check if the dgms have been provided:
   if dgm is None: dgm = get_dgm(point_cloud, 1)
   if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
@@ -219,10 +221,11 @@ def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device): #maxdim of bot
            ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
-def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", sigma=0.05):
+def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
+    device = point_cloud.device
     
     if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
@@ -246,10 +249,11 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
           ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
-def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", sigma=0.05):
+def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
+    device = point_cloud.device
     
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), False
     if len(dgm2['gens'][1])>0:
@@ -258,17 +262,18 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", s
       return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), True
 
 def density(point_cloud, dgm, sigma, scale, x, device):
-  density_x = torch.tensor(0.0, device=device) # Density at coordinate x
+  density_x = torch.tensor(0., device=device) # Density at coordinate x
   for i in range(len(dgm['dgms'][0])-1):
     p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
     d = dist(p1, p2) #pt of pt cloud is (0,d)
     density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
   return density_x * scale
 
-def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu", sigma=0.2, scale=0.002, maxrange=35., npoints=30):
+def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
   # First, check if the dgms have been provided:
   if dgm is None: dgm = get_dgm(point_cloud, 0)
   if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
+  device = point_cloud.device
   
   if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
   xs = torch.linspace(0., maxrange, npoints)
@@ -288,7 +293,7 @@ def loss_push0(point_cloud, dgm):
     loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
   return loss
 
-def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
+def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     """
     Unifies the 7 topological regularizers, returning the total loss, adding all losses weighted by topo_weights.
@@ -302,7 +307,6 @@ def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=Non
         - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
         - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
         - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
-        - device (default: "cpu"): The device to use for computations.
         The following parameters, which control the topological functions, are set to reference values by default but can be modified
         depending on the dataset, model, or other considerations:
         - pers0_delta: Default = 0.001
@@ -321,39 +325,39 @@ def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=Non
     if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), deg)
     if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
     
-    loss = torch.tensor(0., device=device)
+    loss = torch.tensor(0., device=points.device)
     if topo_weights[0] != 0.:
-      topoloss, gotloss0 = loss_bottleneck0(points, true_points, dgm, dgm_true, device)
+      topoloss, gotloss0 = loss_bottleneck0(points, true_points, dgm, dgm_true)
       if gotloss0:
         loss = loss + topoloss * topo_weights[0]
         n_gotloss += 1
     if topo_weights[1] != 0.:
-      topoloss, gotloss1 = loss_bottleneck1(points, true_points, dgm, dgm_true, device)
+      topoloss, gotloss1 = loss_bottleneck1(points, true_points, dgm, dgm_true)
       if gotloss1: 
         loss = loss + topoloss * topo_weights[1]
         n_gotloss += 1 
     if topo_weights[2] != 0.:
-      topoloss, gotloss2 = loss_persentropy0(points, true_points, dgm, dgm_true, device, pers0_delta)
+      topoloss, gotloss2 = loss_persentropy0(points, true_points, dgm, dgm_true, pers0_delta)
       if gotloss2: 
         loss = loss + topoloss *  topo_weights[2]
         n_gotloss += 1
     if topo_weights[3] != 0.:
-      topoloss, gotloss3 = loss_persentropy1(points, true_points, dgm, dgm_true, device, pers1_delta)
+      topoloss, gotloss3 = loss_persentropy1(points, true_points, dgm, dgm_true, pers1_delta)
       if gotloss3: 
         loss = loss + topoloss * topo_weights[3]
         n_gotloss += 1
     if topo_weights[4] != 0.:
-      topoloss, gotloss4 = loss_dsigma0(points, true_points, dgm, dgm_true, device, dsigma0_scale)
+      topoloss, gotloss4 = loss_dsigma0(points, true_points, dgm, dgm_true, dsigma0_scale)
       if gotloss4: 
         loss = loss + topoloss * topo_weights[4]
         n_gotloss += 1
     if topo_weights[5] != 0.:
-      topoloss, gotloss5 = loss_dsigma1(points, true_points, dgm, dgm_true, device, dsigma1_scale)
+      topoloss, gotloss5 = loss_dsigma1(points, true_points, dgm, dgm_true, dsigma1_scale)
       if gotloss5: 
         loss = loss + topoloss * topo_weights[5]
         n_gotloss += 1
     if topo_weights[6] != 0.:
-      topoloss, gotloss6 = loss_density(points, true_points, dgm, dgm_true, device, density_sigma, density_scale, density_maxrange, density_npoints)
+      topoloss, gotloss6 = loss_density(points, true_points, dgm, dgm_true, density_sigma, density_scale, density_maxrange, density_npoints)
       if gotloss6:
         loss = loss + topoloss * topo_weights[6]
         n_gotloss += 1
