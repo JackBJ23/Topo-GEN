@@ -4,8 +4,6 @@ import numpy as np
 import random
 import tadasets
 import matplotlib.pyplot as plt
-from gtda.plotting import plot_point_cloud
-from plotly import graph_objects as go
 
 from topogen import get_dgm, loss_push0, topo_losses, save_fig_dgm, save_fig_pc, save_animation
 
@@ -29,14 +27,13 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   final animation.
   - x1, x2, y1, y2: the window limits for the animation
   """
-  # Plot initial true point cloud:
+  # Plot true point cloud:
   save_fig_pc(point_cloud_true, f'{test_name}_ini_true_pointcloud.png')
   # Plot its persistence diagram:
   dgm_true = get_dgm(point_cloud_true, 1)
   save_fig_dgm(dgm_true, f'{test_name}_ini_true_diagram.png')
   # Plot initial learnable point cloud:
-  fig = go.Figure(plot_point_cloud(point_cloud))
-  fig.write_image(f'{test_name}_ini_pointcloud.png')
+  save_fig_pc(point_cloud, f'{test_name}_ini_pointcloud.png')
   # Plot its persistence diagram:
   dgm = get_dgm(point_cloud, 1)
   save_fig_dgm(dgm, f'{test_name}_ini_diagram.png')
@@ -48,7 +45,6 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   losses = []
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
-
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
@@ -69,14 +65,14 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   # save persistence diagram of final point cloud:
   save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram.png')
   # Save final point cloud:
-  fig = go.Figure(plot_point_cloud(point_clouds[-1]))
-  fig.write_image(f'{test_name}_final_pointcloud.png')
+  save_fig_pc(point_clouds[-1], f'{test_name}_final_pointcloud.png')
   # Save loss evolution:
   plt.figure()
   plt.plot(xs, losses)
   plt.xlabel("Iteration")
   plt.ylabel("Loss")
   plt.savefig(f'{test_name}_loss_evolution.png')
+  plt.close()
   # Save video of evolution of the point cloud:
   save_animation(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
