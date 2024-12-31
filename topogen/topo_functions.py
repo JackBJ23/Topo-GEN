@@ -291,7 +291,7 @@ def loss_push0(point_cloud, dgm):
 def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, device="cpu", pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
                 density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
     """
-    topo_losses: unifies the 7 topological regularizers. 
+    Unifies the 7 topological regularizers, returning the total loss, adding all losses weighted by topo_weights.
     Input arguments:
       - Required:
         - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
