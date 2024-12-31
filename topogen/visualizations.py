@@ -9,12 +9,15 @@ from plotly import graph_objects as go
 from PIL import Image
 from IPython.display import Image as IPImage
 
-def plot_dgm(dgm, filename):
-  dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-  fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
-  fig.write_image(filename)
+def save_fig_dgm(dgm, filename):
+    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
+    fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
+    fig.write_image(filename)
 
-def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
+def save_fig_pc(pointcloud, filename):
+    return 0
+
+def save_fig_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
     if step is None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
     else: filename = f'figures_epoch_{epoch}_step_{step}_{eval_type}.png'
 
@@ -66,7 +69,7 @@ def plot_pc_gif(point_cloud, x1, x2, y1, y2):
     plt.close(fig)
     return fig
 
-def generate_gif(point_clouds, test_name, x1, x2, y1, y2):
+def save_animation(point_clouds, test_name, x1, x2, y1, y2):
     # Create a list of figures for each point cloud
     figures = [plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
 
