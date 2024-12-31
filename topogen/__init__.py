@@ -7,9 +7,9 @@ from .topo_functions import (
     topo_losses
 )
 from .visualizations import (
-    plot_dgm, 
-    plot_gen_imgs, 
-    generate_gif
+    save_fig_dgm, 
+    save_gen_imgs, 
+    save_animation
 )
 
 __all__ = [
