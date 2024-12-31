@@ -32,27 +32,34 @@ used to "push" points or clusters away from each other.
 """
 
 def get_dgm(point_cloud, deg=1):
-  # Compute the persistence diagram without backprop
+  """
+  Computes the persistence diagrams of a point cloud up to a specified degree.
+  Args:
+    - point_cloud (torch.Tensor or np.ndarray): The input point cloud. Shape (number of points, dimension of each point).
+    - deg (int): The degree of homology to compute (0 or 1).
+  Returns:
+    - A dictionary storing the persistence diagrams of the point cloud. dgms[i]: The persistence diagram for degree i.
+  Note:
+    - The computation is performed using ripser_parallel, which runs on the CPU and expects a NumPy array as input, and provides the diagrams and generators.
+  """
   with torch.no_grad():
         # Convert points for computing PD:
         if isinstance(point_cloud, torch.Tensor): points = point_cloud.cpu().numpy()
         else: points = point_cloud
-        # Get PD with generators:
   return ripser_parallel(points, maxdim=deg, return_generators=True)
 
-# Euclidean dist for torch tensors:
+# Euclidean distance for torch tensors:
 def dist(point1, point2):
     return torch.sqrt(torch.sum((point2 - point1)**2))
 
 def dist_2(a, b, c, d):
     return (a - c)**2 + (b - d)**2
 
-# Supremum dist for torch tensors:
+# Supremum distance for torch tensors (points (b1, d1) and (b2, d2))
 def dist_sup_tc(b1, d1, b2, d2):
-    # Calculate the sup norm between points (b1, d1) and (b2, d2)
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
-def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu"): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
+def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None, device="cpu"):
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
