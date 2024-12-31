@@ -30,13 +30,13 @@ The library provides seven topological regularizers, each computing a different 
 ```
 from topogen import *
 
-loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2, device)
-loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2, device)
-loss_persentropy0(point_cloud, point_cloud2, dgm, dgm2, device, delta0=0.01)
-loss_persentropy1(point_cloud, point_cloud2, dgm, dgm2, device, delta1=0.01)
-loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, device, sigma0=0.05)
-loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, device, sigma1=0.05)
-loss_density(point_cloud, point_cloud2, dgm, dgm2, device, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
+loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2)
+loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2)
+loss_persentropy0(point_cloud, point_cloud2, dgm, dgm2, delta0=0.01)
+loss_persentropy1(point_cloud, point_cloud2, dgm, dgm2, delta1=0.01)
+loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma0=0.05)
+loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma1=0.05)
+loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
 For each function, the input arguments and outputs are the following:
 
@@ -47,7 +47,6 @@ For each function, the input arguments and outputs are the following:
 - **Optional:**
   - `dgm`: Persistence diagram for the first point cloud. If `None`, it will be computed.
   - `dgm2`: Persistence diagram for the true point cloud. If `None`, it will be computed.
-  - `device`: The device to use for computations. Defaults to `"cpu"`.
   - Additional arguments that control the topological functions.
 
 #### Output:
@@ -100,7 +99,7 @@ Furthermore, we provide a "virtual playground" where the user can run other synt
 import numpy as np
 from synthetic_experiments import synthetic_test
 
-synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.)
+synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", num_save=50, x1=-10., x2=40., y1=-40., y2=40.)
 ```
 Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. Only the first two arguments are required. The function saves figures of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. 
 
