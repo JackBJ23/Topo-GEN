@@ -15,7 +15,8 @@ def save_fig_dgm(dgm, filename):
     fig.write_image(filename)
 
 def save_fig_pc(pointcloud, filename):
-    return 0
+    fig = go.Figure(plot_point_cloud(point_cloud_true))
+    fig.write_image(filename)
 
 def save_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
     if step is None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
