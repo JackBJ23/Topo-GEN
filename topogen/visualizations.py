@@ -17,7 +17,7 @@ def save_fig_dgm(dgm, filename):
 def save_fig_pc(pointcloud, filename):
     return 0
 
-def save_fig_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
+def save_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32):
     if step is None: filename = f'figures_epoch_{epoch}_{eval_type}.png'
     else: filename = f'figures_epoch_{epoch}_step_{step}_{eval_type}.png'
 
