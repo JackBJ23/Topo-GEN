@@ -380,15 +380,15 @@ class TopologicalLoss:
                  dsigma0_sigma=0.05, dsigma1_sigma=0.05, density_sigma=0.2,
                  density_scale=0.002, density_maxrange=35., density_npoints=30):
         self.deg = deg
-        self.pers0_delta = pers0_delta
-        self.pers1_delta = pers1_delta
-        self.dsigma0_sigma = dsigma0_sigma
-        self.dsigma1_sigma = dsigma1_sigma
-        self.density_sigma = density_sigma
-        self.density_scale = density_scale
-        self.density_maxrange = density_maxrange
-        self.density_npoints = density_npoints
-        self.topo_weights = topo_weights
+        self._topo_weights = topo_weights
+        self._pers0_delta = pers0_delta
+        self._pers1_delta = pers1_delta
+        self._dsigma0_sigma = dsigma0_sigma
+        self._dsigma1_sigma = dsigma1_sigma
+        self._density_sigma = density_sigma
+        self._density_scale = density_scale
+        self._density_maxrange = density_maxrange
+        self._density_npoints = density_npoints
         self._update_loss_functions()
 
     def _update_loss_functions(self):
@@ -396,11 +396,11 @@ class TopologicalLoss:
         self.loss_functions = {
             0: (loss_bottleneck0, []),
             1: (loss_bottleneck1, []),
-            2: (loss_persentropy0, [self.pers0_delta]),
-            3: (loss_persentropy1, [self.pers1_delta]),
-            4: (loss_dsigma0, [self.dsigma0_sigma]),
-            5: (loss_dsigma1, [self.dsigma1_sigma]),
-            6: (loss_density, [self.density_sigma, self.density_scale, self.density_maxrange, self.density_npoints])
+            2: (loss_persentropy0, [self._pers0_delta]),
+            3: (loss_persentropy1, [self._pers1_delta]),
+            4: (loss_dsigma0, [self._dsigma0_sigma]),
+            5: (loss_dsigma1, [self._dsigma1_sigma]),
+            6: (loss_density, [self._density_sigma, self._density_scale, self._density_maxrange, self._density_npoints])
         }
         self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if self._topo_weights[i] != 0.]
 
@@ -475,7 +475,7 @@ class TopologicalLoss:
     @topo_weights.setter
     def topo_weights(self, weights):
         self._topo_weights = weights
-        self._update_loss_functions()
+        self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if self._topo_weights[i] != 0.]
 
     def compute_loss(self, points, true_points, dgm=None, dgm_true=None):
         """
