@@ -1,22 +1,16 @@
 import sys
 import os
-import math
-import random
 import argparse
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 import torch
-from torch import nn, optim
-from torch.nn import functional as F
+from torch import optim
 from torch.utils.data import DataLoader, random_split
-import torchvision
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen import get_dgm, topo_losses, save_gen_imgs
+from topogen import get_dgm, save_gen_imgs, TopologicalLoss
 from models import VAE
 
 # Standard loss of VAE
@@ -25,17 +19,6 @@ def loss_vae(recon_x, x, mu, logvar):
     KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
     # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
-
-# Loss of TopoVAEs (Standard + Topolosses)
-def loss_topovae(recon_x, x, mu, logvar, dgm_true, topo_weights, deg=1, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
-                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
-    # Standard loss:
-    BCE, KLD = loss_vae(recon_x, x, mu, logvar)
-    # Topological loss:
-    topo_loss, _ = topo_losses(recon_x, x, topo_weights, deg, None, dgm_true, pers0_delta, pers1_delta, dsigma0_scale, dsigma1_scale,
-                density_sigma, density_scale, density_maxrange, density_npoints)
-    
-    return BCE, KLD, BCE + KLD + topo_loss
 
 # Evaluate model0 (normal VAE) and model1 (TopoVAE):
 def evaluate(model0, model1, val_loader, epoch, type_eval, device):
@@ -71,6 +54,9 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   train_losses0_all = []
   train_losses1_all = []
 
+  # Create the topological loss:
+  topo_loss = TopologicalLoss(args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
+
   for epoch in range(args.n_epochs):
       model0.train()
       model1.train()
@@ -83,8 +69,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           optimizer1.zero_grad()
 
           # model0: VAE
-          recon_batch0, mean, log_var = model0(data)
-          BCE, KLD = loss_vae(recon_batch0, data, mean, log_var)
+          recon_batch0, mean0, log_var0 = model0(data)
+          BCE, KLD = loss_vae(recon_batch0, data, mean0, log_var0)
           loss0 = BCE + KLD
           loss0.backward()
           optimizer0.step()
@@ -92,8 +78,11 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           train_losses0_all.append(BCE.item())
 
           # model1: TopoVAE
-          recon_batch1, mean, log_var = model1(data)
-          BCE, _, loss1 = loss_topovae(recon_batch1, data, mean, log_var, dgm_true, args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
+          recon_batch1, mean1, log_var1 = model1(data)
+          BCE, KLD = loss_vae(recon_batch1, data, mean1, log_var1)
+          loss1 = BCE + KLD
+          topoloss, gotloss = loss_topovae(recon_batch1, data, None, dgm_true)
+          if gotloss: loss1 = loss1 + topoloss
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE.item()
