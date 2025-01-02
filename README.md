@@ -37,7 +37,7 @@ With `topo_weights` a 7-element list, where `topo_weights[i]` is the weight asso
 
 For a more manual control of individual topological functions, do:
 ```
-from topogen import 
+from topogen import *
 
 loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2)
 loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2)
