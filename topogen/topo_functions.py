@@ -429,6 +429,5 @@ class TopologicalLoss:
             if gotloss:
                 loss = loss + topoloss * self.topo_weights[i]
                 n_gotloss += 1
-        print(loss.item())
 
         return loss, n_gotloss > 0
