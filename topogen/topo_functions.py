@@ -406,14 +406,6 @@ class TopologicalLoss:
 
     # Use properties and setters to update the active losses and arguments whenever a parameter (e.g. topo_weights) is changed:
     @property
-    def topo_weights(self):
-        return self._topo_weights
-    @topo_weights.setter
-    def topo_weights(self, weights):
-        self._topo_weights = weights
-        self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if weights[i] != 0.]
-
-    @property
     def pers0_delta(self):
         return self._pers0_delta
     @pers0_delta.setter
@@ -475,6 +467,14 @@ class TopologicalLoss:
     @density_npoints.setter
     def density_npoints(self, value):
         self._density_npoints = value
+        self._update_loss_functions()
+
+    @property
+    def topo_weights(self):
+        return self._topo_weights
+    @topo_weights.setter
+    def topo_weights(self, weights):
+        self._topo_weights = weights
         self._update_loss_functions()
 
     def compute_loss(self, points, true_points, dgm=None, dgm_true=None):
