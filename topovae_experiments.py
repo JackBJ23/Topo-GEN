@@ -56,7 +56,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   train_losses1_all = []
 
   # Create the topological loss:
-  topo_loss = TopologicalLoss(args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_scale, args.dsigma1_scale, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
+  topo_loss = TopologicalLoss(args.topo_weights, args.deg, args.pers0_delta, args.pers1_delta, args.dsigma0_sigma, args.dsigma1_sigma, args.density_sigma, args.density_scale, args.density_maxrange, args.density_npoints)
 
   for epoch in range(args.n_epochs):
       model0.train()
@@ -158,8 +158,8 @@ def load_config():
     # Hyperparameters for some topological functions (reference values by default):
     parser.add_argument('--pers0_delta', type=float, default=0.001)
     parser.add_argument('--pers1_delta', type=float, default=0.001)
-    parser.add_argument('--dsigma0_scale', type=float, default=0.05)
-    parser.add_argument('--dsigma1_scale', type=float, default=0.05)
+    parser.add_argument('--dsigma0_sigma', type=float, default=0.05)
+    parser.add_argument('--dsigma1_sigma', type=float, default=0.05)
     parser.add_argument('--density_sigma', type=float, default=0.2)
     parser.add_argument('--density_scale', type=float, default=0.002)
     parser.add_argument('--density_maxrange', type=float, default=35.)
