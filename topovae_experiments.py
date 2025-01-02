@@ -64,6 +64,14 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss0 = 0.
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
+          if batch_idx==1:
+              topo_loss.pers0_delta = 30.
+              topo_loss.density_scale = 0.005
+              print("active_losses", active_losses)
+          if batch_idx==2:
+              topo_loss.density_npoints = 15
+              topo_loss.topo_weights = [32.,32.,0.,0.,0.,0.,32.]
+              print("active_losses", active_losses)
           data = data.to(device)
           dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch, to avoid computation time
           optimizer0.zero_grad()
