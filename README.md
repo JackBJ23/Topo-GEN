@@ -26,9 +26,18 @@ To clone the repository and run the tests, for instance on Google Colab, do:
 
 ## Basic usage
 
-The library provides seven topological regularizers, each computing a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. To use them, do:
+The library provides seven topological regularizers, each computing a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. These functions are 1) bottleneck distance for homology degree 0, 2) bottleneck distance for homology degree 1, 3) squared difference between persistence entropies for homology degree 0, 4) squared difference between persistence entropies for homology degree 1, 5) Reininghaus dissimilarity for degree 0, 6) Reininghaus dissimilarity for degree 1, and 7) density loss for degree 0. We provide a unified class that allows the simple and efficient combination of these functions. To use it, do:
 ```
-from topogen import *
+from topogen import TopologicalLoss
+
+topo_loss = TopologicalLoss(topo_weights)
+loss, gotloss = topo_loss.compute(point_cloud, true_point_cloud)
+```
+With `topo_weights` a 7-element list, where `topo_weights[i]` is the weight associated to the i-th topological loss (if a weight is set to 0, its corresponding loss is not used). Additional optional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. The function outputs the computed loss value as a scalar tensor, and `gotloss`, which is `True` if the loss depends on the learnable point cloud and `False` otherwise.
+
+For a more manual control of individual topological functions, do:
+```
+from topogen import 
 
 loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2)
 loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2)
@@ -38,7 +47,7 @@ loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma0=0.05)
 loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma1=0.05)
 loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
 ```
-For each function, the input arguments and outputs are the following:
+For each function, the arguments are the following:
 
 #### Input arguments:
 - **Required:**
@@ -49,23 +58,7 @@ For each function, the input arguments and outputs are the following:
   - `dgm2`: Persistence diagram for the true point cloud. If `None`, it will be computed.
   - Additional arguments that control the topological functions.
 
-#### Output:
-- `loss`: The computed loss value as a scalar tensor.
-- `gotloss`: A status flag, `True` if the loss depends on the learnable point cloud and has to be added to the total loss, `False` otherwise.
-
-Additionally, we have unified all the topological regularizers into a single function, `topo_losses`, to enable their efficient and straightforward combination. To use it, do:
-```
-from topogen import topo_losses
-
-topoloss, gotloss = topo_losses(points, true_points, topo_weights)
-```
-The function returns the total topological loss, `topoloss`, and `gotloss`, which is `True` if the total loss depends on the input point cloud and `False` otherwise. The required arguments are:
-- `points` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, additional dimensions)`.
-- `true_points` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, additional dimensions)`.
-- `topo_weights`: List of weights associated with each topological loss:
-  `[w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]`. If a weight is set to `0`, its corresponding topological function is not used.
-
-See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about its optional keyword arguments. Furthermore, we recommend pre-computing the ground truth persistence diagrams before training to enhance training speed. To generate a persistence diagram, do:
+To generate a persistence diagram, do:
 ```
 from topogen import get_dgm
 
