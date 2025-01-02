@@ -173,8 +173,6 @@ if __name__ == "__main__":
   model1.load_state_dict(model0.state_dict())
   optimizer0 = optim.Adam(model0.parameters(), lr=args.learning_rate)
   optimizer1 = optim.Adam(model1.parameters(), lr=args.learning_rate)
-  model0.train()
-  model1.train()
 
   # Download datasets:
   transform = transforms.ToTensor()
