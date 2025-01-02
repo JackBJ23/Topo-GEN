@@ -292,76 +292,6 @@ def loss_push0(point_cloud, dgm):
     loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
   return loss
 
-def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=None, pers0_delta=0.001, pers1_delta=0.001, dsigma0_scale=0.05, dsigma1_scale=0.05,
-                density_sigma=0.2, density_scale=0.002, density_maxrange=35., density_npoints=30):
-    """
-    Unifies the 7 topological regularizers, returning the total loss, adding all losses weighted by topo_weights.
-    Input arguments:
-      - Required:
-        - points (torch.Tensor): Learnable point cloud. Expected shape (number of points, additional dimensions).
-        - true_points (torch.Tensor): Ground truth point cloud. Expected shape (number of points, additional dimensions).
-        - topo_weights: Associated to each topological loss: [w_topo0, w_topo1, w_pers0, w_pers1, w_dsigma0, w_dsigma1, w_density0]. 
-        If weight set as 0, its topofunction is not used.
-      - Optional:
-        - deg (default: 1): Homology degree (0 or 1, where 1 is the more general option).
-        - dgm (default: None): Persistence diagram for the learnable point cloud. If None, it will be computed.
-        - dgm_true (default: None): Persistence diagram of the ground truth data. If None, it will be computed.
-        The following parameters, which control the topological functions, are set to reference values by default but can be modified
-        depending on the dataset, model, or other considerations:
-        - pers0_delta: Default = 0.001
-        - pers1_delta: Default = 0.001
-        - dsigma0_scale: Default = 0.05
-        - dsigma1_scale: Default = 0.05
-        - density_sigma: Default = 0.2
-        - density_scale: Default = 0.002
-        - density_maxrange: Default = 35.0
-        - density_npoints: Default = 30
-    Output:
-      - The computed loss value as a scalar tensor (torch.Tensor). 
-      - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
-    """
-    n_gotloss = 0
-    if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), deg)
-    if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), deg)
-    
-    loss = torch.tensor(0., device=points.device)
-    if topo_weights[0] != 0.:
-      topoloss, gotloss0 = loss_bottleneck0(points, true_points, dgm, dgm_true)
-      if gotloss0:
-        loss = loss + topoloss * topo_weights[0]
-        n_gotloss += 1
-    if topo_weights[1] != 0.:
-      topoloss, gotloss1 = loss_bottleneck1(points, true_points, dgm, dgm_true)
-      if gotloss1: 
-        loss = loss + topoloss * topo_weights[1]
-        n_gotloss += 1 
-    if topo_weights[2] != 0.:
-      topoloss, gotloss2 = loss_persentropy0(points, true_points, dgm, dgm_true, pers0_delta)
-      if gotloss2: 
-        loss = loss + topoloss *  topo_weights[2]
-        n_gotloss += 1
-    if topo_weights[3] != 0.:
-      topoloss, gotloss3 = loss_persentropy1(points, true_points, dgm, dgm_true, pers1_delta)
-      if gotloss3: 
-        loss = loss + topoloss * topo_weights[3]
-        n_gotloss += 1
-    if topo_weights[4] != 0.:
-      topoloss, gotloss4 = loss_dsigma0(points, true_points, dgm, dgm_true, dsigma0_scale)
-      if gotloss4: 
-        loss = loss + topoloss * topo_weights[4]
-        n_gotloss += 1
-    if topo_weights[5] != 0.:
-      topoloss, gotloss5 = loss_dsigma1(points, true_points, dgm, dgm_true, dsigma1_scale)
-      if gotloss5: 
-        loss = loss + topoloss * topo_weights[5]
-        n_gotloss += 1
-    if topo_weights[6] != 0.:
-      topoloss, gotloss6 = loss_density(points, true_points, dgm, dgm_true, density_sigma, density_scale, density_maxrange, density_npoints)
-      if gotloss6:
-        loss = loss + topoloss * topo_weights[6]
-        n_gotloss += 1
-    return loss, n_gotloss > 0
-
 class TopologicalLoss:
     """
     A class unifying all the topological regularizers, for computing the total topological loss in machine learning models.
@@ -499,5 +429,6 @@ class TopologicalLoss:
             if gotloss:
                 loss = loss + topoloss * self.topo_weights[i]
                 n_gotloss += 1
+        print(loss.item())
 
         return loss, n_gotloss > 0
