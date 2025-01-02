@@ -5,7 +5,7 @@ import random
 import tadasets
 import matplotlib.pyplot as plt
 
-from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, save_animation
+from topogen import get_dgm, loss_push0, save_fig_dgm, save_fig_pc, save_animation, TopologicalLoss
 
 # Loss function for the point cloud:
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
