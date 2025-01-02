@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import torch
 from torch import optim
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 
