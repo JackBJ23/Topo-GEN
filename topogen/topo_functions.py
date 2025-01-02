@@ -361,3 +361,143 @@ def topo_losses(points, true_points, topo_weights, deg=1, dgm=None, dgm_true=Non
         loss = loss + topoloss * topo_weights[6]
         n_gotloss += 1
     return loss, n_gotloss > 0
+
+class TopologicalLoss:
+    """
+    A class unifying all the topological regularizers, for computing the total topological loss in machine learning models.
+
+    Attributes:
+        topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
+        Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density] 
+        deg (int): Degree of homology for the persistence diagrams (0 or 1, with 1 the more general option).
+        Additional parameters (pers0_delta, pers1_delta, ..., density_npoints) that control the topological functions, which are set
+        to reference values by default but can be modified depending on the dataset, model, or other considerations.
+    
+    Methods:
+        compute_loss(points, true_points, dgm=None, dgm_true=None): Computes the total topological loss based on active components.
+    """
+    def __init__(self, topo_weights=[15.,15.,0.,0.,0.,0.,0], deg=1, pers0_delta=0.001, pers1_delta=0.001,
+                 dsigma0_sigma=0.05, dsigma1_sigma=0.05, density_sigma=0.2,
+                 density_scale=0.002, density_maxrange=35., density_npoints=30):
+        self.deg = deg
+        self.pers0_delta = pers0_delta
+        self.pers1_delta = pers1_delta
+        self.dsigma0_sigma = dsigma0_sigma
+        self.dsigma1_sigma = dsigma1_sigma
+        self.density_sigma = density_sigma
+        self.density_scale = density_scale
+        self.density_maxrange = density_maxrange
+        self.density_npoints = density_npoints
+        self.topo_weights = topo_weights
+        self._update_loss_functions()
+
+    def _update_loss_functions(self):
+        # Updates the loss functions and active losses based on the current parameters (called each time one is changed)
+        self.loss_functions = {
+            0: (loss_bottleneck0, []),
+            1: (loss_bottleneck1, []),
+            2: (loss_persentropy0, [self.pers0_delta]),
+            3: (loss_persentropy1, [self.pers1_delta]),
+            4: (loss_dsigma0, [self.dsigma0_sigma]),
+            5: (loss_dsigma1, [self.dsigma1_sigma]),
+            6: (loss_density, [self.density_sigma, self.density_scale, self.density_maxrange, self.density_npoints])
+        }
+        self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if self._topo_weights[i] != 0.]
+
+    # Use properties and setters to update the active losses and arguments whenever a parameter (e.g. topo_weights) is changed:
+    @property
+    def topo_weights(self):
+        return self._topo_weights
+    @topo_weights.setter
+    def topo_weights(self, weights):
+        self._topo_weights = weights
+        self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if weights[i] != 0.]
+
+    @property
+    def pers0_delta(self):
+        return self._pers0_delta
+    @pers0_delta.setter
+    def pers0_delta(self, value):
+        self._pers0_delta = value
+        self._update_loss_functions()
+
+    @property
+    def pers1_delta(self):
+        return self._pers1_delta
+    @pers1_delta.setter
+    def pers1_delta(self, value):
+        self._pers1_delta = value
+        self._update_loss_functions()
+
+    @property
+    def dsigma0_sigma(self):
+        return self._dsigma0_sigma
+    @dsigma0_sigma.setter
+    def dsigma0_sigma(self, value):
+        self._dsigma0_sigma = value
+        self._update_loss_functions()
+
+    @property
+    def dsigma1_sigma(self):
+        return self._dsigma1_sigma
+    @dsigma1_sigma.setter
+    def dsigma1_sigma(self, value):
+        self._dsigma1_sigma = value
+        self._update_loss_functions()
+
+    @property
+    def density_sigma(self):
+        return self._density_sigma
+    @density_sigma.setter
+    def density_sigma(self, value):
+        self._density_sigma = value
+        self._update_loss_functions()
+
+    @property
+    def density_scale(self):
+        return self._density_scale
+    @density_scale.setter
+    def density_scale(self, value):
+        self._density_scale = value
+        self._update_loss_functions()
+
+    @property
+    def density_maxrange(self):
+        return self._density_maxrange
+    @density_maxrange.setter
+    def density_maxrange(self, value):
+        self._density_maxrange = value
+        self._update_loss_functions()
+
+    @property
+    def density_npoints(self):
+        return self._density_npoints
+    @density_npoints.setter
+    def density_npoints(self, value):
+        self._density_npoints = value
+        self._update_loss_functions()
+
+    def compute_loss(self, points, true_points, dgm=None, dgm_true=None):
+        """
+        Computes the total topological loss based on active components.
+        Args:
+            points (torch.Tensor): Learnable point cloud. Shape: (batch size, additional dimensions).
+            true_points (torch.Tensor): Ground truth point cloud. Shape: (batch size, additional dimensions).
+            dgm (torch.Tensor, optional): Persistence diagram for points.
+            dgm_true (torch.Tensor, optional): Persistence diagram for true_points.
+        Returns:
+            torch.Tensor: Total loss.
+            bool: True if the loss depends on the input points, False otherwise.
+        """
+        if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
+        if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
+        loss = torch.tensor(0., device=points.device)
+        n_gotloss = 0
+
+        for i, loss_func, args in self.active_losses:
+            topoloss, gotloss = loss_func(points, true_points, dgm, dgm_true, *args)
+            if gotloss:
+                loss = loss + topoloss * self.topo_weights[i]
+                n_gotloss += 1
+
+        return loss, n_gotloss > 0
