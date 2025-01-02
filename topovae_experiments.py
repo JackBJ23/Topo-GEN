@@ -82,7 +82,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           recon_batch1, mean1, log_var1 = model1(data)
           BCE, KLD = loss_vae(recon_batch1, data, mean1, log_var1)
           loss1 = BCE + KLD
-          topoloss, gotloss = topo_loss(recon_batch1, data, None, dgm_true)
+          topoloss, gotloss = topo_loss.compute_loss(recon_batch1, data, None, dgm_true)
           if gotloss: loss1 = loss1 + topoloss
           loss1.backward()
           optimizer1.step()
