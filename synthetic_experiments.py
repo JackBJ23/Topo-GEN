@@ -5,12 +5,12 @@ import random
 import tadasets
 import matplotlib.pyplot as plt
 
-from topogen import get_dgm, loss_push0, topo_losses, save_fig_dgm, save_fig_pc, save_animation
+from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, save_animation
 
 # Loss function for the point cloud:
-def get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true):
+def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
   dgm = get_dgm(point_cloud, 1)
-  loss, gotloss = topo_losses(point_cloud, point_cloud_true, topo_weights, 1, dgm, dgm_true)
+  loss, gotloss = topo_loss.compute_loss(point_cloud, point_cloud_true, dgm, dgm_true)
   if gotloss: return loss, loss.item()
   # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
@@ -41,6 +41,9 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32, device=device)
   point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad=True, device=device)
 
+  # Set the topological loss:
+  topo_loss = topo_loss = TopologicalLoss(topo_weights)
+
   point_clouds = [point_cloud.detach().cpu().numpy()]
   losses = []
   xs = []
@@ -48,7 +51,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
-      loss, lossitem = get_loss(point_cloud, point_cloud_true, topo_weights, dgm_true)
+      loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss)
       loss.backward()
       optimizer.step()
 
