@@ -5,7 +5,7 @@ import random
 import tadasets
 import matplotlib.pyplot as plt
 
-from topogen import get_dgm, loss_push0, save_fig_dgm, save_fig_pc, save_animation, TopologicalLoss
+from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, save_animation
 
 # Loss function for the point cloud:
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
@@ -20,10 +20,10 @@ import numpy as np
 
 def create_point_cloud(centers, cluster_sizes, r):
     """
-    Creates a point cloud with multiple clusters at different positions.
+    Creates a point cloud with multiple clusters.
     Args:
-        centers (np.ndarray): array with the centers of the clusters. 
-        cluster_sizes (list): list with the number of points per cluster. 
+        centers (np.ndarray): Array with the centers of the clusters. 
+        cluster_sizes (list): Number of points per cluster. 
         r (float): Radius for the random perturbation around each cluster center.
     Returns:
         np.ndarray: Generated point cloud of shape (num_points, 2).
@@ -108,15 +108,8 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
 
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
-  point_cloud = create_point_cloud(np.array())
+  point_cloud = create_point_cloud(np.array([0.,0.], [10.,5.]), [30, 34], 0.4)
   point_cloud = np.zeros((64,2))
-  r1 = 0.4
-  for i in range(30):
-    point_cloud[i][0] = random.uniform(-r1, r1)
-    point_cloud[i][1] = random.uniform(-r1, r1)
-  for i in range(34):
-    point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
-    point_cloud[i+10][1] = random.uniform(-r1, r1)+5.
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.05, "test_2", num_save=25) # 2500
 
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
@@ -125,10 +118,8 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud = np.zeros((64,2))
   r1 = 0.1
   for i in range(32):
-    point_cloud[i][0] = random.uniform(-r1, r1)
-    point_cloud[i][1] = float(i)*0.7 + random.uniform(-r1, r1)
-    point_cloud[i+32][0] = random.uniform(-r1, r1) + 5. + float(i) * 0.2
-    point_cloud[i+32][1] = float(i)*0.9 + random.uniform(-r1, r1)
+    point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)]
+    point_cloud[i+32] = np.array[0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)]
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.1, "test_3", num_save=50) # 7500
 
 if __name__ == "__main__":
