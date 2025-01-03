@@ -11,56 +11,8 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen import get_dgm, plot_gen_imgs, TopologicalLoss
+from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_training_losses, plot_losses_avg_epoch
 from models import VAE
-
-def plot_training_losses(train_losses0_all, train_losses1_all, filename=None, show=False):
-    """
-    Plots training losses for VAE and TopoVAE across all iterations.
-    Args:
-        train_losses0_all (list): Losses for the normal VAE.
-        train_losses1_all (list): Losses for the TopoVAE.
-        filename (str, optional): Filename for saving the plot. If None, the plot will not be saved.
-        show (bool, optional): Whether to display the plot. 
-    """
-    plt.figure()
-    plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
-    plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
-    plt.xlabel("Iteration")
-    plt.ylabel("BCE loss")
-    plt.title("Training Losses Over Iterations")
-    plt.legend(loc='upper right')
-    plt.tight_layout()
-    if filename is not None: plt.savefig(filename)
-    if show: plt.show()
-    plt.close()
-
-def plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, filename=None, show=False):
-    """
-    Plots the average training and validation losses for VAE and TopoVAE over epochs.
-    Args:
-        train_losses0 (list): Average training losses for VAE0 per epoch.
-        train_losses1 (list): Average training losses for TopoVAE per epoch.
-        val_losses0 (list): Average validation losses for VAE0 per epoch.
-        val_losses1 (list): Average validation losses for TopoVAE per epoch.
-        filename (str, optional): File path to save the plot. If None, the plot is not saved.
-        show (bool, optional): Whether to display the plot.
-    """
-    epochs = np.arange(len(train_losses0))
-    plt.figure()
-    plt.plot(epochs, train_losses0, label='VAE0, Train', marker='o')
-    plt.plot(epochs, train_losses1, label='TopoVAE, Train', marker='o')
-    plt.plot(epochs, val_losses0, label='VAE0, Val', marker='x', linestyle='dashed')
-    plt.plot(epochs, val_losses1, label='TopoVAE, Val', marker='x', linestyle='dashed')
-    plt.xticks(ticks=epochs, labels=epochs)
-    plt.xlabel("Epoch")
-    plt.ylabel("BCE loss")
-    plt.title("Training and Validation Losses Over Epochs")
-    plt.legend(loc='upper right')
-    plt.tight_layout()
-    if filename is not None: plt.savefig(filename)
-    if show: plt.show()
-    plt.close()
 
 # Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
