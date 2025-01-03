@@ -25,7 +25,9 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
         data (torch.Tensor): Original data batch.
         recon_batch_0 (torch.Tensor): Reconstructed batch from VAE.
         recon_batch_t (torch.Tensor): Reconstructed batch from TopoVAE.
-        epoch (int): Current epoch number.
+        epoch (int): Current epoch number, used for generating titles.
+            Note: If plotting during training (evaluation type is 'train'), use the current epoch (0, 1, ...). 
+            If plotting during validation/test, use epoch = number of epochs completed (1, 2, ...).
         eval_type (str): Evaluation type ('train', 'val', 'test').
         step (int, optional): Training step index. If eval_type='train', provide the step.
         img_size (int, optional): Image size (height and width). Defaults to 28 for FashionMNIST.
@@ -33,10 +35,10 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
         filename (str, optional): Filename to save the plot. If None, the figure is not saved.
         show (bool): Whether to display the plot.
     """
-    if eval_type == 'train':
-        if step is None: suptitle = f'True and generated images at epoch {epoch} ({eval_type})'
-        else: suptitle = f'True and generated images at epoch {epoch}, step {step} ({eval_type})'
-    else: suptitle = f'True and generated images after {epoch+1} training epochs ({eval_type})'
+    if eval_type == 'train': 
+        suptitle = f'True and generated images at epoch {epoch}{", step " + str(step) + " " if step is not None else ""}({eval_type})'
+    else: 
+        suptitle = f'True and generated images after {epoch} training epochs ({eval_type})'
 
     # Reshape tensors for visualization
     data = data.reshape(-1, 1, img_size, img_size)
