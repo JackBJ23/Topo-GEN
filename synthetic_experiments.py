@@ -109,7 +109,6 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
-  point_cloud = np.zeros((64,2))
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.05, "test_2", num_save=25) # 2500
 
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
