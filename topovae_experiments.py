@@ -14,6 +14,34 @@ from torchvision import transforms, datasets
 from topogen import get_dgm, save_gen_imgs, TopologicalLoss
 from models import VAE
 
+# For plotting losses:
+def plot_losses_all_iters(train_losses0_all, train_losses1_all, filename=None, show=False)
+    plt.figure()
+    plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
+    plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
+    plt.xlabel("Iteration")
+    plt.ylabel("BCE loss")
+    plt.legend(loc='upper right')
+    plt.tight_layout()
+    if show: plt.show()
+    if filename is not None: plt.savefig(filename)
+    plt.close()
+
+def plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, filename=None, show=False):
+    plt.figure()
+    plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
+    plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
+    plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
+    plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
+    plt.xticks(ticks=np.arange(0, len(train_losses0)), labels=np.arange(0, len(train_losses0)))
+    plt.xlabel("Epoch")
+    plt.ylabel("BCE loss")
+    plt.legend(loc='upper right')
+    plt.tight_layout()
+    if show: plt.show()
+    if filename is not None: plt.savefig(filename)
+    plt.close()
+
 # Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
@@ -102,33 +130,14 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       val_losses1.append(val_loss1)
 
   # Training ended
-  # Plot losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  plt.figure()
-  plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
-  plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
-  plt.xlabel("Iteration")
-  plt.ylabel("BCE loss")
-  plt.legend(loc='upper right')
-  plt.tight_layout()
-  plt.savefig('BCElosses_train_all_steps.png')
-
-  # Plot losses and validation losses over epochs:
+  # Plot and save losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
+  plot_losses_all_iters(train_losses0_all, train_losses1_all, 'BCElosses_train_all_steps.png', True)
+  # Plot training losses and validation losses over epochs:
   if args.n_epochs > 1:
-      plt.figure()
-      plt.plot(np.arange(len(train_losses0)), train_losses0, label='VAE0, train')
-      plt.plot(np.arange(len(train_losses1)), train_losses1, label='TopoVAE, train')
-      plt.plot(np.arange(len(val_losses0)), val_losses0, label='VAE0, val')
-      plt.plot(np.arange(len(val_losses1)), val_losses1, label='TopoVAE, val')
-      plt.xticks(ticks=np.arange(0, len(train_losses0)), labels=np.arange(0, len(train_losses0)))
-      plt.xlabel("Epoch")
-      plt.ylabel("BCE loss")
-      plt.legend(loc='upper right')
-      plt.tight_layout()
-      plt.savefig('BCElosses_train_val_epochs.png')
+      plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, 'BCElosses_train_val_epochs.png', True)
   else:
       print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
       print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
-
   return model0, model1
 
 def parse_topo_weights(value):
