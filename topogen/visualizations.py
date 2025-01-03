@@ -90,7 +90,7 @@ def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
     plt.close(fig)
     return fig
 
-def save_animation(point_clouds, test_name, x1, x2, y1, y2):
+def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
     # Create a list of figures for each point cloud
     figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
 
