@@ -14,8 +14,6 @@ from torchvision import transforms, datasets
 from topogen import get_dgm, plot_gen_imgs, TopologicalLoss
 from models import VAE
 
-%matplotlib inline
-
 def plot_training_losses(train_losses0_all, train_losses1_all, filename=None, show=False):
     """
     Plots training losses for VAE and TopoVAE across all iterations.
