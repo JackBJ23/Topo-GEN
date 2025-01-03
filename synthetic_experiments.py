@@ -103,12 +103,12 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   # Generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
-  point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]], [10,10,10,10,24], 0.5)
+  point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.01, "test_1", num_save=50) # 15000
 
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
-  point_cloud = create_point_cloud(np.array([0.,0.], [10.,5.]), [30, 34], 0.4)
+  point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
   point_cloud = np.zeros((64,2))
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.05, "test_2", num_save=25) # 2500
 
