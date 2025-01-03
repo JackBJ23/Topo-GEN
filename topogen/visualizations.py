@@ -18,9 +18,9 @@ def plot_fig_pc(pointcloud, filename):
     fig = go.Figure(plot_point_cloud(pointcloud))
     fig.write_image(filename)
 
-def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, filename=None, show=False):
+def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
-    Plots and saves ground truth images, VAE reconstructed images, and TopoVAE reconstructed images.
+    Plots and saves ground truth images, images reconstructed by the standard generative model, and by the topology-informed model.
     Args:
         data (torch.Tensor): Original data batch.
         recon_batch_0 (torch.Tensor): Reconstructed batch from VAE.
@@ -32,10 +32,11 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
         step (int, optional): Training step index. If eval_type='train', provide the step.
         img_size (int, optional): Image size (height and width). Defaults to 28 for FashionMNIST.
         n_imgs (int): Number of images to display in the grid.
+        modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.)
         filename (str, optional): Filename to save the plot. If None, the figure is not saved.
         show (bool): Whether to display the plot.
     """
-    if eval_type == 'train': 
+    if eval_type == 'train':
         suptitle = f'True and generated images at epoch {epoch}{", step " + str(step) + " " if step is not None else ""}({eval_type})'
     else: 
         suptitle = f'True and generated images after {epoch} training epochs ({eval_type})'
@@ -65,17 +66,17 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     plt.axis('off')
     plt.title("True")
 
-    # Middle: Reconstructed Batch 0 (standard VAE)
+    # Middle: Reconstructed Batch 0 (standard Model)
     plt.subplot(1, 3, 2)
     plt.imshow(grid_recon_0)
     plt.axis('off')
-    plt.title("VAE")
+    plt.title(modelname)
 
-    # Right: Reconstructed Batch from TopoVAE
+    # Right: Reconstructed Batch from TopoModel
     plt.subplot(1, 3, 3)
     plt.imshow(grid_recon_t)
     plt.axis('off')
-    plt.title("TopoVAE")
+    plt.title(f"Topo{modelname}")
     plt.tight_layout()
     if filename is not None: plt.savefig(filename)
     if show: plt.show()
@@ -91,6 +92,15 @@ def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
     return fig
 
 def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
+    """
+    Generates and saves an animation for the evolution of a point cloud. Helpful for visualizing the impact of topological 
+    regularizers on 2D point clouds. 
+    Args:
+        point_clouds (list): list of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
+        a np.ndarray of shape (number of points, dimension of each point).
+        test_name (str): Name of the test.
+        x1, x2, y1, y2: Limits of the figures (min-x, max-x, min-y, max-y, respectively).
+    """
     # Create a list of figures for each point cloud
     figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
 
