@@ -58,7 +58,7 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
 
     # Plot the three grids next to each other
     plt.figure(figsize=(15, 5))
-    plt.suptitle(suptitle, fontsize=16, y=1.02)
+    plt.suptitle(suptitle, fontsize=16)
 
     # Left: Ground truth data
     plt.subplot(1, 3, 1)
