@@ -93,8 +93,8 @@ def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
 
 def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
     """
-    Generates and saves an animation for the evolution of a point cloud. Helpful for visualizing the impact of topological 
-    regularizers on 2D point clouds. 
+    Generates and saves an animation of the evolution of a point cloud. Helpful for visualizing the impact of topological 
+    regularizers on 2D point clouds.
     Args:
         point_clouds (list): list of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
         a np.ndarray of shape (number of points, dimension of each point).
