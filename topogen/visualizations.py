@@ -1,3 +1,8 @@
+"""
+A set of functions for visualization that can be helpful when working with topological regularizers (either with generative
+models, or in experiments with learnable point clouds in 2D). 
+"""
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
