@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen import get_dgm, save_gen_imgs, TopologicalLoss
+from topogen import get_dgm, plot_gen_imgs, TopologicalLoss
 from models import VAE
 
 def plot_training_losses(train_losses0_all, train_losses1_all, filename=None, show=False):
@@ -70,7 +70,7 @@ def loss_vae(recon_x, x, mu, logvar):
     return BCE, KLD
 
 # Evaluate model0 (normal VAE) and model1 (TopoVAE):
-def evaluate(model0, model1, val_loader, epoch, type_eval, device):
+def evaluate(model0, model1, val_loader, epoch, eval_type, device):
   model0.eval()
   model1.eval()
   running_loss0 = 0.
@@ -87,7 +87,7 @@ def evaluate(model0, model1, val_loader, epoch, type_eval, device):
         # No need to compute topoloss here, only need BCE for comparison:
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         running_loss1 += BCE1.item()
-        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval)
+        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epochs', show=True)
 
   return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
 
@@ -138,14 +138,14 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           train_losses1_all.append(BCE1.item())
           print("step", batch_idx)
 
-          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx)
+          if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, show=True)
 
       print("End of epoch", epoch)
       # Average of losses over one epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch, 'eval', device)
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'eval', device)
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
