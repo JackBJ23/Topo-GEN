@@ -31,17 +31,17 @@ def evaluate(model0, model1, val_loader, epoch, type_eval, device):
       for batch_idx, (data, _) in enumerate(val_loader):
         data = data.to(device)
         #model0
-        recon_batch0, mean, log_var = model0(data)
-        BCE, _ = loss_vae(recon_batch0, data, mean, log_var)
-        running_loss0 += BCE.item()
+        recon_batch0, mean0, log_var0 = model0(data)
+        BCE0, _ = loss_vae(recon_batch0, data, mean0, log_var0)
+        running_loss0 += BCE0.item()
         #model1
-        recon_batch1, mean, log_var = model1(data)
+        recon_batch1, mean1, log_var1 = model1(data)
         # No need to compute topoloss here, only need BCE for comparison:
-        BCE, _ = loss_vae(recon_batch1, data, mean, log_var)
-        running_loss1 += BCE.item()
+        BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
+        running_loss1 += BCE1.item()
         if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, type_eval)
 
-  return running_loss0/len(val_loader), running_loss1/len(val_loader)
+  return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
 
 # Train and compare model0 (normal VAE) and model1 (TopoVAE):
 def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
@@ -64,10 +64,6 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss0 = 0.
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
-          if batch_idx==0: 
-              topo_loss.pers_delta0 = 35.
-              topo_loss.topo_weights = [1.,2.,3.,0.,0.,0.,15.]
-              print("act", topo_loss.active_losses)
           data = data.to(device)
           dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch, to avoid computation time
           optimizer0.zero_grad()
@@ -75,23 +71,23 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           # model0: VAE
           recon_batch0, mean0, log_var0 = model0(data)
-          BCE, KLD = loss_vae(recon_batch0, data, mean0, log_var0)
-          loss0 = BCE + KLD
+          BCE0, KLD0 = loss_vae(recon_batch0, data, mean0, log_var0)
+          loss0 = BCE0 + KLD0
           loss0.backward()
           optimizer0.step()
-          running_loss0 += BCE.item()
-          train_losses0_all.append(BCE.item())
+          running_loss0 += BCE0.item()
+          train_losses0_all.append(BCE0.item())
 
           # model1: TopoVAE
           recon_batch1, mean1, log_var1 = model1(data)
-          BCE, KLD = loss_vae(recon_batch1, data, mean1, log_var1)
-          loss1 = BCE + KLD
+          BCE1, KLD1 = loss_vae(recon_batch1, data, mean1, log_var1)
+          loss1 = BCE1 + KLD1
           topoloss, gotloss = topo_loss.compute_loss(recon_batch1, data, None, dgm_true)
           if gotloss: loss1 = loss1 + topoloss
           loss1.backward()
           optimizer1.step()
-          running_loss1 += BCE.item()
-          train_losses1_all.append(BCE.item())
+          running_loss1 += BCE1.item()
+          train_losses1_all.append(BCE1.item())
           print("step", batch_idx)
 
           if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx)
@@ -148,10 +144,10 @@ def load_config():
     parser = argparse.ArgumentParser(description="Train and evaluate a generative model with topological regularizers.")
     parser.add_argument('--n_latent', type=int, default=10, help="Latent dimension of the VAE.")
     parser.add_argument('--batch_size', type=int, default=128, help="Batch size for training the model.")
-    parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs.")
+    parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs. 1 or 2 are sufficient for training the VAE on FashionMNIST.")
     parser.add_argument('--learning_rate', type=float, default=5e-4)
     parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--n_plot', type=int, default=50, help="Interval (in training steps) at which generated images are saved.")
+    parser.add_argument('--n_plot', type=int, default=50, help="Interval (in training steps) at which generated images are plotted/saved.")
     parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
     parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
     parser.add_argument('--save_models', type=str, default="n", choices=["y", "n"], help="Select y for saving the models after training, and n for not saving them.")
