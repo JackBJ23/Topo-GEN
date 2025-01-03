@@ -16,6 +16,25 @@ def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
+import numpy as np
+
+def create_point_cloud(centers, cluster_sizes, r):
+    """
+    Creates a point cloud with multiple clusters at different positions.
+    Args:
+        centers (np.ndarray): array with the centers of the clusters. 
+        cluster_sizes (list): list with the number of points per cluster. 
+        r (float): Radius for the random perturbation around each cluster center.
+    Returns:
+        np.ndarray: Generated point cloud of shape (num_points, 2).
+    """
+    point_cloud = []
+    for center, size in zip(centers, cluster_sizes):
+        points = center + np.random.uniform(-r, r, size=(size, 2))
+        point_cloud.append(points)
+    point_cloud = np.vstack(point_cloud)
+    return point_cloud
+
 def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.):
   """
   Function for running a synthetic test with the bottleneck functions. This function saves images of:
@@ -81,41 +100,15 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   print(f"Test {test_name} done!")
 
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
-  # First, generate a snythetic ground truth point cloud:
+  # Generate a snythetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
-  # Second, manually create the initial point cloud:
-  point_cloud = np.zeros((64,2))
-  r1 = 0.5
-  for i in range(10):
-    point_cloud[i][0] = random.uniform(-r1, r1)
-    point_cloud[i][1] = random.uniform(-r1, r1)
-    point_cloud[i+10][0] = random.uniform(-r1, r1)+10.
-    point_cloud[i+10][1] = random.uniform(-r1, r1)
-    point_cloud[i+20][0] = random.uniform(-r1, r1)
-    point_cloud[i+20][1] = random.uniform(-r1, r1)+20
-    point_cloud[i+30][0] = random.uniform(-r1, r1)+30
-    point_cloud[i+30][1] = random.uniform(-r1, r1)+30
-  for i in range(24):
-    point_cloud[i+40][0] = random.uniform(-r1, r1)+10
-    point_cloud[i+40][1] = random.uniform(-r1, r1)-25
+  # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
+  point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]], [10,10,10,10,24], 0.5)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.01, "test_1", num_save=50) # 15000
 
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
-  point_cloud_true = np.zeros((128,2))
-  r1 = 0.3
-  for i in range(30):
-    point_cloud_true[i][0] = random.uniform(-r1, r1)
-    point_cloud_true[i][1] = random.uniform(-r1, r1)
-  for i in range(30, 50):
-    point_cloud_true[i][0] = random.uniform(-r1, r1)+10.
-    point_cloud_true[i][1] = random.uniform(-r1, r1)
-  for i in range(50,80):
-    point_cloud_true[i][0] = random.uniform(-r1, r1)-5.
-    point_cloud_true[i][1] = random.uniform(-r1, r1)+4.
-  for i in range(80,128):
-    point_cloud_true[i][0] = random.uniform(-r1, r1)+8.
-    point_cloud_true[i][1] = random.uniform(-r1, r1)+13.
-
+  point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
+  point_cloud = create_point_cloud(np.array())
   point_cloud = np.zeros((64,2))
   r1 = 0.4
   for i in range(30):
