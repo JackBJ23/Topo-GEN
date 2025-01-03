@@ -16,8 +16,6 @@ def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
-import numpy as np
-
 def create_point_cloud(centers, cluster_sizes, r):
     """
     Creates a point cloud with multiple clusters.
@@ -104,12 +102,12 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.01, "test_1", num_save=50) # 15000
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 15000, 0.01, "test_1", num_save=50)
 
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.05, "test_2", num_save=25) # 2500
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 2500, 0.05, "test_2", num_save=25)
 
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
@@ -119,7 +117,7 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   for i in range(32):
     point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)])
     point_cloud[i+32] = np.array([0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)])
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.1, "test_3", num_save=50) # 7500
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, 7500, 0.1, "test_3", num_save=50)
 
 if __name__ == "__main__":
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
