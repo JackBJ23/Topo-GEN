@@ -5,7 +5,7 @@ import random
 import tadasets
 import matplotlib.pyplot as plt
 
-from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, save_animation
+from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, generate_animation
 
 # Loss function for the point cloud:
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
@@ -94,7 +94,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   plt.savefig(f'{test_name}_loss_evolution.png')
   plt.close()
   # Save video of evolution of the point cloud:
-  save_animation(point_clouds, test_name, x1, x2, y1, y2)
+  generate_animation(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
