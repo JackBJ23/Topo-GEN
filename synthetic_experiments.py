@@ -118,8 +118,8 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud = np.zeros((64,2))
   r1 = 0.1
   for i in range(32):
-    point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)]
-    point_cloud[i+32] = np.array[0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)]
+    point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)])
+    point_cloud[i+32] = np.array([0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)])
   synthetic_test(point_cloud, point_cloud_true, topo_weights, 300, 0.1, "test_3", num_save=50) # 7500
 
 if __name__ == "__main__":
