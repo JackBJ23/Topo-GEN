@@ -14,7 +14,7 @@ from torchvision import transforms, datasets
 from topogen import get_dgm, save_gen_imgs, TopologicalLoss
 from models import VAE
 
-def plot_losses_all_iters(train_losses0_all, train_losses1_all, filename=None, show=False):
+def plot_training_losses(train_losses0_all, train_losses1_all, filename=None, show=False):
     """
     Plots training losses for VAE and TopoVAE across all iterations.
     Args:
@@ -150,8 +150,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       val_losses1.append(val_loss1)
 
   # Training ended
-  # Plot and save losses over all iterations: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  plot_losses_all_iters(train_losses0_all, train_losses1_all, 'BCElosses_train_all_steps.png', True)
+  # Plot and save losses over all training steps: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
+  plot_training_losses(train_losses0_all, train_losses1_all, 'BCElosses_train_all_steps.png', True)
   # Plot training losses and validation losses over epochs:
   if args.n_epochs > 1:
       plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, 'BCElosses_train_val_epochs.png', True)
