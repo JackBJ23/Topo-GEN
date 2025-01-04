@@ -1,6 +1,10 @@
 """
 A set of functions for visualization that can be helpful when working with topological regularizers (either with generative
-models, or in experiments with learnable point clouds in 2D). 
+models, or in experiments with learnable point clouds in 2D). Includes functions for visualizing:
+- Persistence diagrams: plot_fig_dgm
+- The effect of topological regularizers on 2D point clouds: plot_fig_pc, generate_animation
+- The performance of topology-informed models compared to their non-regularized counterparts: plot_gen_imgs, 
+plot_training_losses, plot_losses_avg_epoch.
 """
 
 import os
@@ -15,9 +19,56 @@ from PIL import Image
 from IPython.display import Image as IPImage
 
 def plot_fig_dgm(dgm, filename):
+    """
+    Plots a persistence diagram and saves it in a file.
+    Args:
+        dgm (dict): persistence diagram. Can be obtained using the function get_dgm(), see topo_functions.py
+        filename: File name to save the plot.
+    """
     dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
     fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
     fig.write_image(filename)
+ 
+def plot_fig_pc(pointcloud, filename):
+    fig = go.Figure(plot_point_cloud(pointcloud))
+    fig.write_image(filename)
+
+def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
+    fig = plt.figure(figsize=(6, 6))
+    plt.scatter(point_cloud[:, 0], point_cloud[:, 1], s=10, c='b')
+    #plt.xlabel('X')
+    plt.xlim(x1, x2)
+    plt.ylim(y1, y2)
+    plt.close(fig)
+    return fig
+
+def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
+    """
+    Generates and saves an animation of the evolution of a point cloud. Helpful for visualizing the impact of topological 
+    regularizers on 2D point clouds.
+    Args:
+        point_clouds (list): list of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
+        a np.ndarray of shape (number of points, dimension of each point).
+        test_name (str): Name of the test.
+        x1, x2, y1, y2: Limits of the figures (min-x, max-x, min-y, max-y, respectively).
+    """
+    # Create a list of figures for each point cloud
+    figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
+
+    gif_path = f'{test_name}_point_clouds_evolution.gif'
+    # Save each figure as an image and store them in a list
+    images = []
+    file_paths = []
+    for idx, fig in enumerate(figures):
+        file_path = f'point_cloud_{idx}.png'
+        fig.savefig(file_path, dpi=80)
+        images.append(Image.open(file_path))
+        file_paths.append(file_path)
+
+    # Save the images as a GIF
+    images[0].save(gif_path, save_all=True, append_images=images[1:], duration=50, loop=0)
+    for file_path in file_paths: os.remove(file_path)
+    IPImage(gif_path)
 
 def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
@@ -34,7 +85,7 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
         img_size (int, optional): Image size (height and width). Defaults to 28 for FashionMNIST.
         n_imgs (int): Number of images to display in the grid.
         modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.)
-        filename (str, optional): Filename to save the plot. If None, the figure is not saved.
+        filename (str, optional): File name to save the plot. If None, the figure is not saved.
         show (bool): Whether to display the plot.
     """
     if eval_type == 'train':
@@ -130,44 +181,3 @@ def plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1
     if filename is not None: plt.savefig(filename)
     if show: plt.show()
     plt.close()
-
-def plot_fig_pc(pointcloud, filename):
-    fig = go.Figure(plot_point_cloud(pointcloud))
-    fig.write_image(filename)
-
-def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
-    fig = plt.figure(figsize=(6, 6))
-    plt.scatter(point_cloud[:, 0], point_cloud[:, 1], s=10, c='b')
-    #plt.xlabel('X')
-    plt.xlim(x1, x2)
-    plt.ylim(y1, y2)
-    plt.close(fig)
-    return fig
-
-def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
-    """
-    Generates and saves an animation of the evolution of a point cloud. Helpful for visualizing the impact of topological 
-    regularizers on 2D point clouds.
-    Args:
-        point_clouds (list): list of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
-        a np.ndarray of shape (number of points, dimension of each point).
-        test_name (str): Name of the test.
-        x1, x2, y1, y2: Limits of the figures (min-x, max-x, min-y, max-y, respectively).
-    """
-    # Create a list of figures for each point cloud
-    figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
-
-    gif_path = f'{test_name}_point_clouds_evolution.gif'
-    # Save each figure as an image and store them in a list
-    images = []
-    file_paths = []
-    for idx, fig in enumerate(figures):
-        file_path = f'point_cloud_{idx}.png'
-        fig.savefig(file_path, dpi=80)
-        images.append(Image.open(file_path))
-        file_paths.append(file_path)
-
-    # Save the images as a GIF
-    images[0].save(gif_path, save_all=True, append_images=images[1:], duration=50, loop=0)
-    for file_path in file_paths: os.remove(file_path)
-    IPImage(gif_path)
