@@ -96,7 +96,7 @@ We provide a file to directly train and test VAEs on the FashionMNIST dataset us
 ```
 !python topovae_experiments.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
-Where `topo_weights` is the list of weights associated with each topological loss. To manually set additional arguments, do `!python train.py --help` for details. The file automatically saves plots comparing true images, VAE-generated images, and TopoVAE-generated images, and saves plots comparing the evolution of the BCE losses for the two models.
+Where `topo_weights` is the list of weights associated with each topological loss. To manually set additional arguments, do `!python topovae_experiments.py --help` for details. The file automatically saves plots comparing true images, VAE-generated images, and TopoVAE-generated images, and saves plots comparing the evolution of the BCE losses for the two models.
 
 ## Some results
 
