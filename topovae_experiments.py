@@ -14,7 +14,7 @@ import logging
 # Configure the logger to display logs in the notebook
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(message)s"
 )
 
 # Import topological functions and model
