@@ -39,22 +39,24 @@ from topogen import TopologicalLoss
 topo_loss = TopologicalLoss(topo_weights)
 loss, gotloss = topo_loss.compute_loss(point_cloud, true_point_cloud)
 ```
-Where `topo_weights` is a 7-element list of weights associated to the topological regularizers. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`), i.e., the sum (topoloss_i * topo_weights[i], only if topo_weights[i] ≠ 0) for i = 0, 1, ..., 6. In particular, if a weight is set to 0, its corresponding function is not used. Additionally, the function returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
+Where `topo_weights` is a 7-element list of weights associated to the topological regularizers. The function `topo_loss.compute_loss` returns the weighted sum of the topological losses as a scalar tensor (`loss`). Specifically, it computes (topoloss_i * topo_weights[i], only if topo_weights[i] ≠ 0) for i = 0, 1, ..., 6, where the topological losses are in the same order as in the list above. If a weight is set to 0, its corresponding function is not used. Additionally, `topo_loss.compute_loss` returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
 
 Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. 
 
-For a more manual control of individual topological functions, do, e.g. (the same principle applies to the seven regularizers):
+For a more manual control of individual topological functions, do, for instance:
 ```
 from topogen import loss_bottleneck0
 loss, gotloss = loss_bottleneck0(point_cloud, point_cloud2)
 ```
-In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details for additional optional arguments.
+The same principle applies to the other regularizers. In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
+
+The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds.
 
 ## Synthetic experiments
 
-To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, which are updated through gradient descent. In each test, we impose a ground truth persistence diagram that captures some topological properties. At each training step we compute the persistence diagram of the learnable point cloud and measure its dissimilarity with the ground truth diagram using the bottleneck loss. Using backpropagation and gradient descent to minimize this loss, we update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties. 
+To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, which are updated through gradient descent. In each test, we impose a ground truth persistence diagram that captures some topological properties. At each training step we compute the bottleneck losses of degrees 0 and 1, which is used to update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties.
 
-In the first test (left), we start with 5 clusters, and the ground truth persistence diagram indicates the presence of 3 clusters. The point cloud thus deforms itself to reach this goal. 
+In the first test (left), we start with 5 clusters, and the ground truth persistence diagram indicates the presence of 3 clusters. The point cloud thus deforms itself to reach this goal.
 
 In the second test (middle), we start with 2 clusters, and the ground truth persistence diagram indicates the presence of 4 clusters. 
 
@@ -88,11 +90,11 @@ The working principle of topology-informed generative models is illustrated belo
 
 ## Example: TopoVAE
 
-We provide a way to directly train and test VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
+We provide a file to directly train and test VAEs on the FashionMNIST dataset using topological regularizers. To do so, run:
 ```
 !python topovae_experiments.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
-Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. The file automatically saves plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it saves a plot of the evolution of the BCE losses for the VAE and the TopoVAE. 
+Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. The file automatically saves plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it saves plots of the evolution of the BCE losses for the two models.
 
 ## Some results
 
