@@ -4,7 +4,7 @@ models, or in experiments with learnable point clouds in 2D). Includes functions
 - Persistence diagrams: plot_fig_dgm
 - The effect of topological regularizers on 2D point clouds: plot_fig_pc, generate_animation
 - The performance of topology-informed models compared to their non-regularized counterparts: plot_gen_imgs, 
-plot_training_losses, plot_losses_avg_epoch.
+plot_iter_losses, plot_epoch_losses.
 """
 
 import os
@@ -75,8 +75,8 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     Plots and saves ground truth images, images reconstructed by the standard generative model, and by the topology-informed model.
     Args:
         data (torch.Tensor): Original data batch.
-        recon_batch_0 (torch.Tensor): Reconstructed batch from VAE.
-        recon_batch_t (torch.Tensor): Reconstructed batch from TopoVAE.
+        recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model.
+        recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model.
         epoch (int): Current epoch number, used for generating titles.
             Note: If plotting during training (evaluation type is 'train'), use the current epoch (0, 1, ...). 
             If plotting during validation/test, use epoch = number of epochs completed (1, 2, ...).
@@ -118,13 +118,13 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     plt.axis('off')
     plt.title("True")
 
-    # Middle: Reconstructed Batch 0 (standard Model)
+    # Middle: Reconstructed Batch 0 (standard GM)
     plt.subplot(1, 3, 2)
     plt.imshow(grid_recon_0)
     plt.axis('off')
     plt.title(modelname)
 
-    # Right: Reconstructed Batch from TopoModel
+    # Right: Reconstructed Batch from TopoGM
     plt.subplot(1, 3, 3)
     plt.imshow(grid_recon_t)
     plt.axis('off')
@@ -134,48 +134,52 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     if show: plt.show()
     plt.close()
 
-def plot_training_losses(train_losses0_all, train_losses1_all, filename=None, show=False):
+def plot_iter_losses(train_losses0_all, train_losses1_all, steps_per_item=1, modelname="VAE", metric="BCE", filename=None, show=False):
     """
-    Plots training losses for VAE and TopoVAE across all iterations.
+    Plots and saves training losses for a standard generative model and a topology-informed model across iterations.
     Args:
-        train_losses0_all (list): Losses for the normal VAE.
-        train_losses1_all (list): Losses for the TopoVAE.
+        train_losses0_all (list): Losses for the normal model.
+        train_losses1_all (list): Losses for the topology-informed model.
+        steps_per_item (int): interval (in training steps) at which every measure of the loss is saved.
+        modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
+        metric: Metric used (e.g., BCE, KLD, MSE, etc.).
         filename (str, optional): Filename for saving the plot. If None, the plot will not be saved.
         show (bool, optional): Whether to display the plot. 
     """
     plt.figure()
-    plt.plot(np.arange(len(train_losses0_all)), train_losses0_all, label='VAE0')
-    plt.plot(np.arange(len(train_losses1_all)), train_losses1_all, label='TopoVAE')
+    iterations = np.arange(len(train_losses0_all)) * steps_per_item
+    plt.plot(iterations, train_losses0_all, label=modelname)
+    plt.plot(iterations, train_losses1_all, label=f"Topo{modelname}")
     plt.xlabel("Iteration")
-    plt.ylabel("BCE loss")
-    plt.title("Training Losses Over Iterations")
+    plt.ylabel(f"{metric} loss")
+    plt.title(f"Training {metric} Losses Over Iterations")
     plt.legend(loc='upper right')
     plt.tight_layout()
     if filename is not None: plt.savefig(filename)
     if show: plt.show()
     plt.close()
 
-def plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, filename=None, show=False):
+def plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, modelname="VAE", metric="BCE", filename=None, show=False):
     """
-    Plots the average training and validation losses for VAE and TopoVAE over epochs.
+    Plots training and validation losses for a standard generative model and a topology-informed model over epochs (i.e., one value per epoch).
     Args:
-        train_losses0 (list): Average training losses for VAE0 per epoch.
-        train_losses1 (list): Average training losses for TopoVAE per epoch.
-        val_losses0 (list): Average validation losses for VAE0 per epoch.
-        val_losses1 (list): Average validation losses for TopoVAE per epoch.
+        train_losses0 (list): Average training losses for the standard model per epoch.
+        train_losses1 (list): Average training losses for the topology-informed model per epoch.
+        val_losses0 (list): Average validation losses for the standard model per epoch.
+        val_losses1 (list): Average validation losses for the topology-informed model per epoch.
         filename (str, optional): File path to save the plot. If None, the plot is not saved.
         show (bool, optional): Whether to display the plot.
     """
     epochs = np.arange(len(train_losses0))
     plt.figure()
-    plt.plot(epochs, train_losses0, label='VAE0, Train', marker='o')
-    plt.plot(epochs, train_losses1, label='TopoVAE, Train', marker='o')
-    plt.plot(epochs, val_losses0, label='VAE0, Val', marker='x', linestyle='dashed')
-    plt.plot(epochs, val_losses1, label='TopoVAE, Val', marker='x', linestyle='dashed')
+    plt.plot(epochs, train_losses0, label=f'{modelname} (Train)', marker='o')
+    plt.plot(epochs, train_losses1, label=f'Topo{modelname} (Train)', marker='o')
+    plt.plot(epochs, val_losses0, label=f'{modelname} (Val)', marker='x', linestyle='dashed')
+    plt.plot(epochs, val_losses1, label=f'Topo{modelname} (Val)', marker='x', linestyle='dashed')
     plt.xticks(ticks=epochs, labels=epochs)
     plt.xlabel("Epoch")
-    plt.ylabel("BCE loss")
-    plt.title("Training and Validation Losses Over Epochs")
+    plt.ylabel(f"{metric} loss")
+    plt.title(f"Training and Validation {metric} Losses Over Epochs")
     plt.legend(loc='upper right')
     plt.tight_layout()
     if filename is not None: plt.savefig(filename)
