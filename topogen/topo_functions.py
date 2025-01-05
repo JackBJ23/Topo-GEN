@@ -1,11 +1,3 @@
-import torch
-import numpy as np
-import math
-# TDA libraries
-import ripser
-import persim
-from gph import ripser_parallel
-
 """
 Topological Regularizers Overview:
 Each topological regularizer computes a measure of dissimilarity between the learnable point cloud's persistence diagram and the ground truth persistence diagram. 
@@ -32,6 +24,14 @@ Additionally, the topological regularizers are unified in the class TopologicalL
 
 Note: The function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be used to "push" clusters away from each other. 
 """
+
+import torch
+import numpy as np
+import math
+# TDA libraries
+import ripser
+import persim
+from gph import ripser_parallel
 
 def get_dgm(point_cloud, deg=1):
     """
