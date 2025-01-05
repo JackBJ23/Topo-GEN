@@ -74,7 +74,7 @@ def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
     for file_path in file_paths: os.remove(file_path)
     IPImage(gif_path)
 
-def save_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
+def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
     Plots and saves ground truth images (grayscale or RGB), images reconstructed by a standard generative model and images reconstructed by a topology-informed model.
     Args:
