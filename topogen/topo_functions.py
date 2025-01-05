@@ -1,33 +1,37 @@
 import torch
-import math
 import numpy as np
+import math
 # TDA libraries
 import ripser
 import persim
 from gph import ripser_parallel
 
 """
-The topological regularizers are: loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1,
-loss_dsigma0, loss_dsigma1, loss_density. Each function computes a different measure of dissimilarity between the diagram
-of the learnable point cloud and the ground truth persistence diagram. Each function has the following arguments and outputs:
+Topological Regularizers Overview:
+Each regularizer computes a measure of dissimilarity between the learnable point cloud's persistence diagram and the ground truth diagram. 
+The 7 topological regularizers are: 
+- loss_bottleneck0, loss_bottleneck1: compute bottleneck distance for homology degree 0/1
+- loss_persentropy0, loss_persentropy1: compute the persistence entropy loss for homology degree 0/1
+- loss_dsigma0, loss_dsigma1: compute the Reininghaus dissimilarity for homology degree 0/1
+- loss_density: compute the difference between 4SGDE density functions.
 
-Input arguments:
-  - Required:
-    - point_cloud (torch.Tensor): The learnable point cloud. Shape (number of points, dimension of each point).
-    - point_cloud2 (torch.Tensor): The true point cloud. Shape (number of points, dimension of each point).
-  - Optional:
-    - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
-    - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
-    - Additional optional arguments that control the topological functions.
+General input arguments:
+- Required:
+  - point_cloud (torch.Tensor): The learnable point cloud. Shape (number of points, dimension of each point).
+  - point_cloud2 (torch.Tensor): The true point cloud. Shape (number of points, dimension of each point).
+- Optional:
+  - dgm (dict): Persistence diagram for the first point cloud. If None, it will be computed.
+  - dgm2 (dict): Persistence diagram for the true point cloud. If None, it will be computed.
+  - Other hyperparameters that control the topological functions.
 
 Output:
-  - The computed loss value as a scalar tensor (torch.Tensor). 
-  - A status flag (True if the loss depends on the learnable point cloud, False otherwise).
+  - torch.Tensor: The computed loss value as a scalar tensor. 
+  - bool: A status flag, True if the loss depends on the learnable point cloud, False otherwise.
 
-All topological regularizers are unified in the function topo_losses. See details under its definition.
+Additionally, the topological regularizers are unified in the class TopologicalLoss for their efficient and straightforward combination. See details under its definition.
 
-Additionally, the function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
-used to "push" points or clusters away from each other. 
+Note: The function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
+used to "push" clusters away from each other. 
 """
 
 def get_dgm(point_cloud, deg=1):
@@ -42,7 +46,7 @@ def get_dgm(point_cloud, deg=1):
       - The computation is performed using ripser_parallel, a fast algorithm for computing persistence diagrams that runs on the CPU and expects a NumPy array as input.
     """
     with torch.no_grad():
-        # Convert point cloud to numpy if it's a torch tensor
+        # Convert point cloud to numpy if it is a torch tensor
         points = point_cloud.cpu().numpy() if isinstance(point_cloud, torch.Tensor) else point_cloud
         dgm = ripser_parallel(points, maxdim=deg, return_generators=True)
     return dgm
@@ -51,19 +55,19 @@ def get_dgm(point_cloud, deg=1):
 def _dist(point1, point2):
     return torch.sqrt(torch.sum((point2 - point1)**2))
 
-# Function used for the Reininghaus dissimilarity for two points (a, b) and (c, d)
-def _dist_2(a, b, c, d):
-    return (a - c)**2 + (b - d)**2
-
 # Supremum distance for two torch tensors (b1, d1) and (b2, d2)
 def _dist_sup_tc(b1, d1, b2, d2):
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
+
+# Function used for the Reininghaus dissimilarity for two points (a, b) and (c, d)
+def _dist_2(a, b, c, d):
+    return (a - c)**2 + (b - d)**2
 
 def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     """
     Topological regularizer: Computes the bottleneck distance for homology degree 0.
     """
-    # First, check if the diagrams have been provided:
+    # Check if the diagrams have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
     # If dgm is empty, there is no topological loss:
@@ -71,15 +75,14 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     # Compute bottleneck distance:
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
-        #find the pair that gives the max distance:
+        #find the pair that gives the maximum distance:
         index = np.argmax(matching[:, 2])
-        i, j = int(matching[index][0]), int(matching[index][1]) #i, j: the i-th and j-th point of the dgm1, dgm2 respectively, that give the bottleneck dist.
-        # (if the largest dist is point<->diagonal: i or j is -1)
-        #i is the i-th pt in dgm and j is the j-th pt in dgm2 which give the bottleneck dist (i.e. it is the largest dim)
-        #for the loss, need to know what is the point i (learnable), i=(distmatrix[xi,yi],distmatrix[ai,bi]) in the distance matrix for some 4 indices
-        #but gen[0]
-        # i is the index of a point of the PD. but (gens[i][1], gens[i][2]) is the pair of vertices of the point cloud that correspond to the point i=(0,d), with d=dist(gens[i][1]-gens[i][2])
-        #get the 2 points that give the distance of the i-th pt in dgm in the 1st diagram and compute the loss:
+        i, j = int(matching[index][0]), int(matching[index][1]) 
+        '''
+        i, j: the i-th and j-th point of dgm, dgm2 respectively, that give the bottleneck distance. If the bottleneck distance is reached by a match point-diagonal: i or j are -1.
+        For the loss, need to express the coordinates of P_i (point in dgm) in terms of the point cloud: P_i=(0, d)=(0, _dist(point1_dgm1, point2_dgm1))
+        where point1_dgm1, point2_dgm1 are the (dgm['gens'][0][i][1])-th and (dgm['gens'][0][i][2])-th points of point_cloud, respectively. 
+        '''
     if i>=0:
       point1_dgm1 = point_cloud[dgm['gens'][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
@@ -87,22 +90,21 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     if i>=0 and j>=0:
       return torch.abs(_dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
     else:
-      if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
-        #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
+      if i==-1: # So the j-th point from dgm2 is matched to the diagonal -> the bottleneck distance does not depend explicitely on dgm.
         return torch.tensor(0., device=point_cloud.device), False
-      else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
+      else: # Then  j==-1, so the i-th point from dgm is matched to the diagonal. 
         return _dist(point1_dgm1, point2_dgm1)/2., True
 
 def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
     """
     Topological regularizer: Computes the bottleneck distance for homology degree 1.
     """
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
-    
+    # If dgm['dgms'][1], there is no loss:
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=point_cloud.device), False
-    # if dgm2['dgms'][1] is empty, make a small change for simplifying the following calculations:
+    # If dgm2['dgms'][1] is empty, make a small change for simplifying the next calculations:
     if len(dgm2['dgms'][1]) == 0:
       dgm2_dgms1_empty = True
       dgm2['dgms'][1] = [[0., 0.]]
@@ -111,16 +113,13 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
     
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][1], dgm2['dgms'][1], matching=True)
-        #find the pair that gives the max distance:
+        # Find the pair that gives the maximum distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1])
-        #i is the i-th pt in dgm and j is the j-th pt in dgm2 which give the bottleneck dist (i.e. it is the largest dim)
-        #for the loss, need to know what is the point i (learnable), i=(distmatrix[xi,yi],distmatrix[ai,bi]) in the distance matrix for some 4 indices
-        # i is the index of a point of the PD. but (gens[i][1], gens[i][2]) is the pair of vertices of the point cloud that correspond to the point i=(0,d), with d=dist(gens[i][1]-gens[i][2])
-
-    #get the 2 points that give the distance of the i-th pt in dgm in the 1st diagram:
-    #if i>0, then the pt of dgm1 is off-diag:
-    if i>=0:
+        # i is the i-th pt in dgm and j is the j-th pt in dgm2 that give the bottleneck distance. 
+    
+    # For the loss, we need to express the P_i (point in dgm) in terms of the learnable point cloud:
+    if i>=0: # then the point of dgm that gives the bottleneck distance is off-diagonal and depends on the point cloud: P_i=(birth_dgm1, death_dgm1)
       point0_dgm1 = point_cloud[dgm['gens'][1][0][i][0]]
       point1_dgm1 = point_cloud[dgm['gens'][1][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][1][0][i][2]]
@@ -128,20 +127,20 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
       birth_dgm1 = _dist(point0_dgm1, point1_dgm1)
       death_dgm1 = _dist(point2_dgm1, point3_dgm1)
 
-    #get the 2 points that give the distance of the j-th pt in dgm in the 2nd diagram:
+    # Get the 2 points that give the distance of the j-th pt in dgm in the 2nd diagram:
     if j>=0:
       birth_dgm2 = dgm2['dgms'][1][j][0]
       death_dgm2 = dgm2['dgms'][1][j][1]
 
-    # if dgm2 had been modified, go back to its initial form (in case it is used in other topofunctions):
+    # If dgm2 had been modified, go back to its initial form (in case it is used in other topological functions):
     if dgm2_dgms1_empty: dgm2['dgms'][1] = []
     
     if i>=0 and j>=0:
       return _dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), True
     else:
-      if i==-1: #so the j-th point from dgm2 is matched to the diagonal
+      if i==-1: # So the j-th point from dgm2 is matched to the diagonal
         return torch.tensor(0., device=point_cloud.device), False
-      else: #then j==-1, so the i-th point from dgm is matched to the diagonal
+      else: # Then j==-1, so the i-th point from dgm is matched to the diagonal
         return (death_dgm1 - birth_dgm1)/2., True
 
 def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.001):
