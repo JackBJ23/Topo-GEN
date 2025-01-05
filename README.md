@@ -54,13 +54,15 @@ The library also includes visualization tools to observe the impact of topologic
 
 ## Synthetic experiments
 
-To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, which are updated through gradient descent. In each test, we impose a ground truth persistence diagram that captures some topological properties. At each training step we compute the bottleneck losses of degrees 0 and 1, which is used to update the coordinates of the point cloud. In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties.
+To visualize the information captured by the topological regularizers, we provide three proof-of-concept examples. In each case, we start with a random point cloud in 2D, and we set their coordinates as learnable parameters, which are updated through gradient descent. In each test, we impose a ground truth persistence diagram that captures some topological properties. At each training step we compute the bottleneck losses of degrees 0 and 1, which are used to update the coordinates of the point cloud.
 
 In the first test (left), we start with 5 clusters, and the ground truth persistence diagram indicates the presence of 3 clusters. The point cloud thus deforms itself to reach this goal.
 
 In the second test (middle), we start with 2 clusters, and the ground truth persistence diagram indicates the presence of 4 clusters. 
 
-In the third test (right), we start with 2 segments, and the ground truth persistence diagram indicates the presence of one circle. 
+In the third test (right), we start with 2 segments, and the ground truth persistence diagram indicates the presence of one circle.
+
+In each case, we see that the topological loss teaches the point cloud to continuously deform and rearrange itself to reach the desired topological properties.
 
 <div style="display: flex; justify-content: space-between;">
     <img src="assets/synthetic1_video.gif" width="30%">
@@ -73,18 +75,18 @@ To run these experiments:
 !python synthetic_experiments.py
 ```
 
-Furthermore, we provide a "virtual playground" where the user can run other synthetic experiments and experiment with different combinations of topological regularizers on arbitrary point clouds in the plane. To do so, run:
+Furthermore, we provide a "virtual playground" where the user can run other synthetic experiments and test different combinations of topological regularizers on arbitrary point clouds in the plane. To do so, run:
 ```
 import numpy as np
 from synthetic_experiments import synthetic_test
 
 synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", num_save=50, x1=-10., x2=40., y1=-40., y2=40.)
 ```
-Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. Only the first two arguments are required. The function saves figures of the initial true point cloud, initial true persistence diagram, initial learnable point cloud, final point cloud, its final persistence diagram, loss evolution, and an animation of the point cloud evolution. 
+Where `point_cloud` and `point_cloud_true` are expected to be numpy arrays of shape `(number of points, dimension of each point)`, e.g., an input point cloud of three points in 2D can be `np.array([[0., 0.], [1., 0.], [0., 1.]])`. Only the first two arguments are required. The function saves figures of the true point cloud and its persistence diagram, initial learnable point cloud and its diagram, final point cloud and its diagram, loss evolution, and an animation of the point cloud evolution. 
 
 ## Working principle of topology-informed generative models
 
-The working principle of topology-informed generative models is illustrated below, using a variational autoencoder as an example, and can be summarized as follows. Assume the generative model produces images or any data that can be represented as an array of real numbers, and view each data element as an individual vector or point. At each training step, a batch of N data points is given to the model and N points are generated as output. When implementing the topological regularizers, in each training iteration we compute the persistence diagram of the batch of N true points, and the persistence diagram of the N generated points, both viewed as point clouds. The two resulting persistence diagrams are then compared using some measure of dissimilarity, and the regularizer captures this measure. Hence, the modification of the weights of the generative model through gradient descent aims to produce data with a spatial distribution that looks like the distribution of the true data. Furthermore, there is also an extension of this method, also illustrated below, which relies on applying the topological regularizers on the batch of latent vectors instead of the final outputs of the model, in order to control the distribution in the latent space.
+The working principle of topology-informed generative models is illustrated below, using a variational autoencoder as an example, and can be summarized as follows. Assume the generative model produces images or any data that can be represented as an array of real numbers, and view each data element as an individual vector or point. At each training step, a batch of N data points is given to the model and N points are generated as output. When implementing the topological regularizers, in each training iteration we compute the persistence diagram of the batch of N true points, and the persistence diagram of the N generated points, both viewed as point clouds. The regularizer captures a measure of dissimilarity between the two diagrams. Hence, the modification of the weights of the generative model through gradient descent aims to produce data with a spatial distribution that "looks like" the distribution of the true data. Furthermore, there is an extension of this method (also illustrated below) which relies on applying the topological regularizers on the batch of latent vectors instead of the final outputs of the model, in order to control the distribution in the latent space.
 
 <img src="assets/topovae_architecture.png" alt="TopoVAE Architecture" width="700"/>
 
@@ -94,7 +96,7 @@ We provide a file to directly train and test VAEs on the FashionMNIST dataset us
 ```
 !python topovae_experiments.py --topo_weights w_bottleneck0,w_bottleneck1,w_entropy0,w_entropy1,w_ksigma0,w_ksigma1,w_density
 ```
-Where `topo_weights` is the list of weights associated with each topological loss. Other arguments can be manually set, do `!python train.py --help` for details. The file automatically saves plots of true, VAE, and TopoVAE-generated images for each training epoch, for evaluation in each epoch, and it saves plots of the evolution of the BCE losses for the two models.
+Where `topo_weights` is the list of weights associated with each topological loss. To manually set additional arguments, do `!python train.py --help` for details. The file automatically saves plots comparing true images, VAE-generated images, and TopoVAE-generated images, and saves plots comparing the evolution of the BCE losses for the two models.
 
 ## Some results
 
