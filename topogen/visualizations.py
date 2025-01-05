@@ -102,7 +102,7 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     data = data.reshape(-1, 1, img_size, img_size)
     recon_batch_0 = recon_batch_0.reshape(-1, 1, img_size, img_size)
     recon_batch_t = recon_batch_t.reshape(-1, 1, img_size, img_size)
-    print("after: data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t)
+    print("after: data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t.shape)
 
     # Create grids for each dataset
     grid_data = torchvision.utils.make_grid(data[:n_imgs], nrow=8, normalize=True)
