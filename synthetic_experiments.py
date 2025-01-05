@@ -7,24 +7,26 @@ import matplotlib.pyplot as plt
 
 from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, generate_animation
 
-# Loss function for the point cloud:
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
+  """
+  Computes the topological loss function for the point cloud. 
+  """
   dgm = get_dgm(point_cloud, 1)
   loss, gotloss = topo_loss.compute_loss(point_cloud, point_cloud_true, dgm, dgm_true)
   if gotloss: return loss, loss.item()
-  # If did not get losses from the previous functions: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
+  # If did not get topological loss: use loss_push0, which adds a small perturbation to the point cloud that "pushes" points away from each other
   # Empirically, this leads, in the following iterations, to obtain losses from the bottleneck functions
   return loss_push0(point_cloud, dgm), loss.item()
 
 def create_point_cloud(centers, cluster_sizes, r):
     """
-    Creates a point cloud with multiple clusters.
+    Creates a point cloud in 2D with multiple clusters.
     Args:
-        centers (np.ndarray): Array with the centers of the clusters. 
-        cluster_sizes (list): Number of points per cluster. 
-        r (float): Radius for the random perturbation around each cluster center.
+        - centers (np.ndarray): Array with the centers of the clusters. 
+        - cluster_sizes (list): Number of points per cluster. 
+        - r (float): Radius for the random perturbation around each cluster center.
     Returns:
-        np.ndarray: Generated point cloud of shape (num_points, 2).
+        - np.ndarray: Generated point cloud of shape (num_points, 2).
     """
     point_cloud = []
     for center, size in zip(centers, cluster_sizes):
@@ -35,14 +37,22 @@ def create_point_cloud(centers, cluster_sizes, r):
 
 def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.):
   """
-  Function for running a synthetic test with the bottleneck functions. This function saves images of:
-  i) initial true point cloud, initial true persistence diagram, initial learnable point cloud
-  f) final point cloud, final persistence diagram of point cloud, loss evolution, and a video of the point cloud evolution during training
-  
-  Comments on arguments:
-  - num_save: specifies the interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the
-  final animation.
-  - x1, x2, y1, y2: the window limits for the animation
+  Function for running a synthetic test with an initial random point cloud in 2D, a ground truth point cloud, and an arbitrary topological loss. 
+  Helpful for visualizing the impact of topological regularizers on 2D data.
+  Args:
+    - point_cloud (torch.Tensor): Learnable point cloud, shape (number of points, dimension of each point).
+    - point_cloud_true (torch.Tensor): Ground truth point cloud, shape (number of points, dimension of each point).
+    - topo_weights (list): List of weights for the total loss (created with the class TopologicalLoss). Each weight is associated with a topological regularizer.
+    - num_steps (int): Number of training steps.
+    - lr (float): Learning rate.
+    - test_name (str): Test name for saving the generated files.
+    - device: Device for performing the computations.
+    - num_save: Interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation.
+    - x1, x2, y1, y2 (floats): the window limits for the animation (x-min, x-max, y-min, y-max, respectively).
+  Output:
+    - Figures of the initial true point cloud, initial true persistence diagram, and initial learnable point cloud.
+    - Figures of the final learnable point cloud, its final persistence diagram, loss evolution.
+    - An animation of the point cloud evolution during training.
   """
   # Plot true point cloud:
   save_fig_pc(point_cloud_true, f'{test_name}_ini_true_pointcloud.png')
@@ -82,7 +92,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
         print(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
 
   print("Training ended")
-  # save persistence diagram of final point cloud:
+  # Save persistence diagram of the final point cloud:
   save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram.png')
   # Save final point cloud:
   save_fig_pc(point_clouds[-1], f'{test_name}_final_pointcloud.png')
@@ -93,12 +103,12 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   plt.ylabel("Loss")
   plt.savefig(f'{test_name}_loss_evolution.png')
   plt.close()
-  # Save video of evolution of the point cloud:
+  # Save animation of the evolution of the point cloud:
   generate_animation(point_clouds, test_name, x1, x2, y1, y2)
   print(f"Test {test_name} done!")
 
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
-  # Generate a snythetic ground truth point cloud:
+  # Generate a synthetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
@@ -111,7 +121,6 @@ def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
 
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
-  # Initial point cloud: 2 lines with added noise
   point_cloud = np.zeros((64,2))
   r1 = 0.1
   for i in range(32):
@@ -126,6 +135,6 @@ if __name__ == "__main__":
   # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
   test2()
   print("Test 2 done.")
-  # Test 3: The learnable point cloud starts as 2 lines, and the reference point cloud is a circle
+  # Test 3: The learnable point cloud starts as 2 lines with added noise, and the reference point cloud is a circle
   test3()
   print("Test 3 done.")
