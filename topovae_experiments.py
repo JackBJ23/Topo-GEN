@@ -40,7 +40,7 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, device):
         # No need to compute the topological loss here, only need BCE for comparison (KLD could also be included):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         running_loss1 += BCE1.item()
-        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epochs')
+        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
 
   return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
 
