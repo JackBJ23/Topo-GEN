@@ -78,9 +78,9 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     """
     Plots and saves ground truth images, images reconstructed by a standard generative model and by a topology-informed model.
     Args:
-        data (torch.Tensor): Original data batch. Shape (batch size, 1, height, width).
-        recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model. Shape (batch size, 1, height, width).
-        recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model. Shape (batch size, 1, height, width).
+        data (torch.Tensor): Original data batch. Shape (batch size, num channels, height, width).
+        recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model. Shape (batch size, num channels, height, width).
+        recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model. Shape (batch size, num channels, height, width).
         epoch (int): Current epoch number, used for generating titles.
             Note: If plotting during training (evaluation type is 'train'), use epoch = current epoch (0, 1, ...). 
             If plotting during validation/test, use epoch = number of epochs completed (1, 2, ...).
