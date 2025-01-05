@@ -9,6 +9,7 @@ from torch import optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
+import logging
 
 # Import topological functions and model
 from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
@@ -149,7 +150,8 @@ if __name__ == "__main__":
   torch.manual_seed(args.seed)
   print("Topological weights:", args.topo_weights)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  print("Device:", device)
+  #print("Device:", device)
+  logging.info(f"Device: {device}")
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
