@@ -333,7 +333,7 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
 def loss_push0(point_cloud, dgm):
     """
     Computes the push function for a 0-degree persistence diagram. If used as a loss function and minimized through gradient descent, results
-    in a deformation of the point cloud that 'pushes' clusters away from each other. Can be used as a helper function whenever topological regularizers return False.  
+    in a deformation of the point cloud that "pushes" clusters away from each other. Can be used as a helper function whenever topological regularizers return False.  
     """
     # Check if the dgm has been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
