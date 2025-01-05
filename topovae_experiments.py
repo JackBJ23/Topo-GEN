@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 
 # Import topological functions and model
-from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_training_losses, plot_losses_avg_epoch
+from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
 from models import VAE
 
 # Standard loss of VAE
@@ -103,10 +103,10 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
   # Training ended
   # Plot and save losses over all training steps: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  plot_training_losses(train_losses0_all, train_losses1_all, 'BCElosses_train.png')
+  plot_iter_losses(train_losses0_all, train_losses1_all, filename='BCElosses_train.png')
   # Plot training losses and validation losses over epochs:
   if args.n_epochs > 1:
-      plot_losses_avg_epoch(train_losses0, train_losses1, val_losses0, val_losses1, 'BCElosses_train_val_epochs.png')
+      plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
   else:
       print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
       print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
