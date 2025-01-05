@@ -17,9 +17,9 @@ from plotly import graph_objects as go
 from PIL import Image
 from IPython.display import Image as IPImage
 
-def plot_fig_dgm(dgm, filename):
+def save_fig_dgm(dgm, filename):
     """
-    Plots a persistence diagram and saves it in a file.
+    Saves a figure of a persistence diagram.
     Args:
         dgm (dict): Persistence diagram. Can be obtained using the function get_dgm(), see topo_functions.py.
         filename: File name to save the plot.
@@ -28,9 +28,9 @@ def plot_fig_dgm(dgm, filename):
     fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
     fig.write_image(filename)
  
-def plot_fig_pc(pointcloud, filename):
+def save_fig_pc(pointcloud, filename):
     """
-    Plots a point cloud and saves it in a file.
+    Saves a figure of a point cloud in 2D.
     Args:
         pointcloud (np.ndarray): Point cloud, shape (number of points, dimension of each point).
         filename: File name to save the plot.
@@ -74,7 +74,7 @@ def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
     for file_path in file_paths: os.remove(file_path)
     IPImage(gif_path)
 
-def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
+def save_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
     Plots and saves ground truth images (grayscale or RGB), images reconstructed by a standard generative model and images reconstructed by a topology-informed model.
     Args:
