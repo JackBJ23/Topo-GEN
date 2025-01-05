@@ -26,14 +26,22 @@ To clone the repository and run the tests, for instance on Google Colab, do:
 
 ## Basic usage
 
-The library provides seven topological regularizers, each computing a different measure of dissimilarity between the diagram of the learnable point cloud and the ground truth persistence diagram. These functions are 1) bottleneck distance for homology degree 0, 2) bottleneck distance for homology degree 1, 3) squared difference between persistence entropies for homology degree 0, 4) squared difference between persistence entropies for homology degree 1, 5) Reininghaus dissimilarity for degree 0, 6) Reininghaus dissimilarity for degree 1, and 7) density loss for degree 0. We provide a unified class that allows the simple and efficient combination of these functions. To use it, do:
+The library provides seven topological regularizers, each computing a different measure of dissimilarity between the persistence diagram of the learnable point cloud and the ground truth diagram. These functions are:
+- `loss_bottleneck0`, `loss_bottleneck1`: bottleneck distance for homology degrees 0 and 1, respectively.
+- `loss_persentropy0`, `loss_persentropy1`: squared difference between persistence entropies for homology degrees 0 and 1, respectively.
+- `loss_dsigma0`, `loss_dsigma1`: Reininghaus dissimilarity for homology degrees 0 and 1, respectively.
+- `loss_density`: difference between the 4SGDE density functions of the two persistence diagrams.
+- 
+We provide a unified class that allows the simple and efficient combination of these functions. To use it, do:
 ```
 from topogen import TopologicalLoss
 
 topo_loss = TopologicalLoss(topo_weights)
-loss, gotloss = topo_loss.compute(point_cloud, true_point_cloud)
+loss, gotloss = topo_loss.compute_loss(point_cloud, true_point_cloud)
 ```
-Where `topo_weights` is a 7-element list, with `topo_weights[i]` the weight associated to the i-th topological loss. If a weight is set to 0, its corresponding loss is not used. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. The function outputs the computed loss value as a scalar tensor (`loss`), and a boolean that is `True` if the loss depends on the learnable point cloud and `False` otherwise (`gotloss`). 
+Where `topo_weights` is a 7-element list, with `topo_weights[i]` the weight associated to the i-th topological loss. If a weight is set to 0, its corresponding loss is not used. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`). In other words, it computes $\sum_{i=1}^{7} (\text{topoloss}_i \cdot \text{topo\_weights}[i] \text{ if } \text{topo\_weights}[i] \neq 0)$. Additionally, it returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
+
+Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. 
 
 For a more manual control of individual topological functions, do:
 ```
