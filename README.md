@@ -39,7 +39,7 @@ from topogen import TopologicalLoss
 topo_loss = TopologicalLoss(topo_weights)
 loss, gotloss = topo_loss.compute_loss(point_cloud, true_point_cloud)
 ```
-Where `topo_weights` is a 7-element list, with `topo_weights[i]` the weight associated to the i-th topological loss. If a weight is set to 0, its corresponding loss is not used. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`). In other words, it computes $\sum_{i=1}^{7} (\text{topoloss}_i \cdot \text{topo\_weights} \text{ if } \text{topo\_weights}[i] \neq 0)$. Additionally, it returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
+Where `topo_weights` is a 7-element list of weights associated to the topological regularizers. If a weight is set to 0, its corresponding loss is not used. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`): $$\sum_{i=1}^{7} (\text{topoloss}_i \cdot \text{topo\_weights} \text{ if } \text{topo\_weights}[i] \neq 0)$$. Additionally, it returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
 
 Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. 
 
