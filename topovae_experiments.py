@@ -13,7 +13,7 @@ import logging
 
 # Import topological functions and model
 from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
-from models import VAE
+from model import VAE
 
 logging.basicConfig(
     level=logging.INFO,
