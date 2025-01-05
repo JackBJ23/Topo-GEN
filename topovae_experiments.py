@@ -16,9 +16,9 @@ from models import VAE
 
 # Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of imgs, x: real batch of imgs
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of images, x: true batch of images
     KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
-    # see Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
+    # See Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
 
 # Evaluate model0 (normal VAE) and model1 (TopoVAE):
@@ -30,13 +30,13 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, device):
   with torch.no_grad():
       for batch_idx, (data, _) in enumerate(val_loader):
         data = data.to(device)
-        #model0
+        # model0
         recon_batch0, mean0, log_var0 = model0(data)
         BCE0, _ = loss_vae(recon_batch0, data, mean0, log_var0)
         running_loss0 += BCE0.item()
-        #model1
+        # model1
         recon_batch1, mean1, log_var1 = model1(data)
-        # No need to compute topoloss here, only need BCE for comparison:
+        # No need to compute the topological loss here, only need BCE for comparison (KLD could also be included):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         running_loss1 += BCE1.item()
         if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epochs')
@@ -45,13 +45,13 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, device):
 
 # Train and compare model0 (normal VAE) and model1 (TopoVAE):
 def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
-  # Losses saved once per epoch:
+  # Losses to save once per epoch:
   train_losses0 = []
   train_losses1 = []
   val_losses0 = []
   val_losses1 = []
 
-  # Losses saved at all training steps, for plotting the loss evolution with more detail:
+  # Losses to save at all training steps, for plotting the loss evolution with more detail:
   train_losses0_all = []
   train_losses1_all = []
 
@@ -65,11 +65,11 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
       running_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
           data = data.to(device)
-          dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch, to avoid computation time
+          dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch to avoid computation time
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
-          # model0: VAE
+          # model0 (VAE)
           recon_batch0, mean0, log_var0 = model0(data)
           BCE0, KLD0 = loss_vae(recon_batch0, data, mean0, log_var0)
           loss0 = BCE0 + KLD0
@@ -78,7 +78,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           running_loss0 += BCE0.item()
           train_losses0_all.append(BCE0.item())
 
-          # model1: TopoVAE
+          # model1 (TopoVAE)
           recon_batch1, mean1, log_var1 = model1(data)
           BCE1, KLD1 = loss_vae(recon_batch1, data, mean1, log_var1)
           loss1 = BCE1 + KLD1
@@ -93,11 +93,11 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
 
       print("End of epoch", epoch)
-      # Average of losses over one epoch:
+      # Save average of losses over the epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
-      # Evaluate on the evaluation set:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'eval', device)
+      # Evaluate both models:
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', device)
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
@@ -132,7 +132,7 @@ def load_config():
     parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
     parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
     parser.add_argument('--save_models', type=bool, default=False, help="Select True for saving the models after training, False otherwise.")
-    # Hyperparameters for some topological functions (reference values by default):
+    # Hyperparameters for topological functions (reference values by default):
     parser.add_argument('--pers0_delta', type=float, default=0.001, help="Controls loss_persentropy0.")
     parser.add_argument('--pers1_delta', type=float, default=0.001, help="Controls loss_persentropy1.")
     parser.add_argument('--dsigma0_sigma', type=float, default=0.05, help="Controls loss_dsigma0.")
@@ -164,10 +164,11 @@ if __name__ == "__main__":
   train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
   test_dataset = datasets.FashionMNIST(root='./data', train=False, transform=transform, download=True)
 
-  train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False) # Set shuffle=False to pre-compute persistence diagrams for all batches only once before training
+  # Set shuffle=False to pre-compute persistence diagrams for all batches only one time before training
+  # If shuffle=True, ground truth persistence diagrams have to be pre-computed before starting each epoch
+  train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False)
   val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
   test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
-
   print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
   # Pre-compute persistence diagrams:
@@ -179,9 +180,9 @@ if __name__ == "__main__":
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
   if args.save_models:
-      torch.save(model0.state_dict(), "model0_weights.pth")
-      torch.save(model1.state_dict(), "model1_weights.pth")
-      print("Weights of VAE and TopoVAE saved.")
+      torch.save(model0.state_dict(), "vae_weights.pth")
+      torch.save(model1.state_dict(), "topovae_weights.pth")
+      print("Weights of VAE and TopoVAE saved in vae_weights.pth and topovae_weights.pth, respectively.")
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
   print("Test losses:", test_loss0, test_loss1)
