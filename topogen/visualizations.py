@@ -153,8 +153,8 @@ def plot_iter_losses(train_losses0_all, train_losses1_all, steps_per_item=1, mod
     """
     plt.figure()
     iterations = np.arange(len(train_losses0_all)) * steps_per_item
-    plt.plot(iterations, train_losses0_all, label=modelname)
-    plt.plot(iterations, train_losses1_all, label=f"Topo{modelname}")
+    plt.plot(iterations, train_losses0_all, label=modelname, color='blue')
+    plt.plot(iterations, train_losses1_all, label=f"Topo{modelname}", color='orange')
     plt.xlabel("Iteration")
     plt.ylabel(f"{metric} loss")
     plt.title(f"Training {metric} Losses Over Iterations")
@@ -179,10 +179,10 @@ def plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, mo
     """
     epochs = np.arange(len(train_losses0))
     plt.figure()
-    plt.plot(epochs, train_losses0, label=f'{modelname} (Train)', marker='o')
-    plt.plot(epochs, train_losses1, label=f'Topo{modelname} (Train)', marker='o')
-    plt.plot(epochs, val_losses0, label=f'{modelname} (Val)', marker='x', linestyle='dashed')
-    plt.plot(epochs, val_losses1, label=f'Topo{modelname} (Val)', marker='x', linestyle='dashed')
+    plt.plot(epochs, train_losses0, label=f'{modelname} (Train)', marker='o', color='blue')
+    plt.plot(epochs, train_losses1, label=f'Topo{modelname} (Train)', marker='o', color='orange')
+    plt.plot(epochs, val_losses0, label=f'{modelname} (Val)', marker='x', linestyle='dashed', color='blue')
+    plt.plot(epochs, val_losses1, label=f'Topo{modelname} (Val)', marker='x', linestyle='dashed', color='orange')
     plt.xticks(ticks=epochs, labels=epochs)
     plt.xlabel("Epoch")
     plt.ylabel(f"{metric} loss")
