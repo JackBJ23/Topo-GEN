@@ -8,12 +8,12 @@ from gph import ripser_parallel
 
 """
 Topological Regularizers Overview:
-Each regularizer computes a measure of dissimilarity between the learnable point cloud's persistence diagram and the ground truth diagram. 
-The 7 topological regularizers are: 
+Each topological regularizer computes a measure of dissimilarity between the learnable point cloud's persistence diagram and the ground truth persistence diagram. 
+The 7 regularizers are: 
 - loss_bottleneck0, loss_bottleneck1: compute bottleneck distance for homology degree 0/1
-- loss_persentropy0, loss_persentropy1: compute the persistence entropy loss for homology degree 0/1
+- loss_persentropy0, loss_persentropy1: compute the squared difference between persistence entropies for homology degree 0/1
 - loss_dsigma0, loss_dsigma1: compute the Reininghaus dissimilarity for homology degree 0/1
-- loss_density: compute the difference between 4SGDE density functions.
+- loss_density: compute the difference between the 4SGDE density functions of the two diagrams.
 
 General input arguments:
 - Required:
@@ -28,10 +28,9 @@ Output:
   - torch.Tensor: The computed loss value as a scalar tensor. 
   - bool: A status flag, True if the loss depends on the learnable point cloud, False otherwise.
 
-Additionally, the topological regularizers are unified in the class TopologicalLoss for their efficient and straightforward combination. See details under its definition.
+Additionally, the topological regularizers are unified in the class TopologicalLoss for their efficient and straightforward combination. See details in class TopologicalLoss.
 
-Note: The function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be
-used to "push" clusters away from each other. 
+Note: The function loss_push0, although not considered a regularizer since it does not rely on ground truth data, can be used to "push" clusters away from each other. 
 """
 
 def get_dgm(point_cloud, deg=1):
@@ -41,9 +40,8 @@ def get_dgm(point_cloud, deg=1):
       - point_cloud (torch.Tensor or np.ndarray): The input point cloud. Shape (number of points, dimension of each point).
       - deg (int): Homology degree of homology (0 or 1); persistence diagrams are computed up to degree deg.
     Returns:
-      - A dictionary storing the persistence diagrams of the point cloud and the generators. dgms[i]: The persistence diagram for degree i.
-    Note:
-      - The computation is performed using ripser_parallel, a fast algorithm for computing persistence diagrams that runs on the CPU and expects a NumPy array as input.
+      - dgm: A dictionary storing the persistence diagrams of the point cloud and the generators. dgms[i]: The persistence diagram for degree i.
+    Note: The computation is performed using ripser_parallel, a fast algorithm for computing persistence diagrams that runs on the CPU and expects a NumPy array as input.
     """
     with torch.no_grad():
         # Convert point cloud to numpy if it is a torch tensor
@@ -75,14 +73,12 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     # Compute bottleneck distance:
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
-        #find the pair that gives the maximum distance:
+        # Find the pair that gives the maximum distance:
         index = np.argmax(matching[:, 2])
         i, j = int(matching[index][0]), int(matching[index][1]) 
-        '''
-        i, j: the i-th and j-th point of dgm, dgm2 respectively, that give the bottleneck distance. If the bottleneck distance is reached by a match point-diagonal: i or j are -1.
-        For the loss, need to express the coordinates of P_i (point in dgm) in terms of the point cloud: P_i=(0, d)=(0, _dist(point1_dgm1, point2_dgm1))
-        where point1_dgm1, point2_dgm1 are the (dgm['gens'][0][i][1])-th and (dgm['gens'][0][i][2])-th points of point_cloud, respectively. 
-        '''
+        # i is the i-th pt in dgm and j is the j-th pt in dgm2 that give the bottleneck distance. If i==-1, j is matched to the diagonal, and viceversa. 
+        # For the loss, need to express the coordinates of P_i (point in dgm) in terms of the point cloud: P_i=(0, d)=(0, _dist(point1_dgm1, point2_dgm1)),
+        # where point1_dgm1, point2_dgm1 are the (dgm['gens'][0][i][1])-th and (dgm['gens'][0][i][2])-th points of point_cloud, respectively. 
     if i>=0:
       point1_dgm1 = point_cloud[dgm['gens'][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
@@ -119,7 +115,7 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
         # i is the i-th pt in dgm and j is the j-th pt in dgm2 that give the bottleneck distance. 
     
     # For the loss, we need to express the P_i (point in dgm) in terms of the learnable point cloud:
-    if i>=0: # then the point of dgm that gives the bottleneck distance is off-diagonal and depends on the point cloud: P_i=(birth_dgm1, death_dgm1)
+    if i>=0:
       point0_dgm1 = point_cloud[dgm['gens'][1][0][i][0]]
       point1_dgm1 = point_cloud[dgm['gens'][1][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][1][0][i][2]]
@@ -127,7 +123,7 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
       birth_dgm1 = _dist(point0_dgm1, point1_dgm1)
       death_dgm1 = _dist(point2_dgm1, point3_dgm1)
 
-    # Get the 2 points that give the distance of the j-th pt in dgm in the 2nd diagram:
+    # Get the coordinates of the j-th pt in dgm2:
     if j>=0:
       birth_dgm2 = dgm2['dgms'][1][j][0]
       death_dgm2 = dgm2['dgms'][1][j][1]
@@ -146,13 +142,13 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
 def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.001):
     """
     Topological regularizer: Computes the squared difference between the persistence entropies of the two 0-degree persistence diagrams. 
-    Only considers points with persistence > delta. (The persistence of a point (b,d) in the diagrma is |d-b|. Since the homology degree is 0, 
+    Only considers points with persistence > delta. (The persistence of a point (b,d) in a diagram is |d-b|. Since the homology degree is 0, 
     we work with points (0,d), so persistence is |d|.)
     Optional args:
       - delta (float): > 0.
     """
     device = point_cloud.device
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
     
@@ -166,10 +162,11 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
   
     if L.item() == 0.: return torch.tensor(0., device=device), False
     for i in range(len(dgm['dgms'][0])-1):
-      pers1 = _dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
-      if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L) #pt of pt cloud is (0,dist(p1, p2))
+      pers1 = _dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]])
+      if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
   
     # Get persistent entropy of dgm2:
+    if len(dgm2['dgms'][0])==0: return (pers/L)**2, True # The entropy of dgm2 is 0
     L2 = 0.
     pers2 = 0.
     for i in range(len(dgm2['dgms'][0])-1):
@@ -190,7 +187,7 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
       - delta (float): > 0.
     """
     device = point_cloud.device
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
     
@@ -199,7 +196,6 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
     L = torch.tensor(0., device=device)
     pers = torch.tensor(0., device=device)
     for i in range(len(dgm['dgms'][1])):
-      # pt in dgm: (b1,d1), with b1 = dist(p1, p2), d1 = dist(dist(p3, p4), and pers1=d1-b1.
       pers1 = _dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - _dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
       if pers1 > delta: L = L + pers1
   
@@ -209,15 +205,14 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
       pers1 = _dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - _dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
       if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
   
-    if len(dgm2['dgms'][1])==0: return (pers/L)**2, True # the entropy of dgm2 is 0
-  
     # Get persistent entropy of dgm2:
+    if len(dgm2['dgms'][1])==0: return (pers/L)**2, True # The entropy of dgm2 is 0
     L2 = 0.
     pers2 = 0.
     for i in range(len(dgm2['dgms'][1])):
       if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: L2 += dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]
   
-    if L2 == 0.: return (pers/L)**2, True # the entropy of dgm2 is 0
+    if L2 == 0.: return (pers/L)**2, True # The entropy of dgm2 is 0
   
     for i in range(len(dgm2['dgms'][1])):
       if dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0] > delta: pers2 += (dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0]) * math.log((dgm2['dgms'][1][i][1] - dgm2['dgms'][1][i][0])/L2)
@@ -232,11 +227,11 @@ def _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     """
     ksigma = torch.tensor(0., device=device)
     for i in range(len(dgm['gens'][0])):
-        # pt in dgm: (0,d), d=dist(p1,p2)
+        # Point in dgm: (0,d1), d=_dist(p1,p2)
         p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
         d1 = _dist(p1, p2)
         for j in range(len(dgm2['gens'][0])):
-           # pt in dgm2: (0,d), d=dist(q1,q2)
+           # Point in dgm2: (0,d2), d=_dist(q1,q2)
            q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
            d2 = _dist(q1, q2)
            ksigma = ksigma + torch.exp(-_dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-_dist_2(0, d1, d2, 0)/(8*sigma))
@@ -245,23 +240,20 @@ def _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
 def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     """
     Topological regularizer: Given two 0-degree persistence diagrams, computes the squared pseudo-distance that comes from the Reininghaus kernel, 
-    d_sigma ** 2 = k11 + k22 - 2*k12 (see https://arxiv.org/pdf/1412.6821.pdf). (kij = _ksigma0(pc_i, pc_j, dgm_i, dgm_j).)
+    d_sigma ** 2 = k11 + k22 - 2*k12 (kij = _ksigma0(pc_i, pc_j, dgm_i, dgm_j).) See https://arxiv.org/pdf/1412.6821.pdf for details.
     However, since k22 = _ksigma0(point_cloud2, point_cloud2, dgm2, dgm2) only depends on ground truth data, it is a constant and not useful for backpropagation,
-    hence not included in the loss for faster computation. So the function only returns k11 - 2 * k12. 
+    hence not included in the loss for faster computation. Hence, the function only returns k11 - 2 * k12. 
     Optional args:
       - sigma (float): scale parameter, > 0. 
     """
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
     device = point_cloud.device
 
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
-    # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
-    # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False # No dgm -> no loss
     return _ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
 
-# Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
 def _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     """
     Computes the Reininghaus kernel (or persistence scale space kernel) for two 1-degree
@@ -269,14 +261,13 @@ def _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     This function is a helper for loss_dsigma1.
     """
     ksigma = torch.tensor(0., device=device)
-    ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
     for i in range(len(dgm['gens'][1])):
-        # pt in dgm: (b1,d1), with b1, d1 = dist(p2, p1), dist(dist(p3, p4)
+        # Point in dgm: (b1,d1), with b1, d1 = _dist(p2, p1), _dist(p3, p4)
         p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
         b1 = _dist(p1,p2)
         d1 = _dist(p3,p4)
         for j in range(len(dgm2['gens'][1])):
-          #pt in dgm2: (b2,d2)
+          # Point in dgm2: (b2,d2), with b2, d2 = _dist(q1,q2), _dist(q3,q4)
           q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
           b2 = _dist(q1,q2)
           d2 = _dist(q3,q4)
@@ -292,7 +283,7 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     Optional args:
       - sigma (float): scale parameter, > 0.
     """
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 1)
     device = point_cloud.device
@@ -305,29 +296,29 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
 
 def density(point_cloud, dgm, sigma, scale, x, device):
     """
-    Computes the 4-SGDE density at coordinate x for a 0-degree persistence diagram. 
+    Computes the 4SGDE density at coordinate x for a 0-degree persistence diagram. 
     This function is a helper for loss_density.
     """
     density_x = torch.tensor(0., device=device) # Density at coordinate x
     for i in range(len(dgm['dgms'][0])-1):
-      p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
-      d = _dist(p1, p2) #pt of pt cloud is (0,d)
+      p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
+      d = _dist(p1, p2)  # Point (0,d) in the persistence diagram with d=_dist(p1,p2)
       density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
     return density_x * scale
 
 def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scale=0.002, maxrange=35., npoints=30):
     """
-    Topological regularizer: Given two 0-degree persistence diagrams, computes a measure of the difference between the 4-SGDE density functions of the two diagrams.
+    Topological regularizer: Given two 0-degree persistence diagrams, computes a measure of the difference between the 4SGDE density functions of the two diagrams.
     In particular, computes the squared difference between the two density functions at multiple locations, and returns the mean.
-    These locations correspond to 'npoints' points equally spaced in [0, maxrange]. 
+    These locations are 'npoints' points equally spaced in [0, maxrange]. 
     Optional args:
       - sigma (float, >0): Controls the curvature of the density function and the relevance given to individual points 
-      (sigma->0 yields high individual peaks for each point, while sigma->infty yields a smooth and low-curvature function that highlights the 'clusters' of points instead of individual points). 
-      - scale (float, >0): Scale factor for the density function.
+      (sigma->0 yields high individual peaks for each point, while sigma->infty yields a smooth and low-curvature function that highlights 'clusters' of points instead of individual points). 
+      - scale (float, >0): Scale factor.
       - maxrange (float, >0) and npoints (int, >1): Control the evaluation points: torch.linspace(0., maxrange, npoints).
     See Figures A.2, A.3 and A.4 in https://diposit.ub.edu/dspace/handle/2445/217016 for visualizing the impact of these values on the density functions.
     """
-    # First, check if the dgms have been provided:
+    # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2, 0)
     device = point_cloud.device
@@ -339,34 +330,30 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
     for x in xs: loss = loss + (density(point_cloud, dgm, sigma, scale, x, device) - density(point_cloud2, dgm2, sigma, scale, x, device)) ** 2
     return loss / npoints, True
 
-#auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
 def loss_push0(point_cloud, dgm):
     """
     Computes the push function for a 0-degree persistence diagram. If used as a loss function and minimized through gradient descent, results
     in a deformation of the point cloud that 'pushes' clusters away from each other. Can be used as a helper function whenever topological regularizers return False.  
     """
-    # First, check if the dgm has been provided:
+    # Check if the dgm has been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     
-    loss = -torch.abs(_dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
+    loss = - torch.abs(_dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
     for i in range(1, len(dgm['gens'][0])):
-      # Point in the diagram: (0,dist(p1,p2))
-      loss = loss - torch.abs(_dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
+      # Point in the diagram: (0, _dist(p1,p2))
+      loss = loss - torch.abs(_dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. # Distance to the diagonal for (0,d) is d/2
     return loss
 
 class TopologicalLoss:
     """
-    A class unifying all the topological regularizers, for computing the total topological loss in machine learning models.
-
+    A class unifying all the topological regularizers for efficiently combining them in machine learning problems.
     Attributes:
         - topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
         Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density].
         - deg (int): Homology degree for the persistence diagrams (0 or 1, with 1 the more general option).
-        - Additional parameters (pers0_delta, pers1_delta, ..., density_npoints) that control the topological functions, which are set
-        to reference values by default but can be modified depending on the dataset, model, or other considerations.
-    
+        - Additional parameters (pers0_delta, pers1_delta, ..., density_npoints): Control the topological functions. By default, they are set to reference values.
     Methods:
-        - compute_loss(points, true_points, dgm=None, dgm_true=None): Computes the total topological loss based on active components.
+        - compute_loss: Computes the total topological loss.
     """
     def __init__(self, topo_weights=[15.,15.,0.,0.,0.,0.,0], deg=1, pers0_delta=0.001, pers1_delta=0.001,
                  dsigma0_sigma=0.05, dsigma1_sigma=0.05, density_sigma=0.2,
@@ -396,7 +383,7 @@ class TopologicalLoss:
         }
         self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if self._topo_weights[i] != 0.]
 
-    # Properties and setters to update the active losses and arguments whenever a parameter (e.g. topo_weights) is changed:
+    # Properties and setters to update the active losses and arguments whenever a parameter is changed:
     @property
     def pers0_delta(self):
         return self._pers0_delta
@@ -473,10 +460,10 @@ class TopologicalLoss:
         """
         Computes the total topological loss based on active components.
         Args:
-            - points (torch.Tensor): Learnable point cloud. Shape: (batch size, additional dimensions).
-            - true_points (torch.Tensor): Ground truth point cloud. Shape: (batch size, additional dimensions).
-            - dgm (torch.Tensor, optional): Persistence diagram for points.
-            - dgm_true (torch.Tensor, optional): Persistence diagram for true_points.
+            - points (torch.Tensor): Learnable point cloud. Shape (batch size, additional dimensions).
+            - true_points (torch.Tensor): Ground truth point cloud. Shape (batch size, additional dimensions).
+            - dgm (torch.Tensor, optional): Persistence diagram of points.
+            - dgm_true (torch.Tensor, optional): Persistence diagram of true_points.
         Returns:
             - torch.Tensor: Total loss (scalar).
             - bool: True if the loss depends on the input points, False otherwise.
