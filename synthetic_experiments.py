@@ -113,19 +113,19 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   generate_animation(point_clouds, test_name, x1, x2, y1, y2)
   logging.info(f"Test {test_name} done!")
 
-def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=15000):
+def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300): #15000
   # Generate a synthetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.01, "test_1", num_save=50)
 
-def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2500):
+def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300):#2500
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.05, "test_2", num_save=25)
 
-def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=7500):
+def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300):#7500
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   point_cloud = np.zeros((64,2))
   r1 = 0.1
