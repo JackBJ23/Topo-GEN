@@ -97,7 +97,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
           if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
 
-      logging.info("End of epoch", epoch)
+      logging.info(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
