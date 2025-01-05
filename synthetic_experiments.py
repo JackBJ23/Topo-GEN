@@ -4,8 +4,14 @@ import numpy as np
 import random
 import tadasets
 import matplotlib.pyplot as plt
+import logging
 
 from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, generate_animation
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s"
+)
 
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
   """
@@ -75,7 +81,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   losses = []
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
-  print("Training...")
+  logging.info("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
       loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss)
@@ -89,9 +95,9 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
       if i % num_save == 0 or i == num_steps - 1: 
         point_clouds.append(np.copy(point_cloud.detach().cpu().numpy()))
       if i % 100 == 0 or i == num_steps - 1:
-        print(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
+        logging.info(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
 
-  print("Training ended")
+  logging.info("Training ended")
   # Save persistence diagram of the final point cloud:
   save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram.png')
   # Save final point cloud:
@@ -105,36 +111,33 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   plt.close()
   # Save animation of the evolution of the point cloud:
   generate_animation(point_clouds, test_name, x1, x2, y1, y2)
-  print(f"Test {test_name} done!")
+  logging.info(f"Test {test_name} done!")
 
-def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
+def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=15000):
   # Generate a synthetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 15000, 0.01, "test_1", num_save=50)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.01, "test_1", num_save=50)
 
-def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
+def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2500):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 2500, 0.05, "test_2", num_save=25)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.05, "test_2", num_save=25)
 
-def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.]):
+def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=7500):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   point_cloud = np.zeros((64,2))
   r1 = 0.1
   for i in range(32):
     point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)])
     point_cloud[i+32] = np.array([0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)])
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, 7500, 0.1, "test_3", num_save=50)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.1, "test_3", num_save=50)
 
 if __name__ == "__main__":
-  # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters
+  # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters.
   test1()
-  print("Test 1 done.")
-  # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters
+  # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters.
   test2()
-  print("Test 2 done.")
-  # Test 3: The learnable point cloud starts as 2 lines with added noise, and the reference point cloud is a circle
+  # Test 3: The learnable point cloud starts as 2 lines with added noise, and the reference point cloud is a circle.
   test3()
-  print("Test 3 done.")
