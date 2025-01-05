@@ -13,8 +13,8 @@ of the learnable point cloud and the ground truth persistence diagram. Each func
 
 Input arguments:
   - Required:
-    - point_cloud (torch.Tensor): The learnable point cloud. Expected shape (number of points, dimension of each point).
-    - point_cloud2 (torch.Tensor): The true point cloud. Expected shape (number of points, dimension of each point).
+    - point_cloud (torch.Tensor): The learnable point cloud. Shape (number of points, dimension of each point).
+    - point_cloud2 (torch.Tensor): The true point cloud. Shape (number of points, dimension of each point).
   - Optional:
     - dgm (dict, optional): Persistence diagram for the first point cloud. If None, it will be computed.
     - dgm2 (dict, optional): Persistence diagram for the true point cloud. If None, it will be computed.
@@ -150,7 +150,7 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
     Only considers points with persistence > delta. (The persistence of a point (b,d) in the diagrma is |d-b|. Since the homology degree is 0, 
     we work with points (0,d), so persistence is |d|.)
     Optional args:
-      delta (float): > 0.
+      - delta (float): > 0.
     """
     device = point_cloud.device
     # First, check if the dgms have been provided:
@@ -188,7 +188,7 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
     Topological regularizer: Computes the squared difference between the persistence entropies of the two 1-degree persistence diagrams. 
     Only considers points with persistence > delta.
     Optional args:
-      delta (float): > 0.
+      - delta (float): > 0.
     """
     device = point_cloud.device
     # First, check if the dgms have been provided:
@@ -250,7 +250,7 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     However, since k22 = _ksigma0(point_cloud2, point_cloud2, dgm2, dgm2) only depends on ground truth data, it is a constant and not useful for backpropagation,
     hence not included in the loss for faster computation. So the function only returns k11 - 2 * k12. 
     Optional args:
-      sigma (float): scale parameter, > 0. 
+      - sigma (float): scale parameter, > 0. 
     """
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
@@ -291,7 +291,7 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     However, since k22 = _ksigma0(point_cloud2, point_cloud2, dgm2, dgm2) only depends on ground truth data, it is a constant and not useful for backpropagation,
     hence not included in the loss for faster computation. So the function only returns k11 - 2 * k12. 
     Optional args:
-      sigma (float): scale parameter, > 0.
+      - sigma (float): scale parameter, > 0.
     """
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 1)
@@ -322,10 +322,10 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
     In particular, computes the squared difference between the two density functions at multiple locations, and returns the mean.
     These locations correspond to 'npoints' points equally spaced in [0, maxrange]. 
     Optional args:
-      sigma (float, >0): Controls the curvature of the density function and the relevance given to individual points 
-        (sigma->0 yields high individual peaks for each point, while sigma->infty yields a smooth and low-curvature function that highlights the 'clusters' of points instead of individual points). 
-      scale (float, >0): Scale factor for the density function.
-      maxrange (float, >0) and npoints (int, >1): Control the evaluation points: torch.linspace(0., maxrange, npoints).
+      - sigma (float, >0): Controls the curvature of the density function and the relevance given to individual points 
+      (sigma->0 yields high individual peaks for each point, while sigma->infty yields a smooth and low-curvature function that highlights the 'clusters' of points instead of individual points). 
+      - scale (float, >0): Scale factor for the density function.
+      - maxrange (float, >0) and npoints (int, >1): Control the evaluation points: torch.linspace(0., maxrange, npoints).
     See Figures A.2, A.3 and A.4 in https://diposit.ub.edu/dspace/handle/2445/217016 for visualizing the impact of these values on the density functions.
     """
     # First, check if the dgms have been provided:
@@ -360,20 +360,20 @@ class TopologicalLoss:
     A class unifying all the topological regularizers, for computing the total topological loss in machine learning models.
 
     Attributes:
-        topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
+        - topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
         Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density].
-        deg (int): Homology degree for the persistence diagrams (0 or 1, with 1 the more general option).
-        Additional parameters (pers0_delta, pers1_delta, ..., density_npoints) that control the topological functions, which are set
+        - deg (int): Homology degree for the persistence diagrams (0 or 1, with 1 the more general option).
+        - Additional parameters (pers0_delta, pers1_delta, ..., density_npoints) that control the topological functions, which are set
         to reference values by default but can be modified depending on the dataset, model, or other considerations.
     
     Methods:
-        compute_loss(points, true_points, dgm=None, dgm_true=None): Computes the total topological loss based on active components.
+        - compute_loss(points, true_points, dgm=None, dgm_true=None): Computes the total topological loss based on active components.
     """
     def __init__(self, topo_weights=[15.,15.,0.,0.,0.,0.,0], deg=1, pers0_delta=0.001, pers1_delta=0.001,
                  dsigma0_sigma=0.05, dsigma1_sigma=0.05, density_sigma=0.2,
                  density_scale=0.002, density_maxrange=35., density_npoints=30):
-        self.deg = deg
         self._topo_weights = topo_weights
+        self.deg = deg
         self._pers0_delta = pers0_delta
         self._pers1_delta = pers1_delta
         self._dsigma0_sigma = dsigma0_sigma
@@ -474,13 +474,13 @@ class TopologicalLoss:
         """
         Computes the total topological loss based on active components.
         Args:
-            points (torch.Tensor): Learnable point cloud. Shape: (batch size, additional dimensions).
-            true_points (torch.Tensor): Ground truth point cloud. Shape: (batch size, additional dimensions).
-            dgm (torch.Tensor, optional): Persistence diagram for points.
-            dgm_true (torch.Tensor, optional): Persistence diagram for true_points.
+            - points (torch.Tensor): Learnable point cloud. Shape: (batch size, additional dimensions).
+            - true_points (torch.Tensor): Ground truth point cloud. Shape: (batch size, additional dimensions).
+            - dgm (torch.Tensor, optional): Persistence diagram for points.
+            - dgm_true (torch.Tensor, optional): Persistence diagram for true_points.
         Returns:
-            torch.Tensor: Total loss.
-            bool: True if the loss depends on the input points, False otherwise.
+            - torch.Tensor: Total loss (scalar).
+            - bool: True if the loss depends on the input points, False otherwise.
         """
         if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
         if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
