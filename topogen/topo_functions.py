@@ -320,13 +320,13 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
     """
     Topological regularizer: Given two 0-degree persistence diagrams, computes a measure of the difference between the 4-SGDE density functions of the two diagrams.
     In particular, computes the squared difference between the two density functions at multiple locations, and returns the mean.
-    These locations correspond to 'npoints' points equally spaced between 0 and 'maxrange'. 
+    These locations correspond to 'npoints' points equally spaced in [0, maxrange]. 
     Optional args:
       sigma (float, >0): Controls the curvature of the density function and the relevance given to individual points 
         (sigma->0 yields high individual peaks for each point, while sigma->infty yields a smooth and low-curvature function that highlights the 'clusters' of points instead of individual points). 
       scale (float, >0): Scale factor for the density function.
-      maxrange (float, >0) and npoints (int, >1): Control the evaluation points xs = torch.linspace(0., maxrange, npoints).
-    See Figures A.2, A.3 and A.4 in for visualizing the impact of these values on the density functions.
+      maxrange (float, >0) and npoints (int, >1): Control the evaluation points: torch.linspace(0., maxrange, npoints).
+    See Figures A.2, A.3 and A.4 in https://diposit.ub.edu/dspace/handle/2445/217016 for visualizing the impact of these values on the density functions.
     """
     # First, check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
@@ -342,6 +342,10 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
 
 #auxiliary loss when d(D,D0) (in deg0) only depends on D0 (so gradients are 0):
 def loss_push0(point_cloud, dgm):
+    """
+    Computes the push function for a 0-degree persistence diagram. If used as a loss function and minimized through gradient descent, results
+    in a deformation of the point cloud that 'pushes' clusters away from each other. Can be used as a helper function whenever topological regularizers return False.  
+    """
     # First, check if the dgm has been provided:
     if dgm is None: dgm = get_dgm(point_cloud, 0)
     
@@ -357,8 +361,8 @@ class TopologicalLoss:
 
     Attributes:
         topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
-        Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density] 
-        deg (int): Degree of homology for the persistence diagrams (0 or 1, with 1 the more general option).
+        Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density].
+        deg (int): Homology degree for the persistence diagrams (0 or 1, with 1 the more general option).
         Additional parameters (pers0_delta, pers1_delta, ..., density_npoints) that control the topological functions, which are set
         to reference values by default but can be modified depending on the dataset, model, or other considerations.
     
@@ -393,7 +397,7 @@ class TopologicalLoss:
         }
         self.active_losses = [(i, func, args) for i, (func, args) in self.loss_functions.items() if self._topo_weights[i] != 0.]
 
-    # Use properties and setters to update the active losses and arguments whenever a parameter (e.g. topo_weights) is changed:
+    # Properties and setters to update the active losses and arguments whenever a parameter (e.g. topo_weights) is changed:
     @property
     def pers0_delta(self):
         return self._pers0_delta
