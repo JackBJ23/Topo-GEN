@@ -35,17 +35,17 @@ def get_dgm(point_cloud, deg=1):
   Computes the persistence diagrams of a point cloud up to a specified degree.
   Args:
     - point_cloud (torch.Tensor or np.ndarray): The input point cloud. Shape (number of points, dimension of each point).
-    - deg (int): The degree of homology to compute (0 or 1).
+    - deg (int): Homology degree of homology (0 or 1); persistence diagrams are computed up to degree deg.
   Returns:
-    - A dictionary storing the persistence diagrams of the point cloud. dgms[i]: The persistence diagram for degree i.
+    - A dictionary storing the persistence diagrams of the point cloud and the generators. dgms[i]: The persistence diagram for degree i.
   Note:
-    - The computation is performed using ripser_parallel, which runs on the CPU and expects a NumPy array as input, and provides the diagrams and generators.
+    - The computation is performed using ripser_parallel, a fast algorithm for computing persistence diagrams that runs on the CPU and expects a NumPy array as input.
   """
   with torch.no_grad():
-        # Convert points for computing PD:
-        if isinstance(point_cloud, torch.Tensor): points = point_cloud.cpu().numpy()
-        else: points = point_cloud
-  return ripser_parallel(points, maxdim=deg, return_generators=True)
+      # Convert point cloud to numpy if it's a torch tensor
+      points = point_cloud.cpu().numpy() if isinstance(point_cloud, torch.Tensor) else point_cloud
+      dgm = ripser_parallel(points, maxdim=deg, return_generators=True)
+  return dgm
 
 # Euclidean distance for torch tensors
 def _dist(point1, point2):
