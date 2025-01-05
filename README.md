@@ -50,7 +50,7 @@ loss, gotloss = loss_bottleneck0(point_cloud, point_cloud2)
 ```
 In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
 
-The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds.
+The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds, see [`topogen/visualizations.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/visualizations.py).
 
 ## Synthetic experiments
 
