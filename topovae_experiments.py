@@ -11,6 +11,12 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 import logging
 
+# Configure the logger to display logs in the notebook
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 # Import topological functions and model
 from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
 from models import VAE
