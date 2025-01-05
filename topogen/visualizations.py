@@ -76,7 +76,7 @@ def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
 
 def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
-    Plots and saves ground truth images, images reconstructed by a standard generative model and by a topology-informed model.
+    Plots and saves ground truth images (grayscale or RGB), images reconstructed by a standard generative model and images reconstructed by a topology-informed model.
     Args:
         data (torch.Tensor): Original data batch. Shape (batch size, num channels, height, width).
         recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model. Shape (batch size, num channels, height, width).
