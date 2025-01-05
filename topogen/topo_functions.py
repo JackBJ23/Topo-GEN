@@ -207,7 +207,7 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
   return (pers/L - pers2/L2)**2, True
 
 #return Reininghaus kernel ksigma: (could make it slightly faster with different functions for each dgm (dgm2 does not need backpropagation)), but let it same for all dgms
-def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device): #maxdim of both dgms: 0
+def _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device): #maxdim of both dgms: 0
     ksigma = torch.tensor(0., device=device)
     ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
     for i in range(len(dgm['gens'][0])):
@@ -230,10 +230,10 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
     # Return squared pseudo-distance that comes from ksigma, dsigma**2: k11 + k22 - 2*k12
     # But no need of k22 = ksigma(point_cloud2, point_cloud2) since it is fixed (no backpropagation) -> return k11 - 2 * k12
-    return ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
+    return _ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
 
 # Same as ksigma0, but here we take the points in diagrams of degree 1 instead of degree 0
-def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
+def _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     ksigma = torch.tensor(0., device=device)
     ## use formula for k_sigma from paper (https://arxiv.org/pdf/1412.6821.pdf):
     for i in range(len(dgm['gens'][1])):
@@ -257,15 +257,15 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), False
     if len(dgm2['gens'][1])>0:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
+      return _ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
     else:
-      return ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), True
+      return _ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), True
 
 def density(point_cloud, dgm, sigma, scale, x, device):
   density_x = torch.tensor(0., device=device) # Density at coordinate x
   for i in range(len(dgm['dgms'][0])-1):
     p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]] #pt (0,d) with d=dist(p1,p2) (euclidean dist)
-    d = dist(p1, p2) #pt of pt cloud is (0,d)
+    d = _dist(p1, p2) #pt of pt cloud is (0,d)
     density_x = density_x + d**4 * torch.exp(-((d-x)/sigma)**2)
   return density_x * scale
 
