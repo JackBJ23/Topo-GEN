@@ -11,15 +11,14 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 import logging
 
-# Configure the logger to display logs in the notebook
+# Import topological functions and model
+from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
+from models import VAE
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(message)s"
 )
-
-# Import topological functions and model
-from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
-from models import VAE
 
 # Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
@@ -95,11 +94,10 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           optimizer1.step()
           running_loss1 += BCE1.item()
           train_losses1_all.append(BCE1.item())
-          print("step", batch_idx)
 
           if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
 
-      print("End of epoch", epoch)
+      logging.info("End of epoch", epoch)
       # Save average of losses over the epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
@@ -115,8 +113,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   if args.n_epochs > 1:
       plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
   else:
-      print(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
-      print(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
+      logging.info(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
+      logging.info(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
   return model0, model1
 
 def parse_topo_weights(value):
@@ -154,10 +152,8 @@ def load_config():
 if __name__ == "__main__":
   args = load_config()
   torch.manual_seed(args.seed)
-  print("Topological weights:", args.topo_weights)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  #print("Device:", device)
-  logging.info(f"Device: {device}")
+  logging.info(f"Using topological weights: {args.topo_weights}. Device: {device}.")
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
@@ -177,21 +173,20 @@ if __name__ == "__main__":
   train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False)
   val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
   test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
-  print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
+  logging.info(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
   # Pre-compute persistence diagrams:
-  print("Pre-computing persistence diagrams...")
+  logging.info("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
-  print("Training...")
+  logging.info("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
   if args.save_models:
       torch.save(model0.state_dict(), "vae_weights.pth")
       torch.save(model1.state_dict(), "topovae_weights.pth")
-      print("Weights of VAE and TopoVAE saved in vae_weights.pth and topovae_weights.pth, respectively.")
-  print("Testing...")
+      logging.info("Weights of VAE and TopoVAE saved in vae_weights.pth and topovae_weights.pth, respectively.")
+  logging.info("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
-  print("Test losses:", test_loss0, test_loss1)
-  print("Done!")
+  logging.info(f"Test losses: {test_loss0}, {test_loss1}.\nDone!")
