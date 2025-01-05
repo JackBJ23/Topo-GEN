@@ -78,9 +78,9 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     """
     Plots and saves ground truth images, images reconstructed by a standard generative model and by a topology-informed model.
     Args:
-        data (torch.Tensor): Original data batch.
-        recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model.
-        recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model.
+        data (torch.Tensor): Original data batch. Shape (batch size, 1, height, width).
+        recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model. Shape (batch size, 1, height, width).
+        recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model. Shape (batch size, 1, height, width).
         epoch (int): Current epoch number, used for generating titles.
             Note: If plotting during training (evaluation type is 'train'), use epoch = current epoch (0, 1, ...). 
             If plotting during validation/test, use epoch = number of epochs completed (1, 2, ...).
@@ -99,10 +99,12 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
 
     print("data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t.shape)
     # Reshape tensors for visualization
+    '''
     data = data.reshape(-1, 1, img_size, img_size)
     recon_batch_0 = recon_batch_0.reshape(-1, 1, img_size, img_size)
     recon_batch_t = recon_batch_t.reshape(-1, 1, img_size, img_size)
     print("after: data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t.shape)
+    '''
 
     # Create grids for each dataset
     grid_data = torchvision.utils.make_grid(data[:n_imgs], nrow=8, normalize=True)
