@@ -97,41 +97,27 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     else: 
         suptitle = f'True and generated images after {epoch} training epochs ({eval_type})'
 
-    print("data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t.shape)
-    # Reshape tensors for visualization
-    '''
-    data = data.reshape(-1, 1, img_size, img_size)
-    recon_batch_0 = recon_batch_0.reshape(-1, 1, img_size, img_size)
-    recon_batch_t = recon_batch_t.reshape(-1, 1, img_size, img_size)
-    print("after: data", data.shape, "recon0", recon_batch_0.shape, "recont", recon_batch_t.shape)
-    '''
-
     # Create grids for each dataset
     grid_data = torchvision.utils.make_grid(data[:n_imgs], nrow=8, normalize=True)
     grid_recon_0 = torchvision.utils.make_grid(recon_batch_0[:n_imgs], nrow=8, normalize=True)
     grid_recon_t = torchvision.utils.make_grid(recon_batch_t[:n_imgs], nrow=8, normalize=True)
-
     # Convert tensors to numpy arrays for plotting
     grid_data = grid_data.cpu().numpy().transpose((1, 2, 0))
     grid_recon_0 = grid_recon_0.cpu().numpy().transpose((1, 2, 0))
     grid_recon_t = grid_recon_t.cpu().numpy().transpose((1, 2, 0))
-
     # Plot the three grids next to each other
     plt.figure(figsize=(15, 5))
     plt.suptitle(suptitle, fontsize=16)
-
     # Left: Ground truth data
     plt.subplot(1, 3, 1)
     plt.imshow(grid_data)
     plt.axis('off')
     plt.title("True")
-
     # Middle: Reconstructed batch from the standard model
     plt.subplot(1, 3, 2)
     plt.imshow(grid_recon_0)
     plt.axis('off')
     plt.title(modelname)
-    
     # Right: Reconstructed batch from the topology-informed model
     plt.subplot(1, 3, 3)
     plt.imshow(grid_recon_t)
