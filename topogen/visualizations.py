@@ -22,7 +22,7 @@ def plot_fig_dgm(dgm, filename):
     """
     Plots a persistence diagram and saves it in a file.
     Args:
-        dgm (dict): persistence diagram. Can be obtained using the function get_dgm(), see topo_functions.py
+        dgm (dict): Persistence diagram. Can be obtained using the function get_dgm(), see topo_functions.py
         filename: File name to save the plot.
     """
     dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
@@ -30,13 +30,18 @@ def plot_fig_dgm(dgm, filename):
     fig.write_image(filename)
  
 def plot_fig_pc(pointcloud, filename):
+    """
+    Plots a point cloud and saves it in a file.
+    Args:
+        pointcloud (np.ndarray): Point cloud, with expected shape (number of points, dimension of each point).
+        filename: File name to save the plot.
+    """
     fig = go.Figure(plot_point_cloud(pointcloud))
     fig.write_image(filename)
 
 def _plot_pc_gif(point_cloud, x1, x2, y1, y2):
     fig = plt.figure(figsize=(6, 6))
     plt.scatter(point_cloud[:, 0], point_cloud[:, 1], s=10, c='b')
-    #plt.xlabel('X')
     plt.xlim(x1, x2)
     plt.ylim(y1, y2)
     plt.close(fig)
@@ -47,10 +52,10 @@ def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
     Generates and saves an animation of the evolution of a point cloud. Helpful for visualizing the impact of topological 
     regularizers on 2D point clouds.
     Args:
-        point_clouds (list): list of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
+        point_clouds (list): List of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
         a np.ndarray of shape (number of points, dimension of each point).
         test_name (str): Name of the test.
-        x1, x2, y1, y2: Limits of the figures (min-x, max-x, min-y, max-y, respectively).
+        x1, x2, y1, y2 (float): Limits of the figures (min-x, max-x, min-y, max-y, respectively).
     """
     # Create a list of figures for each point cloud
     figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
@@ -72,20 +77,20 @@ def generate_animation(point_clouds, test_name, x1, x2, y1, y2):
 
 def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=None, img_size=28, n_imgs=32, modelname="VAE", filename=None, show=False):
     """
-    Plots and saves ground truth images, images reconstructed by the standard generative model, and by the topology-informed model.
+    Plots and saves ground truth images, images reconstructed by a standard generative model and by a topology-informed model.
     Args:
         data (torch.Tensor): Original data batch.
         recon_batch_0 (torch.Tensor): Reconstructed batch from the standard model.
         recon_batch_t (torch.Tensor): Reconstructed batch from topology-informed model.
         epoch (int): Current epoch number, used for generating titles.
-            Note: If plotting during training (evaluation type is 'train'), use the current epoch (0, 1, ...). 
+            Note: If plotting during training (evaluation type is 'train'), use epoch = current epoch (0, 1, ...). 
             If plotting during validation/test, use epoch = number of epochs completed (1, 2, ...).
         eval_type (str): Evaluation type ('train', 'val', 'test').
-        step (int, optional): Training step index. If eval_type='train', provide the step.
-        img_size (int, optional): Image size (height and width). Defaults to 28 for FashionMNIST.
+        step (int): Training step index. Ony needed if eval_type='train'.
+        img_size (int): Image height in pixels (assuming square image). Defaults to 28 for FashionMNIST.
         n_imgs (int): Number of images to display in the grid.
         modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.)
-        filename (str, optional): File name to save the plot. If None, the figure is not saved.
+        filename (str): File name to save the plot. If None, the figure is not saved.
         show (bool): Whether to display the plot.
     """
     if eval_type == 'train':
@@ -118,13 +123,13 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     plt.axis('off')
     plt.title("True")
 
-    # Middle: Reconstructed Batch 0 (standard GM)
+    # Middle: Reconstructed Batch from the standard model
     plt.subplot(1, 3, 2)
     plt.imshow(grid_recon_0)
     plt.axis('off')
     plt.title(modelname)
 
-    # Right: Reconstructed Batch from TopoGM
+    # Right: Reconstructed Batch from the tpology-informed model
     plt.subplot(1, 3, 3)
     plt.imshow(grid_recon_t)
     plt.axis('off')
@@ -138,13 +143,13 @@ def plot_iter_losses(train_losses0_all, train_losses1_all, steps_per_item=1, mod
     """
     Plots and saves training losses for a standard generative model and a topology-informed model across iterations.
     Args:
-        train_losses0_all (list): Losses for the normal model.
+        train_losses0_all (list): Losses for the standard model.
         train_losses1_all (list): Losses for the topology-informed model.
         steps_per_item (int): interval (in training steps) at which every measure of the loss is saved.
         modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
-        metric: Metric used (e.g., BCE, KLD, MSE, etc.).
-        filename (str, optional): Filename for saving the plot. If None, the plot will not be saved.
-        show (bool, optional): Whether to display the plot. 
+        metric (str): Metric used (e.g., BCE, KLD, MSE, etc.).
+        filename (str): Filename for saving the plot. If None, the plot is not saved.
+        show (bool): Whether to display the plot.
     """
     plt.figure()
     iterations = np.arange(len(train_losses0_all)) * steps_per_item
@@ -167,8 +172,10 @@ def plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, mo
         train_losses1 (list): Average training losses for the topology-informed model per epoch.
         val_losses0 (list): Average validation losses for the standard model per epoch.
         val_losses1 (list): Average validation losses for the topology-informed model per epoch.
-        filename (str, optional): File path to save the plot. If None, the plot is not saved.
-        show (bool, optional): Whether to display the plot.
+        modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
+        metric (str): Metric used (e.g., BCE, KLD, MSE, etc.).
+        filename (str): File path to save the plot. If None, the plot is not saved.
+        show (bool): Whether to display the plot.
     """
     epochs = np.arange(len(train_losses0))
     plt.figure()
