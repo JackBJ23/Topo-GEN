@@ -39,44 +39,16 @@ from topogen import TopologicalLoss
 topo_loss = TopologicalLoss(topo_weights)
 loss, gotloss = topo_loss.compute_loss(point_cloud, true_point_cloud)
 ```
-Where `topo_weights` is a 7-element list of weights associated to the topological regularizers. If a weight is set to 0, its corresponding loss is not used. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`): 
-$$
-\sum_{i=1}^{7} (\text{topoloss}\_i \cdot \text{topo\_weights} \text{ if } \text{topo\_weights}[i] \neq 0).
-$$
-Additionally, it returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
+Where `topo_weights` is a 7-element list of weights associated to the topological regularizers. The function `topo_loss.compute_loss` returns the weighted summation of the topological losses as a scalar tensor (`loss`), i.e., the sum (topoloss_i * topo_weights[i], only if topo_weights[i] ≠ 0) for i = 0, 1, ..., 6. In particular, if a weight is set to 0, its corresponding function is not used. Additionally, the function returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
 
-Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. 
+Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. 
 
-For a more manual control of individual topological functions, do:
+For a more manual control of individual topological functions, do, e.g. (the same principle applies to the seven regularizers):
 ```
-from topogen import *
-
-loss_bottleneck0(point_cloud, point_cloud2, dgm, dgm2)
-loss_bottleneck1(point_cloud, point_cloud2, dgm, dgm2)
-loss_persentropy0(point_cloud, point_cloud2, dgm, dgm2, delta0=0.01)
-loss_persentropy1(point_cloud, point_cloud2, dgm, dgm2, delta1=0.01)
-loss_dsigma0(point_cloud, point_cloud2, dgm, dgm2, sigma0=0.05)
-loss_dsigma1(point_cloud, point_cloud2, dgm, dgm2, sigma1=0.05)
-loss_density(point_cloud, point_cloud2, dgm, dgm2, sigma=0.2, scale=0.002, maxrange=35., npoints=30)
+from topogen import loss_bottleneck0
+loss, gotloss = loss_bottleneck0(point_cloud, point_cloud2)
 ```
-For each function, the arguments are the following:
-
-#### Input arguments:
-- **Required:**
-  - `point_cloud` (torch.Tensor): Learnable point cloud or output of a machine learning model. Expected shape `(number of points, dimension of each point)`.
-  - `point_cloud2` (torch.Tensor): Ground truth point cloud. Expected shape `(number of points, dimension of each point)`.
-- **Optional:**
-  - `dgm`: Persistence diagram for the first point cloud. If `None`, it will be computed.
-  - `dgm2`: Persistence diagram for the true point cloud. If `None`, it will be computed.
-  - Additional arguments that control the topological functions.
-
-To generate a persistence diagram, do:
-```
-from topogen import get_dgm
-
-dgm = get_dgm(point_cloud, deg)
-```
-Where the shape of the point cloud is expected to be `(number of points, dimension of each point)`, and `deg` is the homology degree (0 or 1), with 1 the more general option. 
+In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details for additional optional arguments.
 
 ## Synthetic experiments
 
