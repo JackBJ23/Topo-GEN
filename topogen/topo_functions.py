@@ -47,15 +47,16 @@ def get_dgm(point_cloud, deg=1):
         else: points = point_cloud
   return ripser_parallel(points, maxdim=deg, return_generators=True)
 
-# Euclidean distance for torch tensors:
-def dist(point1, point2):
+# Euclidean distance for torch tensors
+def _dist(point1, point2):
     return torch.sqrt(torch.sum((point2 - point1)**2))
 
-def dist_2(a, b, c, d):
+# Function used for the Reininghaus dissimilarity for two points (a, b) and (c, d)
+def _dist_2(a, b, c, d):
     return (a - c)**2 + (b - d)**2
 
-# Supremum distance for torch tensors (points (b1, d1) and (b2, d2))
-def dist_sup_tc(b1, d1, b2, d2):
+# Supremum distance for two torch tensors (b1, d1) and (b2, d2)
+def _dist_sup_tc(b1, d1, b2, d2):
     return torch.max(torch.abs(b1 - b2), torch.abs(d1 - d2))
 
 def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
@@ -81,13 +82,13 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
     
     if i>=0 and j>=0:
-      return torch.abs(dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
+      return torch.abs(_dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal -> backprop through loss would give 0 -> goal: make points further from diag
         #new_bdist = torch.abs(dist(point1_dgm2, point2_dgm2) - 0.)/2
         return torch.tensor(0., device=point_cloud.device), False
       else: #then  j==-1, so the i-th point from dgm1 is matched to the diagonal
-        return dist(point1_dgm1, point2_dgm1)/2., True
+        return _dist(point1_dgm1, point2_dgm1)/2., True
 
 def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None): # second value returned: 1 if got loss, 0 if the loss does not depend on dgm
     # First, check if the dgms have been provided:
@@ -118,8 +119,8 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None): # second v
       point1_dgm1 = point_cloud[dgm['gens'][1][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][1][0][i][2]]
       point3_dgm1 = point_cloud[dgm['gens'][1][0][i][3]]
-      birth_dgm1 = dist(point0_dgm1, point1_dgm1)
-      death_dgm1 = dist(point2_dgm1, point3_dgm1)
+      birth_dgm1 = _dist(point0_dgm1, point1_dgm1)
+      death_dgm1 = _dist(point2_dgm1, point3_dgm1)
 
     #get the 2 points that give the distance of the j-th pt in dgm in the 2nd diagram:
     if j>=0:
@@ -130,7 +131,7 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None): # second v
     if dgm2_dgms1_empty: dgm2['dgms'][1] = []
     
     if i>=0 and j>=0:
-      return dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), True
+      return _dist_sup_tc(birth_dgm1, death_dgm1, birth_dgm2, death_dgm2), True
     else:
       if i==-1: #so the j-th point from dgm2 is matched to the diagonal
         return torch.tensor(0., device=point_cloud.device), False
@@ -148,12 +149,12 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
   L = torch.tensor(0., device=device)
   pers = torch.tensor(0., device=device)
   for i in range(len(dgm['dgms'][0])-1):
-    pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]])
+    pers1 = _dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]])
     if pers1 > delta: L = L + pers1
 
   if L.item() == 0.: return torch.tensor(0., device=device), False
   for i in range(len(dgm['dgms'][0])-1):
-    pers1 = dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
+    pers1 = _dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]) #p1, p2: pt (0,d) with d=dist(p1,p2) (euclidean dist)
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L) #pt of pt cloud is (0,dist(p1, p2))
 
   # Get persistent entropy of dgm2:
@@ -181,13 +182,13 @@ def loss_persentropy1(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
   pers = torch.tensor(0., device=device)
   for i in range(len(dgm['dgms'][1])):
     # pt in dgm: (b1,d1), with b1 = dist(p1, p2), d1 = dist(dist(p3, p4), and pers1=d1-b1.
-    pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
+    pers1 = _dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - _dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
     if pers1 > delta: L = L + pers1
 
   if L.item()==0.: return torch.tensor(0., device=device), False
 
   for i in range(len(dgm['dgms'][1])):
-    pers1 = dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
+    pers1 = _dist(point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]) - _dist(point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]])
     if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
 
   if len(dgm2['dgms'][1])==0: return (pers/L)**2, True # the entropy of dgm2 is 0
@@ -212,12 +213,12 @@ def ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device): #maxdim of bot
     for i in range(len(dgm['gens'][0])):
         # pt in dgm: (0,d), d=dist(p1,p2)
         p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
-        d1 = dist(p1, p2)
+        d1 = _dist(p1, p2)
         for j in range(len(dgm2['gens'][0])):
            # pt in dgm2: (0,d), d=dist(q1,q2)
            q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
-           d2 = dist(q1, q2)
-           ksigma = ksigma + torch.exp(-dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-dist_2(0, d1, d2, 0)/(8*sigma))
+           d2 = _dist(q1, q2)
+           ksigma = ksigma + torch.exp(-_dist_2(0, d1, 0, d2)/(8*sigma)) - torch.exp(-_dist_2(0, d1, d2, 0)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
@@ -238,14 +239,14 @@ def ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     for i in range(len(dgm['gens'][1])):
         # pt in dgm: (b1,d1), with b1, d1 = dist(p2, p1), dist(dist(p3, p4)
         p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
-        b1 = dist(p1,p2)
-        d1 = dist(p3,p4)
+        b1 = _dist(p1,p2)
+        d1 = _dist(p3,p4)
         for j in range(len(dgm2['gens'][1])):
           #pt in dgm2: (b2,d2)
           q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
-          b2 = dist(q1,q2)
-          d2 = dist(q3,q4)
-          ksigma = ksigma + torch.exp(-dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-dist_2(b1, d1, d2, b2)/(8*sigma))
+          b2 = _dist(q1,q2)
+          d2 = _dist(q3,q4)
+          ksigma = ksigma + torch.exp(-_dist_2(b1, d1, b2, d2)/(8*sigma)) - torch.exp(-_dist_2(b1, d1, d2, b2)/(8*sigma))
     return ksigma * 1/(8 * math.pi * sigma)
 
 def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
@@ -286,10 +287,10 @@ def loss_push0(point_cloud, dgm):
   # First, check if the dgm has been provided:
   if dgm is None: dgm = get_dgm(point_cloud, 0)
   
-  loss = -torch.abs(dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
+  loss = -torch.abs(_dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
   for i in range(1, len(dgm['gens'][0])):
     # Point in the diagram: (0,dist(p1,p2))
-    loss = loss - torch.abs(dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
+    loss = loss - torch.abs(_dist(point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]))/2. #dist to diagonal of (0,d) is d/2
   return loss
 
 class TopologicalLoss:
