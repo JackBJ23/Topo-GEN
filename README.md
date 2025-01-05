@@ -43,12 +43,12 @@ Where `topo_weights` is a 7-element list of weights associated with the topologi
 
 Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. 
 
-For a more manual control of individual topological functions, do, for instance:
+For a more manual control of individual topological functions, do, for instance (the same principle applies to the other regularizers):
 ```
 from topogen import loss_bottleneck0
 loss, gotloss = loss_bottleneck0(point_cloud, point_cloud2)
 ```
-The same principle applies to the other regularizers. In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
+In this case, `point_cloud` (the learnable point cloud or output of a machine learning model) and `point_cloud2` (ground truth point cloud) are both expected to be torch tensors with shapes `(number of points, dimension of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
 
 The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds.
 
