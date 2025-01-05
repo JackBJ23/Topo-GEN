@@ -95,7 +95,7 @@ def plot_gen_imgs(data, recon_batch_0, recon_batch_t, epoch, eval_type, step=Non
     if eval_type == 'train':
         suptitle = f'True and generated images at epoch {epoch}{", step " + str(step) + " " if step is not None else ""}({eval_type})'
     else: 
-        suptitle = f'True and generated images after {epoch} training epochs ({eval_type})'
+        suptitle = f'True and generated images after {epoch} training epoch{"s" if epoch!=1 else ""} ({eval_type})'
 
     # Create grids for each dataset
     grid_data = torchvision.utils.make_grid(data[:n_imgs], nrow=8, normalize=True)
