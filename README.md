@@ -26,7 +26,7 @@ To clone the repository and run the tests, for instance on Google Colab, do:
 
 ## Basic usage
 
-The library provides seven topological regularizers, each computing a different measure of dissimilarity between the persistence diagram of the learnable point cloud and the ground truth diagram. These functions are:
+The library provides seven topological regularizers, each computing a different measure of dissimilarity between the persistence diagram of the learnable point cloud and the ground truth persistence diagram. These functions are:
 - `loss_bottleneck0`, `loss_bottleneck1`: bottleneck distance for homology degrees 0 and 1, respectively.
 - `loss_persentropy0`, `loss_persentropy1`: squared difference between persistence entropies for homology degrees 0 and 1, respectively.
 - `loss_dsigma0`, `loss_dsigma1`: Reininghaus dissimilarity for homology degrees 0 and 1, respectively.
