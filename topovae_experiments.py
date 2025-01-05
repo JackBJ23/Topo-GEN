@@ -113,8 +113,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   if args.n_epochs > 1:
       plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
   else:
-      logging.info(f"Average training BCE loss over 1 epoch for VAE: {train_losses0}; for TopoVAE: {train_losses1}")
-      logging.info(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0}; for TopoVAE: {val_losses1}")
+      logging.info(f"Average training BCE loss over 1 epoch for VAE: {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
+      logging.info(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
   return model0, model1
 
 def parse_topo_weights(value):
