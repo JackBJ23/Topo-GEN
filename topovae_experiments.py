@@ -12,7 +12,7 @@ from torchvision import transforms, datasets
 import logging
 
 # Import topological functions and model
-from topogen import get_dgm, TopologicalLoss, plot_gen_imgs, plot_iter_losses, plot_epoch_losses
+from topogen import get_dgm, TopologicalLoss, save_gen_imgs, save_fig_iter_losses, save_fig_epoch_losses
 from model import VAE
 
 logging.basicConfig(
@@ -45,7 +45,7 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, device):
         # No need to compute the topological loss here, only need BCE for comparison (KLD could also be included):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         running_loss1 += BCE1.item()
-        if batch_idx == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
+        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
 
   return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
 
@@ -95,7 +95,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           running_loss1 += BCE1.item()
           train_losses1_all.append(BCE1.item())
 
-          if batch_idx % args.n_plot == 0: plot_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
+          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
 
       logging.info(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
@@ -108,10 +108,10 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
 
   # Training ended
   # Plot and save losses over all training steps: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  plot_iter_losses(train_losses0_all, train_losses1_all, filename='BCElosses_train.png')
+  save_fig_iter_losses(train_losses0_all, train_losses1_all, filename='BCElosses_train.png')
   # Plot training losses and validation losses over epochs:
   if args.n_epochs > 1:
-      plot_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
+      save_fig_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
   else:
       logging.info(f"Average training BCE loss over 1 epoch for VAE: {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
       logging.info(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
