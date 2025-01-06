@@ -178,7 +178,7 @@ if __name__ == "__main__":
   print("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
-    dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
+    dgms_batches.append(get_dgm(data.view(data.size(0), -1), args.deg))
 
   print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, len(train_dataset), val_loader, dgms_batches, device, args)
@@ -186,6 +186,7 @@ if __name__ == "__main__":
       torch.save(model0.state_dict(), f'{args.test_name}/vae_weights.pth')
       torch.save(model1.state_dict(), f'{args.test_name}/topovae_weights.pth')
       print(f"Weights of VAE and TopoVAE saved in {args.test_name}/vae_weights.pth and {args.test_name}/topovae_weights.pth, respectively.")
+  
   print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', args.test_name, device)
   print(f"Average BCE loss after {args.n_epochs} epochs (on test dataset): for VAE: {test_loss0}, for TopoVAE {test_loss1}.\nTest {args.test_name} finished.")
