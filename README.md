@@ -48,7 +48,7 @@ For a more manual control of individual topological functions, do, for instance 
 from topogen import loss_bottleneck0
 loss, gotloss = loss_bottleneck0(point_cloud, true_point_cloud)
 ```
-Both also expected to be torch tensors with shapes `(number of points, dimensions of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about optional arguments.
+Where `point_cloud, true_point_cloud` are also torch tensors with shapes `(number of points, dimensions of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about optional arguments.
 
 The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds, see [`topogen/visualizations.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/visualizations.py).
 
