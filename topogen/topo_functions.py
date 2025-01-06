@@ -29,7 +29,6 @@ import torch
 import numpy as np
 import math
 # TDA libraries
-#import ripser
 import persim
 from gph import ripser_parallel
 
