@@ -61,15 +61,15 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
     - An animation of the point cloud evolution during training.
   """
   # Plot true point cloud:
-  save_fig_pc(point_cloud_true, f'{test_name}_ini_true_pointcloud.png')
+  save_fig_pc(point_cloud_true, f'{test_name}/ini_true_pointcloud.png')
   # Plot its persistence diagram:
   dgm_true = get_dgm(point_cloud_true, 1)
-  save_fig_dgm(dgm_true, f'{test_name}_ini_true_diagram.png')
+  save_fig_dgm(dgm_true, f'{test_name}/ini_true_diagram.png')
   # Plot initial learnable point cloud:
-  save_fig_pc(point_cloud, f'{test_name}_ini_pointcloud.png')
+  save_fig_pc(point_cloud, f'{test_name}/ini_pointcloud.png')
   # Plot its persistence diagram:
   dgm = get_dgm(point_cloud, 1)
-  save_fig_dgm(dgm, f'{test_name}_ini_diagram.png')
+  save_fig_dgm(dgm, f'{test_name}/ini_diagram.png')
 
   point_cloud_true = torch.tensor(point_cloud_true, dtype=torch.float32, device=device)
   point_cloud = torch.tensor(point_cloud, dtype=torch.float32, requires_grad=True, device=device)
@@ -99,18 +99,18 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
 
   logging.info("Training ended")
   # Save persistence diagram of the final point cloud:
-  save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}_final_diagram.png')
+  save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}/final_diagram.png')
   # Save final point cloud:
-  save_fig_pc(point_clouds[-1], f'{test_name}_final_pointcloud.png')
+  save_fig_pc(point_clouds[-1], f'{test_name}/final_pointcloud.png')
   # Save loss evolution:
   plt.figure()
   plt.plot(xs, losses)
   plt.xlabel("Iteration")
   plt.ylabel("Loss")
-  plt.savefig(f'{test_name}_loss_evolution.png')
+  plt.savefig(f'{test_name}/loss_evolution.png')
   plt.close()
   # Save animation of the evolution of the point cloud:
-  generate_animation(point_clouds, test_name, x1, x2, y1, y2)
+  generate_animation(point_clouds, x1, x2, y1, y2, f'{test_name}/point_clouds_evolution.gif')
   logging.info(f"Test {test_name} done!")
 
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300): #15000
@@ -118,12 +118,12 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300): #15000
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
   # Generate the learnable point cloud (5 clusters centered at [0., 0.], [10., 0.], etc.):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.01, "test_1", num_save=50)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.01, "test1", num_save=50)
 
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300):#2500
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.05, "test_2", num_save=25)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.05, "test2", num_save=25)
 
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300):#7500
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
@@ -132,7 +132,7 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300):#7500
   for i in range(32):
     point_cloud[i] = np.array([random.uniform(-r1, r1), 0.7 * i + random.uniform(-r1, r1)])
     point_cloud[i+32] = np.array([0.2 * i + random.uniform(-r1, r1) + 5., 0.9 * i + random.uniform(-r1, r1)])
-  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.1, "test_3", num_save=50)
+  synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.1, "test3", num_save=50)
 
 if __name__ == "__main__":
   # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters.
