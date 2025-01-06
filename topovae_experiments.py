@@ -180,6 +180,8 @@ if __name__ == "__main__":
   # Pre-compute persistence diagrams:
   logging.info("Pre-computing persistence diagrams...")
   dgms_batches = []
+  for step, (data, _) in enumerate(val_loader):
+    print(data.size(0))
   for step, (data, _) in enumerate(train_loader):
     print(data.size(0))
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
