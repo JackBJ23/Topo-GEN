@@ -52,14 +52,14 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, test_name, device):
   return total_bce_loss0 / n_samples, total_bce_loss1 / n_samples
 
 # Train and compare model0 (normal VAE) and model1 (TopoVAE):
-def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
-  # Losses to save once per epoch:
+def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_loader, dgms_batches, device, args):
+  # Losses saved once per epoch (average):
   train_losses0 = []
   train_losses1 = []
   val_losses0 = []
   val_losses1 = []
 
-  # Losses to save at all training steps, for plotting the loss evolution with more detail:
+  # Losses saved at all training steps to plot the loss evolution with more detail:
   train_losses0_all = []
   train_losses1_all = []
 
@@ -69,11 +69,11 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
   for epoch in range(args.n_epochs):
       model0.train()
       model1.train()
-      running_loss0 = 0.
-      running_loss1 = 0.
+      tot_loss0 = 0.
+      tot_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
           data = data.to(device)
-          dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram of the true batch to avoid computation time
+          dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram
           optimizer0.zero_grad()
           optimizer1.zero_grad()
 
@@ -83,8 +83,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           loss0 = (BCE0 + KLD0) / data.size(0)
           loss0.backward()
           optimizer0.step()
-          running_loss0 += BCE0.item()
-          train_losses0_all.append(BCE0.item())
+          tot_loss0 += BCE0.item()
+          train_losses0_all.append(BCE0.item() / data.size(0))
 
           # model1 (TopoVAE)
           recon_batch1, mean1, log_var1 = model1(data)
@@ -96,19 +96,19 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           if gotloss: loss1 = loss1 + topoloss / data.size(0)
           loss1.backward()
           optimizer1.step()
-          running_loss1 += BCE1.item()
-          train_losses1_all.append(BCE1.item())
+          tot_loss1 += BCE1.item()
+          train_losses1_all.append(BCE1.item() / data.size(0))
 
           if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'{args.test_name}/imgs_train_epoch_{epoch}_step_{batch_idx}')
 
       logging.info(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
-      train_losses0.append(running_loss0 / len(train_loader))
-      train_losses1.append(running_loss1 / len(train_loader))
-      # Evaluate both models:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', args.test_name, device)
-      val_losses0.append(val_loss0)
-      val_losses1.append(val_loss1)
+      train_losses0.append(tot_loss0 / len_train)
+      train_losses1.append(tot_loss1 / len_train)
+      # Evaluate both models and get average BCE loss in the validation dataset:
+      avg_val_loss0, avg_val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', args.test_name, device)
+      val_losses0.append(avg_val_loss0)
+      val_losses1.append(avg_val_loss1)
 
   # Training ended
   # Plot and save losses over all training steps: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
@@ -181,14 +181,14 @@ if __name__ == "__main__":
   test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
   logging.info(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
-  # Pre-compute persistence diagrams:
+  # Pre-compute persistence diagrams to avoid computation time during training:
   logging.info("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   logging.info("Training...")
-  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
+  model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, len(train_dataset), val_loader, dgms_batches, device, args)
   if args.save_models:
       torch.save(model0.state_dict(), f'{args.test_name}/vae_weights.pth')
       torch.save(model1.state_dict(), f'{args.test_name}/topovae_weights.pth')
