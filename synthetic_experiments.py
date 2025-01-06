@@ -5,14 +5,8 @@ import numpy as np
 import random
 import tadasets
 import matplotlib.pyplot as plt
-import logging
 
 from topogen import get_dgm, loss_push0, TopologicalLoss, save_fig_dgm, save_fig_pc, generate_animation
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s"
-)
 
 def get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss):
   """
@@ -84,7 +78,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   losses = []
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
-  logging.info("Training...")
+  print("Training...")
   for i in range(num_steps):
       optimizer.zero_grad()
       loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss)
@@ -98,9 +92,9 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
       if i % num_save == 0 or i == num_steps - 1: 
         point_clouds.append(np.copy(point_cloud.detach().cpu().numpy()))
       if i % 100 == 0 or i == num_steps - 1:
-        logging.info(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
+        print(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
 
-  logging.info("Training ended")
+  print("Training ended")
   # Save persistence diagram of the final point cloud:
   save_fig_dgm(get_dgm(point_clouds[-1], 1), f'{test_name}/final_diagram.png')
   # Save final point cloud:
@@ -114,7 +108,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   plt.close()
   # Save animation of the evolution of the point cloud:
   generate_animation(point_clouds, x1, x2, y1, y2, f'{test_name}/point_clouds_evolution.gif')
-  logging.info(f"Test {test_name} done!")
+  print(f"Test {test_name} done!")
 
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=300): #15000
   # Generate a synthetic ground truth point cloud:
