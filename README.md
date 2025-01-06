@@ -100,7 +100,7 @@ Where `topo_weights` is the list of weights associated with each topological los
 
 ## Some results
 
-In our experiments, we observe interesting behaviors. For instance, a VAE trained wit the bottleneck loss for homology degrees 0 and 1 yields improved image quality and diversity in early training, as shown below (taken at training step 50). Left: input data, middle: output from standard VAE, right: output from TopoVAE. 
+In our experiments, we observe interesting behaviors. For instance, a VAE trained with the bottleneck loss for homology degrees 0 and 1 yields improved image quality and diversity in early training, as shown below (taken at training step 50). Left: input data, middle: output from standard VAE, right: output from TopoVAE. 
 
 <img src="assets/imgs_generated.png" alt="Images Generated" width="700"/>
 
