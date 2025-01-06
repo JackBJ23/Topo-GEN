@@ -1,3 +1,4 @@
+import os
 import sys
 import torch
 import numpy as np
@@ -41,7 +42,7 @@ def create_point_cloud(centers, cluster_sizes, r):
     point_cloud = np.vstack(point_cloud)
     return point_cloud
 
-def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.):
+def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2000, lr=0.001, test_name="synthetic_test", device="cpu", num_save=50, x1=-10., x2=40., y1=-40., y2=40.):
   """
   Function for running a synthetic test with an initial random point cloud in 2D, a ground truth point cloud, and an arbitrary topological loss. 
   Helpful for visualizing the impact of topological regularizers on 2D data.
@@ -60,6 +61,8 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
     - Figures of the final learnable point cloud, its final persistence diagram, loss evolution.
     - An animation of the point cloud evolution during training.
   """
+  # Create folder for the test:
+  os.makedirs(test_name, exist_ok=True)
   # Plot true point cloud:
   save_fig_pc(point_cloud_true, f'{test_name}/ini_true_pointcloud.png')
   # Plot its persistence diagram:
