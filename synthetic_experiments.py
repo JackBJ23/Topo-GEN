@@ -52,7 +52,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
     - topo_weights (list): List of weights for the total loss (created with the class TopologicalLoss). Each weight is associated with a topological regularizer.
     - num_steps (int): Number of training steps.
     - lr (float): Learning rate.
-    - test_name (str): Test name for saving the generated files.
+    - test_name (str): Test name for creating a folder and saving the generated files.
     - device: Device for performing the computations.
     - num_save: Interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation.
     - x1, x2, y1, y2 (floats): the window limits for the animation (x-min, x-max, y-min, y-max, respectively).
@@ -61,7 +61,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
     - Figures of the final learnable point cloud, its final persistence diagram, loss evolution.
     - An animation of the point cloud evolution during training.
   """
-  # Create folder for the test:
+  # Create folder to save the results of the test:
   os.makedirs(test_name, exist_ok=True)
   # Plot true point cloud:
   save_fig_pc(point_cloud_true, f'{test_name}/ini_true_pointcloud.png')
