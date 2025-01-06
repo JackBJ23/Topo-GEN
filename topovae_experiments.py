@@ -9,16 +9,10 @@ from torch import optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
-import logging
 
 # Import topological functions and model
 from topogen import get_dgm, TopologicalLoss, save_gen_imgs, save_fig_iter_losses, save_fig_epoch_losses
 from model import VAE
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s"
-)
 
 # Standard loss of VAE
 def loss_vae(recon_x, x, mu, logvar):
@@ -101,7 +95,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_l
 
           if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'{args.test_name}/imgs_train_epoch_{epoch}_step_{batch_idx}')
 
-      logging.info(f"End of epoch {epoch+1}/{args.n_epochs}")
+      print(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
       train_losses0.append(tot_loss0 / len_train)
       train_losses1.append(tot_loss1 / len_train)
@@ -117,8 +111,8 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_l
   if args.n_epochs > 1:
       save_fig_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename=f'{args.test_name}/BCElosses_train_val_epochs.png')
   else:
-      logging.info(f"Test {args.test_name}: Average BCE loss over 1 epoch (on training dataset): for VAE {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
-      logging.info(f"Test {args.test_name}: Average BCE loss after 1 epoch (on validation dataset): for VAE {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
+      print(f"Test {args.test_name}: Average BCE loss over 1 epoch (on training dataset): for VAE {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
+      print(f"Test {args.test_name}: Average BCE loss after 1 epoch (on validation dataset): for VAE {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
   return model0, model1
 
 def parse_topo_weights(value):
@@ -159,7 +153,7 @@ if __name__ == "__main__":
   torch.manual_seed(args.seed)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   os.makedirs(args.test_name, exist_ok=True)
-  logging.info(f"Using topological weights: {args.topo_weights}. Device: {device}.")
+  print(f"Using topological weights: {args.topo_weights}. Device: {device}.")
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
@@ -179,20 +173,20 @@ if __name__ == "__main__":
   train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False)
   val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
   test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
-  logging.info(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
+  print(f"Sizes: Training set: {len(train_dataset)}; Validation set: {len(val_dataset)}; Test set: {len(test_dataset)}")
 
   # Pre-compute persistence diagrams to avoid computation time during training:
-  logging.info("Pre-computing persistence diagrams...")
+  print("Pre-computing persistence diagrams...")
   dgms_batches = []
   for step, (data, _) in enumerate(train_loader):
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
-  logging.info("Training...")
+  print("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, len(train_dataset), val_loader, dgms_batches, device, args)
   if args.save_models:
       torch.save(model0.state_dict(), f'{args.test_name}/vae_weights.pth')
       torch.save(model1.state_dict(), f'{args.test_name}/topovae_weights.pth')
-      logging.info(f"Weights of VAE and TopoVAE saved in {args.test_name}/vae_weights.pth and {args.test_name}/topovae_weights.pth, respectively.")
-  logging.info("Testing...")
+      print(f"Weights of VAE and TopoVAE saved in {args.test_name}/vae_weights.pth and {args.test_name}/topovae_weights.pth, respectively.")
+  print("Testing...")
   test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', args.test_name, device)
-  logging.info(f"Average BCE loss after {args.n_epochs} epochs (on test dataset): for VAE: {test_loss0}, for TopoVAE {test_loss1}.\nTest {args.test_name} finished.")
+  print(f"Average BCE loss after {args.n_epochs} epochs (on test dataset): for VAE: {test_loss0}, for TopoVAE {test_loss1}.\nTest {args.test_name} finished.")
