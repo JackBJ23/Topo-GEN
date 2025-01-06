@@ -46,9 +46,9 @@ Furthermore, `point_cloud` is the learnable point cloud or output of a machine l
 For a more manual control of individual topological functions, do, for instance (the same principle applies to the other regularizers):
 ```
 from topogen import loss_bottleneck0
-loss, gotloss = loss_bottleneck0(point_cloud, point_cloud2)
+loss, gotloss = loss_bottleneck0(point_cloud, true_point_cloud)
 ```
-Where `point_cloud` is the learnable point cloud or output of a machine learning model and `point_cloud2` is the ground truth point cloud, both also expected to be torch tensors with shapes `(number of points, dimensions of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
+Both also expected to be torch tensors with shapes `(number of points, dimensions of each point)`. See [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details about additional optional arguments.
 
 The library also includes visualization tools to observe the impact of topological regularizers on generative models and 2D point clouds, see [`topogen/visualizations.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/visualizations.py).
 
