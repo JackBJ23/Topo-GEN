@@ -28,7 +28,7 @@ def loss_vae(recon_x, x, mu, logvar):
     return BCE, KLD
 
 # Evaluate model0 (normal VAE) and model1 (TopoVAE):
-def evaluate(model0, model1, val_loader, epoch, eval_type, device):
+def evaluate(model0, model1, val_loader, epoch, eval_type, test_name, device):
   model0.eval()
   model1.eval()
   running_loss0 = 0.
@@ -42,10 +42,10 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, device):
         running_loss0 += BCE0.item()
         # model1
         recon_batch1, mean1, log_var1 = model1(data)
-        # No need to compute the topological loss here, only need BCE for comparison (KLD could also be included):
+        # No need to compute the topological loss here, only use BCE for comparison (however, KLD or other metrics could also be added):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         running_loss1 += BCE1.item()
-        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
+        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'{test_name}/imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
 
   return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
 
@@ -95,26 +95,26 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           running_loss1 += BCE1.item()
           train_losses1_all.append(BCE1.item())
 
-          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'imgs_train_epoch_{epoch}_step_{batch_idx}')
+          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'{args.test_name}/imgs_train_epoch_{epoch}_step_{batch_idx}')
 
       logging.info(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
       train_losses0.append(running_loss0 / len(train_loader))
       train_losses1.append(running_loss1 / len(train_loader))
       # Evaluate both models:
-      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', device)
+      val_loss0, val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', args.test_name, device)
       val_losses0.append(val_loss0)
       val_losses1.append(val_loss1)
 
   # Training ended
   # Plot and save losses over all training steps: (for the purposes of this work, we only focus on BCE loss, but KLD loss can also be added)
-  save_fig_iter_losses(train_losses0_all, train_losses1_all, filename='BCElosses_train.png')
+  save_fig_iter_losses(train_losses0_all, train_losses1_all, filename=f'{args.test_name}/BCElosses_train.png')
   # Plot training losses and validation losses over epochs:
   if args.n_epochs > 1:
-      save_fig_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename='BCElosses_train_val_epochs.png')
+      save_fig_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, filename=f'{args.test_name}/BCElosses_train_val_epochs.png')
   else:
-      logging.info(f"Average training BCE loss over 1 epoch for VAE: {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
-      logging.info(f"Average validation BCE loss after 1 epoch for VAE: {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
+      logging.info(f"Test {args.test_name}: Average BCE loss over 1 epoch (on training dataset): for VAE {train_losses0[0]}; for TopoVAE: {train_losses1[0]}")
+      logging.info(f"Test {args.test_name}: Average BCE loss after 1 epoch (on validation dataset): for VAE {val_losses0[0]}; for TopoVAE: {val_losses1[0]}")
   return model0, model1
 
 def parse_topo_weights(value):
@@ -128,15 +128,16 @@ def parse_topo_weights(value):
 
 def load_config():
     parser = argparse.ArgumentParser(description="Train and evaluate a generative model with topological regularizers.")
-    parser.add_argument('--n_latent', type=int, default=10, help="Latent dimension of the VAE.")
-    parser.add_argument('--batch_size', type=int, default=128, help="Batch size for training the model.")
-    parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs. 1 or 2 are sufficient for training the VAE on FashionMNIST.")
-    parser.add_argument('--learning_rate', type=float, default=5e-4)
+    parser.add_argument('--test_name', type=str, default="topovae_test", help="Name of the test run; will be used as the folder name to save results. Default is 'topovae_test'.")
+    parser.add_argument('--n_latent', type=int, default=10, help="Latent dimension of the VAE. Default is 10.")
+    parser.add_argument('--batch_size', type=int, default=128, help="Batch size for training the model. Default is 128.")
+    parser.add_argument('--n_epochs', type=int, default=2, help="Number of training epochs. 1 or 2 are sufficient for training the VAE on FashionMNIST. Default is 2.")
+    parser.add_argument('--learning_rate', type=float, default=5e-4, help="Learning rate. Models are trained with a fixed learning rate. Default is 5e-4.")
     parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--n_plot', type=int, default=50, help="Interval (in training steps) at which generated images are plotted/saved.")
-    parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. 1 is the more general option.")
-    parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights (e.g., '0.1,0.2,0.3,0.4,0.5,0.6,0.7')")
-    parser.add_argument('--save_models', type=bool, default=False, help="Select True for saving the models after training, False otherwise.")
+    parser.add_argument('--n_plot', type=int, default=50, help="Interval (in training steps) at which generated images are plotted/saved. Default is 50.")
+    parser.add_argument('--deg', type=int, default=1, choices=[0, 1], help="Homology degree used. Default is 1 (the more general option).")
+    parser.add_argument('--topo_weights', type=parse_topo_weights, default=[10., 10., 10., 10., 0., 0., 0.], help="7-element vector of floats for topology weights. Default is '10.,10.,10.,10.,0.,0.,0.'.")
+    parser.add_argument('--save_models', type=bool, default=True, help="True for saving the models after training, False otherwise. Default is True.")
     # Hyperparameters for topological functions (reference values by default):
     parser.add_argument('--pers0_delta', type=float, default=0.001, help="Controls loss_persentropy0.")
     parser.add_argument('--pers1_delta', type=float, default=0.001, help="Controls loss_persentropy1.")
@@ -153,6 +154,7 @@ if __name__ == "__main__":
   args = load_config()
   torch.manual_seed(args.seed)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  os.makedirs(args.test_name, exist_ok=True)
   logging.info(f"Using topological weights: {args.topo_weights}. Device: {device}.")
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
@@ -184,9 +186,9 @@ if __name__ == "__main__":
   logging.info("Training...")
   model0, model1 = train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args)
   if args.save_models:
-      torch.save(model0.state_dict(), "vae_weights.pth")
-      torch.save(model1.state_dict(), "topovae_weights.pth")
-      logging.info("Weights of VAE and TopoVAE saved in vae_weights.pth and topovae_weights.pth, respectively.")
+      torch.save(model0.state_dict(), f'{args.test_name}/vae_weights.pth')
+      torch.save(model1.state_dict(), f'{args.test_name}/topovae_weights.pth')
+      logging.info(f"Weights of VAE and TopoVAE saved in {args.test_name}/vae_weights.pth and {args.test_name}/topovae_weights.pth, respectively.")
   logging.info("Testing...")
-  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', device)
-  logging.info(f"Test losses: {test_loss0}, {test_loss1}.\nDone!")
+  test_loss0, test_loss1 = evaluate(model0, model1, test_loader, args.n_epochs, 'test', args.test_name, device)
+  logging.info(f"Average BCE loss after {args.n_epochs} epochs (on test dataset): for VAE: {test_loss0}, for TopoVAE {test_loss1}.\nTest {args.test_name} finished.")
