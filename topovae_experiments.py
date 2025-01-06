@@ -31,23 +31,25 @@ def loss_vae(recon_x, x, mu, logvar):
 def evaluate(model0, model1, val_loader, epoch, eval_type, test_name, device):
   model0.eval()
   model1.eval()
-  running_loss0 = 0.
-  running_loss1 = 0.
+  total_bce_loss0 = 0.
+  total_bce_loss1 = 0.
+  n_samples = 0
   with torch.no_grad():
       for batch_idx, (data, _) in enumerate(val_loader):
         data = data.to(device)
+        n_samples += data.size(0)
         # model0
         recon_batch0, mean0, log_var0 = model0(data)
         BCE0, _ = loss_vae(recon_batch0, data, mean0, log_var0)
-        running_loss0 += BCE0.item()
+        total_bce_loss0 += BCE0.item()
         # model1
         recon_batch1, mean1, log_var1 = model1(data)
         # No need to compute the topological loss here, only use BCE for comparison (however, KLD or other metrics could also be added):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
-        running_loss1 += BCE1.item()
+        total_bce_loss1 += BCE1.item()
         if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'{test_name}/imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
-
-  return running_loss0 / len(val_loader), running_loss1 / len(val_loader)
+  # Return the average BCE loss per sample
+  return total_bce_loss0 / n_samples, total_bce_loss1 / n_samples
 
 # Train and compare model0 (normal VAE) and model1 (TopoVAE):
 def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms_batches, device, args):
@@ -78,7 +80,7 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           # model0 (VAE)
           recon_batch0, mean0, log_var0 = model0(data)
           BCE0, KLD0 = loss_vae(recon_batch0, data, mean0, log_var0)
-          loss0 = BCE0 + KLD0
+          loss0 = (BCE0 + KLD0) / data.size(0)
           loss0.backward()
           optimizer0.step()
           running_loss0 += BCE0.item()
@@ -87,9 +89,11 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, val_loader, dgms
           # model1 (TopoVAE)
           recon_batch1, mean1, log_var1 = model1(data)
           BCE1, KLD1 = loss_vae(recon_batch1, data, mean1, log_var1)
-          loss1 = BCE1 + KLD1
+          loss1 = (BCE1 + KLD1) / data.size(0)
           topoloss, gotloss = topo_loss.compute_loss(recon_batch1, data, None, dgm_true)
-          if gotloss: loss1 = loss1 + topoloss
+          # Include normalization by batch size since loss1 is already normalized to batch size
+          # Normalization by batch size is useful for comparing train and test losses (since the last batches may have size < args.batch_size)
+          if gotloss: loss1 = loss1 + topoloss / data.size(0)
           loss1.backward()
           optimizer1.step()
           running_loss1 += BCE1.item()
@@ -180,10 +184,7 @@ if __name__ == "__main__":
   # Pre-compute persistence diagrams:
   logging.info("Pre-computing persistence diagrams...")
   dgms_batches = []
-  for step, (data, _) in enumerate(val_loader):
-    print(data.size(0))
   for step, (data, _) in enumerate(train_loader):
-    print(data.size(0))
     dgms_batches.append(get_dgm(data.view(data.size(0), -1), 1))
 
   logging.info("Training...")
