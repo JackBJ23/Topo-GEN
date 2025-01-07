@@ -462,8 +462,8 @@ class TopologicalLoss:
         Args:
             - points (torch.Tensor): Learnable point cloud. Shape (batch size, additional dimensions).
             - true_points (torch.Tensor): Ground truth point cloud. Shape (batch size, additional dimensions).
-            - dgm (torch.Tensor, optional): Persistence diagram of points.
-            - dgm_true (torch.Tensor, optional): Persistence diagram of true_points.
+            - dgm (dict, optional): Persistence diagram of points.
+            - dgm_true (dict, optional): Persistence diagram of true_points.
         Returns:
             - torch.Tensor: Total loss (scalar).
             - bool: True if the loss depends on points, False otherwise.
