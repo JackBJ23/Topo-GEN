@@ -40,8 +40,8 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   Function for running a synthetic test with an initial random point cloud in 2D, a ground truth point cloud, and an arbitrary topological loss. 
   Helpful for visualizing the impact of topological regularizers on 2D data.
   Args:
-    - point_cloud (torch.Tensor): Learnable point cloud, shape (number of points, dimension of each point).
-    - point_cloud_true (torch.Tensor): Ground truth point cloud, shape (number of points, dimension of each point).
+    - point_cloud (np.ndarray): Learnable point cloud, shape (number of points, dimension of each point).
+    - point_cloud_true (np.ndarray): Ground truth point cloud, shape (number of points, dimension of each point).
     - topo_weights (list): List of weights for the total loss (created with the class TopologicalLoss). Each weight is associated with a topological regularizer.
     - num_steps (int): Number of training steps.
     - lr (float): Learning rate.
@@ -50,20 +50,20 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
     - num_save: Interval (in training steps) at which the point cloud coordinates are saved, enabling the creation of the final animation.
     - x1, x2, y1, y2 (floats): the window limits for the animation (x-min, x-max, y-min, y-max, respectively).
   Output:
-    - Figures of the initial true point cloud, initial true persistence diagram, and initial learnable point cloud.
-    - Figures of the final learnable point cloud, its final persistence diagram, loss evolution.
+    - Figures of the initial true point cloud, its persistence diagram, initial learnable point cloud, and its persistence diagram.
+    - Figures of the final learnable point cloud, its final persistence diagram, and loss evolution.
     - An animation of the point cloud evolution during training.
   """
   # Create folder to save the results of the test:
   os.makedirs(test_name, exist_ok=True)
-  # Plot true point cloud:
+  # Save figure of true point cloud:
   save_fig_pc(point_cloud_true, f'{test_name}/ini_true_pointcloud.png')
-  # Plot its persistence diagram:
+  # Save figure of its persistence diagram:
   dgm_true = get_dgm(point_cloud_true, 1)
   save_fig_dgm(dgm_true, f'{test_name}/ini_true_diagram.png')
-  # Plot initial learnable point cloud:
+  # Save figure of initial learnable point cloud:
   save_fig_pc(point_cloud, f'{test_name}/ini_pointcloud.png')
-  # Plot its persistence diagram:
+  # Save figure of its persistence diagram:
   dgm = get_dgm(point_cloud, 1)
   save_fig_dgm(dgm, f'{test_name}/ini_diagram.png')
 
@@ -73,7 +73,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   # Set the topological loss:
   topo_loss = topo_loss = TopologicalLoss(topo_weights)
 
-  point_clouds = [point_cloud.detach().cpu().numpy()]
+  point_clouds = [point_cloud.detach().cpu().numpy()] # For the final animation
   losses = []
   xs = []
   optimizer = torch.optim.Adam([point_cloud], lr=lr)
@@ -109,6 +109,7 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
   generate_animation(point_clouds, x1, x2, y1, y2, f'{test_name}/point_clouds_evolution.gif')
   print(f"Test {test_name} done!")
 
+# Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters.
 def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=15000):
   # Generate a synthetic ground truth point cloud:
   point_cloud_true = np.array([[5.,5.], [10., 10.], [20.0, 6.0]])
@@ -116,11 +117,13 @@ def test1(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=15000):
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,0.], [0.,20.], [30.,30.], [10.,-25.]]), [10,10,10,10,24], 0.5)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.01, "test1", num_save=50)
 
+# Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters.
 def test2(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=2500):
   point_cloud_true = create_point_cloud(np.array([[0.,0.], [10.,0.], [-5.,4.], [8.,13.]]), [30,20,30,48], 0.3)
   point_cloud = create_point_cloud(np.array([[0.,0.], [10.,5.]]), [30, 34], 0.4)
   synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.05, "test2", num_save=25)
 
+# Test 3: The learnable point cloud starts as 2 lines with added noise, and the reference point cloud is a circle.
 def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=7500):
   point_cloud_true = tadasets.dsphere(d=1, n=100, noise=0.0) * 5.
   point_cloud = np.zeros((64,2))
@@ -131,9 +134,6 @@ def test3(topo_weights=[1.,1.,0.,0.,0.,0.,0.], num_steps=7500):
   synthetic_test(point_cloud, point_cloud_true, topo_weights, num_steps, 0.1, "test3", num_save=50)
 
 if __name__ == "__main__":
-  # Test 1: The learnable point cloud starts with 5 clusters, and the reference point cloud has 3 clusters.
   test1()
-  # Test 2: The learnable point cloud starts with 2 clusters, and the reference point cloud has 4 clusters.
   test2()
-  # Test 3: The learnable point cloud starts as 2 lines with added noise, and the reference point cloud is a circle.
   test3()
