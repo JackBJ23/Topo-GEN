@@ -68,7 +68,7 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 0)
     # If dgm is empty, there is no topological loss:
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=point_cloud.device), False
+    if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=point_cloud.device), False
     # Compute bottleneck distance:
     with torch.no_grad():
         distance_bottleneck, matching = persim.bottleneck(dgm['dgms'][0][:-1], dgm2['dgms'][0][:-1], matching=True)
@@ -151,7 +151,7 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 0)
     
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
+    if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=device), False
     # Get persistent entropy of dgm:
     L = torch.tensor(0., device=device)
     pers = torch.tensor(0., device=device)
@@ -165,7 +165,7 @@ def loss_persentropy0(point_cloud, point_cloud2, dgm=None, dgm2=None, delta=0.00
       if pers1 > delta: pers = pers + pers1 * torch.log(pers1/L)
   
     # Get persistent entropy of dgm2:
-    if len(dgm2['dgms'][0])==0: return (pers/L)**2, True # The entropy of dgm2 is 0
+    if len(dgm2['dgms'][0])<=1: return (pers/L)**2, True # The entropy of dgm2 is 0
     L2 = 0.
     pers2 = 0.
     for i in range(len(dgm2['dgms'][0])-1):
@@ -250,7 +250,7 @@ def loss_dsigma0(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 0)
     device = point_cloud.device
 
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False # No dgm -> no loss
+    if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=device), False # No dgm -> no loss
     return _ksigma0(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
 
 def _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
@@ -322,7 +322,7 @@ def loss_density(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.2, scal
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 0)
     device = point_cloud.device
     
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=device), False
+    if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=device), False
     xs = torch.linspace(0., maxrange, npoints)
     loss = torch.tensor(0., device=device)
     # Compute difference between both functions in npoints points:
@@ -336,7 +336,7 @@ def loss_push0(point_cloud, dgm):
     """
     # Check if the dgm has been provided:
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 0)
-    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=point_cloud.device)
+    if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=point_cloud.device)
 
     loss = - torch.abs(_dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
     for i in range(1, len(dgm['gens'][0])):
@@ -471,12 +471,19 @@ class TopologicalLoss:
         if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
         if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
         loss = torch.tensor(0., device=points.device)
-        n_gotloss = 0
-
+        # Check if the diagrams are empty:
+        if len(dgm['dgms'][0]) <= 1: 
+          if self.deg == 0:
+            return loss, False
+          else:
+            if len(dgm['dgms'][1]) == 0:
+              return loss, False
+        # Compute the losses:
+        gotloss = False
         for i, loss_func, args in self.active_losses:
             topoloss, gotloss = loss_func(points, true_points, dgm, dgm_true, *args)
             if gotloss:
                 loss = loss + topoloss * self.topo_weights[i]
-                n_gotloss += 1
+                n_gotloss = True
 
-        return loss, n_gotloss > 0
+        return loss, gotloss
