@@ -32,7 +32,7 @@ The library provides seven topological regularizers, each computing a different 
 - `loss_dsigma0`, `loss_dsigma1`: Reininghaus dissimilarity for homology degrees 0 and 1, respectively.
 - `loss_density`: difference between the 4SGDE density functions of the two persistence diagrams.
 
-We provide a class that allows the simple and efficient combination of these functions. To use it, do:
+We provide a class that allows the straightforward and efficient combination of these functions. To use it, do:
 ```
 from topogen import TopologicalLoss
 
