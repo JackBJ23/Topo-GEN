@@ -26,7 +26,7 @@ def save_fig_dgm(dgm, filename="plot_dgm.png"):
     """
     if len(dgm["dgms"]) > 1: # I.e., dgm contains diagrams of degree 0 and 1
         dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-    else: # dgm only contains the diagram of degree 0 -> need a different pre-processing
+    else: # dgm only contains the diagram of degree 0 -> need different pre-processing
         dgm_gtda = dgm['dgms'][0][:-1]
         zeros_column = np.zeros((dgm_gtda.shape[0], 1))
         dgm_gtda = np.hstack((dgm_gtda, zeros_column))
