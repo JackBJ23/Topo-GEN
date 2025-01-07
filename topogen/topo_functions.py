@@ -81,14 +81,12 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     if i>=0:
       point1_dgm1 = point_cloud[dgm['gens'][0][i][1]]
       point2_dgm1 = point_cloud[dgm['gens'][0][i][2]]
-    
-    if i>=0 and j>=0:
-      return torch.abs(_dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
-    else:
-      if i==-1: # So the j-th point from dgm2 is matched to the diagonal -> the bottleneck distance does not depend explicitely on dgm.
-        return torch.tensor(0., device=point_cloud.device), False
-      else: # Then  j==-1, so the i-th point from dgm is matched to the diagonal. 
+      if j>=0:
+        return torch.abs(_dist(point1_dgm1, point2_dgm1) - dgm2['dgms'][0][j][1]), True
+      else: # Then  j==-1 and i>=0, so the i-th point from dgm is matched to the diagonal
         return _dist(point1_dgm1, point2_dgm1)/2., True
+    else: # So the j-th point from dgm2 is matched to the diagonal -> the bottleneck distance does not depend explicitely on dgm
+      return torch.tensor(0., device=point_cloud.device), False
 
 def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
     """
@@ -471,14 +469,6 @@ class TopologicalLoss:
         if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
         if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
         loss = torch.tensor(0., device=points.device)
-        # Check if the diagrams are empty:
-        if len(dgm['dgms'][0]) <= 1: 
-          if self.deg == 0:
-            return loss, False
-          else:
-            if len(dgm['dgms'][1]) == 0:
-              return loss, False
-        # Compute the losses:
         gotloss = False
         for i, loss_func, args in self.active_losses:
             topoloss, gotloss = loss_func(points, true_points, dgm, dgm_true, *args)
