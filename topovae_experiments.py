@@ -1,7 +1,5 @@
 import os
 import argparse
-#import numpy as np
-#import matplotlib.pyplot as plt
 import torch
 from torch import optim
 import torch.nn.functional as F
