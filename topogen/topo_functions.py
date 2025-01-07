@@ -469,11 +469,11 @@ class TopologicalLoss:
         if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
         if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
         loss = torch.tensor(0., device=points.device)
-        gotloss = False
+        gotloss_tot = False
         for i, loss_func, args in self.active_losses:
             topoloss, gotloss = loss_func(points, true_points, dgm, dgm_true, *args)
             if gotloss:
                 loss = loss + topoloss * self.topo_weights[i]
-                n_gotloss = True
+                gotloss_tot = True
 
-        return loss, gotloss
+        return loss, gotloss_tot
