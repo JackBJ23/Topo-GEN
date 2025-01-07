@@ -24,12 +24,9 @@ def save_fig_dgm(dgm, filename="plot_dgm.png"):
         - dgm (dict): Persistence diagram. Can be obtained using the function get_dgm(point_cloud) from topo_functions.py.
         - filename: File name to save the plot.
     """
-    if len(dgm["dgms"]) > 1: # I.e., dgm contains diagrams of degree 0 and 1
-        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-        fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
-    else:
-        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
-        fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0)))
+    #if len(dgm["dgms"]) > 1: # I.e., dgm contains diagrams of degree 0 and 1
+    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
+    fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
     fig.write_image(filename)
  
 def save_fig_pc(pointcloud, filename="fig_pointcloud.png"):
