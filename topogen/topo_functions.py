@@ -67,7 +67,7 @@ def loss_bottleneck0(point_cloud, point_cloud2, dgm=None, dgm2=None):
     # Check if the diagrams have been provided:
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 0)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 0)
-    # If dgm is empty, there is no topological loss:
+    # If dgm is empty, there is no topological loss: (0-degree diagrams include by default a point (0,infty), so if it is the only point we consider it empty)
     if len(dgm['dgms'][0]) <= 1: return torch.tensor(0., device=point_cloud.device), False
     # Compute bottleneck distance:
     with torch.no_grad():
