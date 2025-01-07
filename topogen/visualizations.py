@@ -28,7 +28,7 @@ def save_fig_dgm(dgm, filename="plot_dgm.png"):
         dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
         fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0,1)))
     else:
-        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0), np.inf, True)[0]
+        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
         fig = go.Figure(plot_diagram(dgm_gtda, homology_dimensions=(0)))
     fig.write_image(filename)
  
