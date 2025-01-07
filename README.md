@@ -41,7 +41,7 @@ loss, gotloss = topo_loss.compute_loss(point_cloud, true_point_cloud)
 ```
 Where `topo_weights` is a 7-element list of weights associated with the topological regularizers. The function `topo_loss.compute_loss` returns the weighted sum of the topological losses as a scalar tensor (`loss`). Specifically, it computes (topoloss_i * topo_weights[i], only if topo_weights[i] ≠ 0) for i = 0, 1, ..., 6, where the topological losses are in the order listed above. If a weight is set to 0, its corresponding function is not used. Additionally, `topo_loss.compute_loss` also returns a boolean (`gotloss`) that is `True` if the loss depends on the learnable point cloud and `False` otherwise. 
 
-Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions for each point)`. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. 
+Furthermore, `point_cloud` is the learnable point cloud or output of a machine learning model, and `true_point_cloud` is the ground truth point cloud, both expected to be torch tensors of shape `(number of points, dimensions of each point)`. Additional attributes controlling the topological functions can be set, see [`topogen/topo_functions.py`](https://github.com/JackBJ23/Topo-GEN/blob/main/topogen/topo_functions.py) for details. 
 
 For a more manual control of individual topological functions, do, for instance (the same principle applies to the other regularizers):
 ```
