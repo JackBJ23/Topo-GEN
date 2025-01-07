@@ -225,11 +225,11 @@ def _ksigma0(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     This function is a helper for loss_dsigma0.
     """
     ksigma = torch.tensor(0., device=device)
-    for i in range(len(dgm['gens'][0])):
+    for i in range(len(dgm['dgms'][0])-1):
         # Point in dgm: (0,d1), d=_dist(p1,p2)
         p1, p2 = point_cloud[dgm['gens'][0][i][1]], point_cloud[dgm['gens'][0][i][2]]
         d1 = _dist(p1, p2)
-        for j in range(len(dgm2['gens'][0])):
+        for j in range(len(dgm2['dgms'][0])-1):
            # Point in dgm2: (0,d2), d=_dist(q1,q2)
            q1, q2 = point_cloud2[dgm2['gens'][0][j][1]], point_cloud2[dgm2['gens'][0][j][2]]
            d2 = _dist(q1, q2)
@@ -260,12 +260,12 @@ def _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device):
     This function is a helper for loss_dsigma1.
     """
     ksigma = torch.tensor(0., device=device)
-    for i in range(len(dgm['gens'][1])):
+    for i in range(len(dgm['dgms'][1])):
         # Point in dgm: (b1,d1), with b1, d1 = _dist(p2, p1), _dist(p3, p4)
         p1, p2, p3, p4 = point_cloud[dgm['gens'][1][0][i][0]], point_cloud[dgm['gens'][1][0][i][1]], point_cloud[dgm['gens'][1][0][i][2]], point_cloud[dgm['gens'][1][0][i][3]]
         b1 = _dist(p1,p2)
         d1 = _dist(p3,p4)
-        for j in range(len(dgm2['gens'][1])):
+        for j in range(len(dgm2['dgms'][1])):
           # Point in dgm2: (b2,d2), with b2, d2 = _dist(q1,q2), _dist(q3,q4)
           q1, q2, q3, q4 = point_cloud2[dgm2['gens'][1][0][j][0]], point_cloud2[dgm2['gens'][1][0][j][1]], point_cloud2[dgm2['gens'][1][0][j][2]], point_cloud2[dgm2['gens'][1][0][j][3]]
           b2 = _dist(q1,q2)
@@ -288,7 +288,7 @@ def loss_dsigma1(point_cloud, point_cloud2, dgm=None, dgm2=None, sigma=0.05):
     device = point_cloud.device
     
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=device), False
-    if len(dgm2['gens'][1])>0:
+    if len(dgm2['dgms'][1])>0:
       return _ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device) - 2.0 * _ksigma1(point_cloud, point_cloud2, dgm, dgm2, sigma, device), True
     else:
       return _ksigma1(point_cloud, point_cloud, dgm, dgm, sigma, device), True
