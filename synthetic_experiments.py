@@ -83,15 +83,16 @@ def synthetic_test(point_cloud, point_cloud_true, topo_weights=[1.,1.,0.,0.,0.,0
       loss, lossitem = get_loss(point_cloud, point_cloud_true, dgm_true, topo_loss)
       loss.backward()
       optimizer.step()
-
-      if i % 5 == 0 or i == num_steps - 1:
+    
+      if i % 5 == 0 or i == num_steps - 1: # Save loss values for final plot of loss evolution
         losses.append(lossitem)
         xs.append(i)
-
-      if i % num_save == 0 or i == num_steps - 1: 
+      
+      if i % num_save == 0 or i == num_steps - 1: # Save point clouds for final animation
         point_clouds.append(np.copy(point_cloud.detach().cpu().numpy()))
-      if i % 100 == 0 or i == num_steps - 1:
-        print(f"Iteration {i}/{num_steps}, Loss: {lossitem}")
+      
+      if (i+1) % 100 == 0 or i+1 == num_steps: # Show once every 100 steps the current loss
+        print(f"Iteration {i+1}/{num_steps}, Loss: {lossitem}")
 
   print("Training ended")
   # Save persistence diagram of the final point cloud:
