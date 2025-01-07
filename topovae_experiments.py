@@ -63,7 +63,6 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_l
       tot_loss0 = 0.
       tot_loss1 = 0.
       for batch_idx, (data, _) in enumerate(train_loader):
-          print(batch_idx)
           data = data.to(device)
           dgm_true = dgms_batches[batch_idx] # Get the pre-computed persistence diagram
           optimizer0.zero_grad()
