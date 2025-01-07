@@ -134,7 +134,7 @@ def save_fig_iter_losses(train_losses0_all, train_losses1_all, steps_per_item=1,
     Args:
         - train_losses0_all (list): Losses for the standard model.
         - train_losses1_all (list): Losses for the topology-informed model.
-        - steps_per_item (int): interval (in training steps) at which every measure of the loss is saved.
+        - steps_per_item (int): interval (in training steps) at which every measure of the loss was saved.
         - modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
         - metric (str): Metric used (e.g., BCE, KLD, MSE, etc.).
         - filename (str): Filename for saving the plot.
@@ -153,15 +153,15 @@ def save_fig_iter_losses(train_losses0_all, train_losses1_all, steps_per_item=1,
 
 def save_fig_epoch_losses(train_losses0, train_losses1, val_losses0, val_losses1, modelname="VAE", metric="BCE", filename="epoch_losses.png"):
     """
-    Saves a figure of training and validation losses for a standard generative model and a topology-informed model over epochs (i.e., one value per epoch).
+    Saves a figure of training and validation losses for a standard generative model and a topology-informed model over epochs (one value per epoch).
     Args:
-        train_losses0 (list): Training losses for the standard model.
-        train_losses1 (list): Training losses for the topology-informed model.
-        val_losses0 (list): Validation losses for the standard model.
-        val_losses1 (list): Validation losses for the topology-informed model.
-        modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
-        metric (str): Metric used (e.g., BCE, KLD, MSE, etc.).
-        filename (str): File path to save the plot.
+        - train_losses0 (list): Training losses for the standard model.
+        - train_losses1 (list): Training losses for the topology-informed model.
+        - val_losses0 (list): Validation losses for the standard model.
+        - val_losses1 (list): Validation losses for the topology-informed model.
+        - modelname (str): Model name (e.g., VAE, GAN, DiffusionModel, etc.).
+        - metric (str): Metric used (e.g., BCE, KLD, MSE, etc.).
+        - filename (str): File path to save the plot.
     """
     epochs = np.arange(len(train_losses0))
     plt.figure()
