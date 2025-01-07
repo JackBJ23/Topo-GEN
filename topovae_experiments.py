@@ -149,7 +149,7 @@ if __name__ == "__main__":
   args = load_config()
   torch.manual_seed(args.seed)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  # create the folder for saving the results:
+  # Create the folder for saving the results:
   if os.path.exists(args.test_name):
     shutil.rmtree(args.test_name) 
   os.makedirs(args.test_name, exist_ok=True)
