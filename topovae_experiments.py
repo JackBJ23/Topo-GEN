@@ -1,4 +1,5 @@
 import os
+import shutil
 import argparse
 import torch
 from torch import optim
@@ -148,8 +149,11 @@ if __name__ == "__main__":
   args = load_config()
   torch.manual_seed(args.seed)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  # create the folder for saving the results:
+  if os.path.exists(args.test_name):
+    shutil.rmtree(args.test_name) 
   os.makedirs(args.test_name, exist_ok=True)
-  print(f"Using topological weights: {args.topo_weights}. Device: {device}.")
+  print(f"Folder for results: {args.test_name}. Using topological weights: {args.topo_weights}. Device: {device}.")
   model0 = VAE(args.n_latent).to(device)
   model1 = VAE(args.n_latent).to(device)
   model1.load_state_dict(model0.state_dict())
