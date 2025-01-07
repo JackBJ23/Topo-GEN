@@ -1,8 +1,7 @@
 import os
 import argparse
-import numpy as np
-import matplotlib.pyplot as plt
-
+#import numpy as np
+#import matplotlib.pyplot as plt
 import torch
 from torch import optim
 import torch.nn.functional as F
@@ -14,8 +13,8 @@ from topogen import get_dgm, TopologicalLoss, save_gen_imgs, save_fig_iter_losse
 from model import VAE
 
 # Standard loss of VAE
-def loss_vae(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum') #recon_x: reconstructed batch of images, x: true batch of images
+def loss_vae(recon_x, x, mu, logvar):  #recon_x: reconstructed batch of images, x: true batch of images
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
     KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
     # See Appendix B from VAE paper: Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014. https://arxiv.org/abs/1312.6114
     return BCE, KLD
@@ -37,16 +36,16 @@ def evaluate(model0, model1, val_loader, epoch, eval_type, test_name, device):
         total_bce_loss0 += BCE0.item()
         # model1
         recon_batch1, mean1, log_var1 = model1(data)
-        # No need to compute the topological loss here, only use BCE for comparison (however, KLD or other metrics could also be added):
+        # No need to compute the topological loss here, only focus on BCE for comparison (however, KLD or other metrics can also be added):
         BCE1, _ = loss_vae(recon_batch1, data, mean1, log_var1)
         total_bce_loss1 += BCE1.item()
-        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'{test_name}/imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}')
+        if batch_idx == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, eval_type, filename=f'{test_name}/imgs_{eval_type}_after_{epoch}_epoch{"s" if epoch!=1 else ""}.png')
   # Return the average BCE loss per sample
   return total_bce_loss0 / n_samples, total_bce_loss1 / n_samples
 
 # Train and compare model0 (normal VAE) and model1 (TopoVAE):
 def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_loader, dgms_batches, device, args):
-  # Losses saved once per epoch (average):
+  # Losses saved once per epoch (taking the average of losses across all iterations):
   train_losses0 = []
   train_losses1 = []
   val_losses0 = []
@@ -92,13 +91,13 @@ def train(model0, model1, optimizer0, optimizer1, train_loader, len_train, val_l
           tot_loss1 += BCE1.item()
           train_losses1_all.append(BCE1.item() / data.size(0))
 
-          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'{args.test_name}/imgs_train_epoch_{epoch}_step_{batch_idx}')
+          if batch_idx % args.n_plot == 0: save_gen_imgs(data.cpu(), recon_batch0.cpu(), recon_batch1.cpu(), epoch, 'train', batch_idx, filename=f'{args.test_name}/imgs_train_epoch_{epoch}_step_{batch_idx}.png')
 
       print(f"End of epoch {epoch+1}/{args.n_epochs}")
       # Save average of losses over the epoch:
-      train_losses0.append(tot_loss0 / len_train)
+      train_losses0.append(tot_loss0 / len_train) # len_train: number of samples (images) in the training dataset
       train_losses1.append(tot_loss1 / len_train)
-      # Evaluate both models and get average BCE loss in the validation dataset:
+      # Evaluate both models and get the average BCE loss on the validation dataset:
       avg_val_loss0, avg_val_loss1 = evaluate(model0, model1, val_loader, epoch+1, 'val', args.test_name, device)
       val_losses0.append(avg_val_loss0)
       val_losses1.append(avg_val_loss1)
