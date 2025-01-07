@@ -22,7 +22,7 @@ def save_fig_dgm(dgm, filename="plot_dgm.png"):
     Saves a figure of a persistence diagram.
     Args:
         - dgm (dict): Persistence diagram. Can be obtained using the function get_dgm(point_cloud) from topo_functions.py.
-        - filename: File name to save the plot.
+        - filename (str): File name to save the plot.
     """
     if len(dgm["dgms"]) > 1: # I.e., dgm contains diagrams of degree 0 and 1
         dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0,1), np.inf, True)[0]
@@ -38,7 +38,7 @@ def save_fig_pc(pointcloud, filename="fig_pointcloud.png"):
     Saves a figure of a point cloud in 2D.
     Args:
         - pointcloud (np.ndarray): Point cloud. Shape (number of points, 2).
-        - filename: File name to save the plot.
+        - filename (str): File name to save the plot.
     """
     fig = go.Figure(plot_point_cloud(pointcloud))
     fig.write_image(filename)
@@ -59,7 +59,7 @@ def generate_animation(point_clouds, x1, x2, y1, y2, filename="point_clouds_evol
         - point_clouds (list): List of the point_clouds, where point_clouds[i] is the i-th point cloud, expected to be
         a np.ndarray of shape (number of points, dimension of each point).
         - x1, x2, y1, y2 (float): Limits of the figures (min-x, max-x, min-y, max-y, respectively).
-        - filename: File name to save the plot.
+        - filename (str): File name to save the plot.
     """
     # Create a list of figures for each point cloud
     figures = [_plot_pc_gif(point_cloud, x1, x2, y1, y2) for point_cloud in point_clouds]
