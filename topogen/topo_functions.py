@@ -14,7 +14,7 @@ General input arguments:
 - Optional:
   - dgm (dict): Persistence diagram for the first point cloud. If None, it will be computed.
   - dgm2 (dict): Persistence diagram for the true point cloud. If None, it will be computed.
-  - Other hyperparameters that control the topological functions.
+  - Additional hyperparameters that control the topological functions.
 
 Output:
   - torch.Tensor: The computed loss value as a scalar tensor. 
@@ -36,10 +36,10 @@ def get_dgm(point_cloud, deg=1):
     """
     Computes the persistence diagrams of a point cloud up to a specified degree.
     Args:
-      - point_cloud (torch.Tensor or np.ndarray): The input point cloud. Shape (number of points, dimension of each point) (i.e., each point is a 1D vector).
-      - deg (int): Homology degree of homology (0 or 1); persistence diagrams are computed up to degree deg.
+      - point_cloud (torch.Tensor or np.ndarray): The input point cloud. Shape (number of points, dimension of each point) (i.e., each point is viewed as a vector).
+      - deg (int): Homology degree of homology (0 or 1); persistence diagrams are computed up to degree deg. 1 is the more general option.
     Returns:
-      - dgm: A dictionary storing the persistence diagrams of the point cloud and the generators. dgms[i]: The persistence diagram for degree i.
+      - dgm: A dictionary storing the persistence diagrams of the point cloud and the generators. dgms['dgms'][i]: the persistence diagram of degree i.
     Note: The computation is performed using ripser_parallel, a fast algorithm for computing persistence diagrams that runs on the CPU and expects a NumPy array as input.
     """
     with torch.no_grad():
@@ -97,7 +97,7 @@ def loss_bottleneck1(point_cloud, point_cloud2, dgm=None, dgm2=None):
     # Check if the dgms have been provided:
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 1)
     if dgm2 is None: dgm2 = get_dgm(point_cloud2.view(point_cloud2.size(0), -1), 1)
-    # If dgm['dgms'][1], there is no loss:
+    # If dgm['dgms'][1] is empty, there is no loss:
     if len(dgm['dgms'][1]) == 0: return torch.tensor(0., device=point_cloud.device), False
     # If dgm2['dgms'][1] is empty, make a small change for simplifying the next calculations:
     if len(dgm2['dgms'][1]) == 0:
@@ -336,6 +336,7 @@ def loss_push0(point_cloud, dgm):
     """
     # Check if the dgm has been provided:
     if dgm is None: dgm = get_dgm(point_cloud.view(point_cloud.size(0), -1), 0)
+    if len(dgm['dgms'][0]) == 0: return torch.tensor(0., device=point_cloud.device)
 
     loss = - torch.abs(_dist(point_cloud[dgm['gens'][0][0][1]], point_cloud[dgm['gens'][0][0][2]]))/2.
     for i in range(1, len(dgm['gens'][0])):
@@ -345,12 +346,12 @@ def loss_push0(point_cloud, dgm):
 
 class TopologicalLoss:
     """
-    A class unifying all the topological regularizers for efficiently combining them in machine learning problems.
+    A class unifying all the topological regularizers for efficiently combining them in machine learning tasks.
     Attributes:
         - topo_weights (7-element list): List of weights for each topological loss. If 0, the corresponding loss is not used. 
         Corresponding functions: [loss_bottleneck0, loss_bottleneck1, loss_persentropy0, loss_persentropy1, loss_dsigma0, loss_dsigma1, loss_density].
         - deg (int): Homology degree for the persistence diagrams (0 or 1, with 1 the more general option).
-        - Additional parameters (pers0_delta, pers1_delta, ..., density_npoints): Control the topological functions. By default, they are set to reference values.
+        - Additional hyperparameters (pers0_delta, pers1_delta, ..., density_npoints): Control the topological functions. By default, they are set to reference values.
     Methods:
         - compute_loss: Computes the total topological loss.
     """
@@ -465,7 +466,7 @@ class TopologicalLoss:
             - dgm_true (torch.Tensor, optional): Persistence diagram of true_points.
         Returns:
             - torch.Tensor: Total loss (scalar).
-            - bool: True if the loss depends on the input points, False otherwise.
+            - bool: True if the loss depends on points, False otherwise.
         """
         if dgm is None: dgm = get_dgm(points.view(points.size(0), -1), self.deg)
         if dgm_true is None: dgm_true = get_dgm(true_points.view(true_points.size(0), -1), self.deg)
