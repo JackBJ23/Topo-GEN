@@ -1,12 +1,12 @@
 # Topo-GEN: Topology-Informed Generative Models
 
-This repository introduces a new approach for training generative models leveraging computational topology. Specifically, it employs persistence diagrams, a mathematical tool that captures the "shape" of point clouds within any metric space. This union seeks to provide models with previously unexplored information about the structure of the true and the generated data, in order to enhance their training process. 
+This repository introduces a new approach for training generative models using computational topology. Specifically, it leverages persistence diagrams, mathematical objects that capture the "shape" of point clouds in any metric space. By integrating this topological information, our approach aims to provide generative models with richer insights about the structure of the true and the generated data, in order to improve the training process. 
 
-To this aim, we introduce `topogen`, a library that provides a new family of topological regularizers. These functions can be implemented as loss functions in any machine learning problem that involves learning to generate a point cloud from another input point cloud, regardless of their dimensions, number of points, or format. In fact, a key aspect of persistence diagrams is that they translate the topological and geometrical features of point clouds into an object that can be efficiently compared among different point clouds, even if they lie in different spaces and have different numbers of points.
+To achieve this, we introduce `topogen`, a library that provides a new family of topological regularizers. These functions can be implemented as loss functions in any machine learning task involving the generation of point clouds from input point clouds, regardless of their dimensions, number of points, or format. A key advantage of persistence diagrams is their ability to translate the topological and geometrical features of point clouds into a comparable form, even when the point clouds exist in different spaces or contain differing numbers of points.
 
-Furthermore, we provide additional files to test topological regularizers:
-- `synthetic_experiments.py` provides synthetic proof-of-concept experiments with point clouds in 2D, and a "virtual playground" to test topological regularizers on arbitrary point clouds in 2D.
-- `topovae_experiments.py` allows to train and test variational autoencoders (VAEs) using topological regularizers.
+Furthermore, we provide additional files for testing:
+- `synthetic_experiments.py`: Provides synthetic proof-of-concept experiments with 2D point clouds, and a "virtual playground" to test topological regularizers on arbitrary 2D point clouds.
+- `topovae_experiments.py`: Allows to train and test variational autoencoders (VAEs) using topological regularizers on the FashionMNIST dataset.
 
 Algorithms in this repository are fully supported to run on the GPU.
 
